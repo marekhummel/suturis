@@ -1,0 +1,19 @@
+# Editor settings
+.vscode/
+
+# Linting
+.mypy_cache
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# distribution
+build/
+*.egg-info/
+dist/
+
+# test data
+data/
+
+# Test files
+# main.py
