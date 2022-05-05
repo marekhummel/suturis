@@ -1,3 +1,3 @@
-import suturis.processor as proc
+import suturis.executor as proc
 
 proc.run()
