@@ -12,7 +12,7 @@ class FileReader(BaseReader):
         super().__init__()
         self.capture = cv2.VideoCapture(path)
 
-    def read_image(self) -> Tuple[bool, ArrayLike]:
+    async def read_image(self) -> Tuple[bool, ArrayLike]:
         if not self.capture.isOpened():
             return False, None
 

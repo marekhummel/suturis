@@ -1,2 +1,2 @@
-def blend(image):
+async def blend(image):
     return image

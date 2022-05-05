@@ -3,7 +3,7 @@ from suturis.io.reader.basereader import BaseReader
 from os import listdir
 from os.path import isfile, join
 import cv2
-import time
+import asyncio
 
 
 class FakeRtspReader(BaseReader):
@@ -13,8 +13,8 @@ class FakeRtspReader(BaseReader):
         self.images = [cv2.imread(i) for i in onlyimages]
         self.counter = 0
 
-    def read_image(self):
-        time.sleep(0.5)
+    async def read_image(self):
+        await asyncio.sleep(0.5)
         img = self.images[self.counter]
         self.counter = (self.counter + 1) % len(self.images)
         return True, img

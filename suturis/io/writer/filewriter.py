@@ -6,5 +6,5 @@ class FileWriter(BaseWriter):
         super().__init__()
         self.path = path
 
-    def write_image(self, image) -> None:
+    async def write_image(self, image) -> None:
         return super().write_image(image)
