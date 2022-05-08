@@ -13,10 +13,10 @@ from suturis.processing import stitcher, blender
 async def run():
     # Define readers / writers
     readers: Tuple[BaseReader, BaseReader] = (
-        # FileReader('./data/Boot1-Vorne-0120210705165153.mp4'),
-        # FileReader('./data/Boot1-Achtern-0120210705165038.mp4')
-        FakeRtspReader('./data/img/first'),
-        FakeRtspReader('./data/img/second'),
+        FileReader('./data/lr/port_0120220423162959.mp4', 10.3),
+        FileReader('./data/lr/starboard_0120220423163949.mp4')
+        # FakeRtspReader('./data/lr/img/first'),
+        # FakeRtspReader('./data/lr/img/second'),
     )
     writers: List[BaseWriter] = [
         ScreenOutput()
@@ -38,7 +38,7 @@ async def run():
             break
 
         # Process
-        image = await stitcher.stitch(image1, image2)
+        image = await stitcher.compute(image1, image2)
         image = await blender.blend(image)
 
         # Write
@@ -49,6 +49,9 @@ async def run():
         if key == ord('q'):
             break
         if key == ord('s'):
-            cv2.imwrite(f'./data/img/first/{ctr}.jpg', image1)
-            cv2.imwrite(f'./data/img/second/{ctr}.jpg', image2)
+            cv2.imwrite(f'./data/lr/img/first/{ctr}.jpg', image1)
+            cv2.imwrite(f'./data/lr/img/second/{ctr}.jpg', image2)
             ctr += 1
+        if key == ord('p'):
+            while cv2.waitKey(25) & 0xFF != ord('p'):
+                pass

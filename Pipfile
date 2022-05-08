@@ -12,6 +12,7 @@ flake8 = "*"
 mypy = "*"
 rope = "*"
 pygount = "*"
+black = "*"
 
 [requires]
 python_version = "3.9"

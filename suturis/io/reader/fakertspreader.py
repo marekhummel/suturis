@@ -14,7 +14,7 @@ class FakeRtspReader(BaseReader):
         self.counter = 0
 
     async def read_image(self):
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(1.0)
         img = self.images[self.counter]
         self.counter = (self.counter + 1) % len(self.images)
         return True, img
