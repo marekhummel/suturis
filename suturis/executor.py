@@ -1,5 +1,4 @@
 from typing import List, Tuple
-from unittest import result
 
 import cv2
 import asyncio
@@ -7,14 +6,15 @@ import asyncio
 from suturis.io.reader import BaseReader, FileReader
 from suturis.io.reader.fakertspreader import FakeRtspReader
 from suturis.io.writer import BaseWriter, ScreenOutput
-from suturis.processing import stitcher, blender
+from suturis.processing import blender
+from suturis.processing.stitching import stitcher
 
 
 async def run():
     # Define readers / writers
     readers: Tuple[BaseReader, BaseReader] = (
-        FileReader('./data/lr/port_0120220423162959.mp4', 10.3),
-        FileReader('./data/lr/starboard_0120220423163949.mp4')
+        FileReader('./data/lr/port_0120220423162959.mp4', single_frame=True),
+        FileReader('./data/lr/starboard_0120220423163949.mp4', 10.3, True)
         # FakeRtspReader('./data/lr/img/first'),
         # FakeRtspReader('./data/lr/img/second'),
     )
