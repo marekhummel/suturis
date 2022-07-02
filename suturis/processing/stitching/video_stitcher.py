@@ -11,6 +11,7 @@ class VideoStitcher:
         self.ratio = 0.75
         self.reprojThresh = 4.0
         self.restrictions = ((0.1, 0.8), (0.25, 0.75))
+        self.keypoints = None
 
     def stitch(self, imageA, imageB):
         # if the cached homography matrix is None, then we need to
@@ -27,6 +28,8 @@ class VideoStitcher:
                 return None
             # cache the homography matrix
             self.cachedH = M
+            self.keypoints = (kpsA, kpsB)
+
         # apply a perspective transform to stitch the images together
         # using the cached homography matrix
         result = cv2.warpPerspective(

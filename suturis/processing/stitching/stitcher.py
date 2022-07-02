@@ -5,13 +5,26 @@ from suturis.processing.stitching.video_stitcher import VideoStitcher
 # import suturis.processing.stitching.opencv_stitcher
 
 
+stitcher = VideoStitcher()
+
+
 async def compute(image1, image2):
-    # stitcher = CurrentStitcher()
-    stitcher = VideoStitcher()
     stitched = stitcher.stitch(image1, image2)
+    resized_stitched = cv2.resize(stitched, (0, 0), None, 0.8, 0.8)
+    resized_stitched = np.delete(resized_stitched, np.s_[(int)(resized_stitched.shape[1] * 0.55):], axis=1)  
+    return resized_stitched
+
     # print(stitched.shape)
     # stitched = current_stitcher.stitch(image1, image2)
     return _combine_with_input(image1, image2, stitched)
+
+
+def get_keypoints():
+    return stitcher.keypoints
+
+
+def get_matches_with_status():
+    return (stitcher.cachedH[0], stitcher.cachedH[2])
 
 
 def _test_stitch(image1, image2):
