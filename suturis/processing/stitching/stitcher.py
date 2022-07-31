@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from suturis.processing.stitching.current_stitcher import CurrentStitcher
+from suturis.processing.stitching.opencv_stitcher import OpenCvStitcher
 from suturis.processing.stitching.video_stitcher import VideoStitcher
 # import suturis.processing.stitching.opencv_stitcher
 
@@ -11,7 +12,6 @@ stitcher = VideoStitcher()
 async def compute(image1, image2):
     stitched = stitcher.stitch(image1, image2)
     resized_stitched = cv2.resize(stitched, (0, 0), None, 0.8, 0.8)
-    resized_stitched = np.delete(resized_stitched, np.s_[(int)(resized_stitched.shape[1] * 0.55):], axis=1)  
     return resized_stitched
 
     # print(stitched.shape)
@@ -20,11 +20,15 @@ async def compute(image1, image2):
 
 
 def get_keypoints():
-    return stitcher.keypoints
+    if hasattr(stitcher, 'keypoints') and stitcher.keypoints is not None:
+        return stitcher.keypoints
+    return (None, None)
 
 
 def get_matches_with_status():
-    return (stitcher.cachedH[0], stitcher.cachedH[2])
+    if hasattr(stitcher, 'cachedH') and stitcher.cachedH is not None:
+        return (stitcher.cachedH[0], stitcher.cachedH[2])
+    return (None, None)
 
 
 def _test_stitch(image1, image2):

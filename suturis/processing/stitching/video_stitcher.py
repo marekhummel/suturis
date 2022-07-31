@@ -47,7 +47,8 @@ class VideoStitcher:
         # return self.drawMatches(
         #     imageA, imageB, kpsA, kpsB, self.cachedH[0], self.cachedH[2]
         # )
-        return result
+        resized_result = np.delete(result, np.s_[(int)(result.shape[1] * 0.55):], axis=1)
+        return resized_result
 
     def detectAndDescribe(self, image):
         # detect and extract features from the image

@@ -58,13 +58,13 @@ class CurrentStitcher:
 
         # ----------------------------------------------------------------------
         # image, where transformed image is on top of the other
-        # output_img = cv2.warpPerspective(
-        #     img2, H_translation.dot(H), (x_max - x_min, y_max - y_min)
-        # )
-        # output_img[
-        #     translation_dist[1] : rows1 + translation_dist[1],
-        #     translation_dist[0] : cols1 + translation_dist[0],
-        # ] = img1
+        output_img = cv2.warpPerspective(
+            img2, H_translation.dot(H), (x_max - x_min, y_max - y_min)
+        )
+        output_img[
+            translation_dist[1] : rows1 + translation_dist[1],
+            translation_dist[0] : cols1 + translation_dist[0],
+        ] = img1
 
         # ----------------------------------------------------------------------
         # image, where overlay is 50/50 in area, where both images are

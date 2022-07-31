@@ -3,11 +3,13 @@ from typing import List, Tuple
 import cv2
 import asyncio
 import numpy as np
+from pygments import highlight
 
 from suturis.io.reader import BaseReader, FileReader
 from suturis.io.reader.fakertspreader import FakeRtspReader
 from suturis.io.writer import BaseWriter, ScreenOutput
 from suturis.processing import blender
+from suturis.processing.pre.line_detection import detect_lines_canny, detect_lines_lsd
 from suturis.processing.stitching import stitcher
 from suturis.processing.util import concat_images, draw_matches, highlight_features
 
@@ -42,8 +44,9 @@ async def run():
             break
 
         # Process
+        image1, image2 = await blender.blend(image1, image2)
         image = await stitcher.compute(image1, image2)
-        image = await blender.blend(image)
+        # image = image1
 
         # Show input
 
@@ -52,13 +55,17 @@ async def run():
         (matches, status) = stitcher.get_matches_with_status()
 
         # Show matches
-        input_vis = draw_matches(image1, image2, kpsA, kpsB, matches, status)
-        resize_vis = cv2.resize(input_vis, (0, 0), None, 0.5, 0.5)
-        await input_window2.write_image(resize_vis)
+        if all(x is not None for x in [kpsA, kpsB, matches, status]):
+            input_vis = draw_matches(image1, image2, kpsA, kpsB, matches, status)
+            resize_vis = cv2.resize(input_vis, (0, 0), None, 0.5, 0.5)
+            await input_window2.write_image(resize_vis)
 
         # Show highlighted input
-        highlighted1 = highlight_features(image1, kpsA, matches, status, 1)
-        highlighted2 = highlight_features(image2, kpsB, matches, status, 0)
+        # highlighted1 = highlight_features(image1, kpsA, matches, status, 1)
+        # highlighted2 = highlight_features(image2, kpsB, matches, status, 0)
+        highlighted1 = detect_lines_canny(image1)
+        highlighted2 = detect_lines_canny(image2)
+
         concat_input = concat_images(highlighted1, highlighted2)
         await input_window.write_image(concat_input)
 
