@@ -3,7 +3,8 @@ import numpy as np
 
 
 class CurrentStitcher:
-    def stitch(self, image1, image2):
+    def stitch(self, images):
+        image1, image2 = images
 
         # Create our ORB detector and detect keypoints and descriptors
         orb = cv2.ORB_create(nfeatures=16000)

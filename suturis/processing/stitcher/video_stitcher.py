@@ -13,7 +13,9 @@ class VideoStitcher:
         self.restrictions = ((0.1, 0.8), (0.25, 0.75))
         self.keypoints = None
 
-    def stitch(self, imageA, imageB):
+    def stitch(self, images):
+        imageA, imageB = images
+
         # if the cached homography matrix is None, then we need to
         # apply keypoint matching to construct it
         if self.cachedH is None:
@@ -40,13 +42,7 @@ class VideoStitcher:
 
         imageB_pad = np.pad(imageB, [(0, 0), (0, imageA.shape[1]), (0, 0)], mode="constant", constant_values=0)
         result = cv2.addWeighted(result, 0.5, imageB_pad, 0.5, 0)
-        # result[0:imageB.shape[0], 0:imageB.shape[1]] = imageB
 
-        # return the stitched image
-
-        # return self.drawMatches(
-        #     imageA, imageB, kpsA, kpsB, self.cachedH[0], self.cachedH[2]
-        # )
         resized_result = np.delete(result, np.s_[(int)(result.shape[1] * 0.55):], axis=1)
         return resized_result
 
