@@ -9,7 +9,7 @@ import asyncio
 class FakeRtspReader(BaseReader):
     def __init__(self, path: str) -> None:
         onlyfiles = [join(path, f) for f in listdir(path) if isfile(join(path, f))]
-        onlyimages = [f for f in onlyfiles if f.endswith('.jpg')]
+        onlyimages = [f for f in onlyfiles if f.endswith(".jpg")]
         self.images = [cv2.imread(i) for i in onlyimages]
         self.counter = 0
 

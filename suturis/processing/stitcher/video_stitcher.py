@@ -40,10 +40,17 @@ class VideoStitcher:
             (imageA.shape[1] + imageB.shape[1], imageA.shape[0]),
         )
 
-        imageB_pad = np.pad(imageB, [(0, 0), (0, imageA.shape[1]), (0, 0)], mode="constant", constant_values=0)
+        imageB_pad = np.pad(
+            imageB,
+            [(0, 0), (0, imageA.shape[1]), (0, 0)],
+            mode="constant",
+            constant_values=0,
+        )
         result = cv2.addWeighted(result, 0.5, imageB_pad, 0.5, 0)
 
-        resized_result = np.delete(result, np.s_[(int)(result.shape[1] * 0.55):], axis=1)
+        resized_result = np.delete(
+            result, np.s_[(int)(result.shape[1] * 0.55) :], axis=1
+        )
         return resized_result
 
     def detectAndDescribe(self, image):

@@ -30,4 +30,3 @@ class FileReader(BaseReader):
             return False, None
 
         return True, frame
-

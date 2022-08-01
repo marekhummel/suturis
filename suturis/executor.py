@@ -13,29 +13,24 @@ from suturis.processing.util import concat_images, draw_matches, highlight_featu
 async def run():
     # Define readers / writers
     readers: Tuple[BaseReader, BaseReader] = (
-        FileReader('./data/lr/port_0120220423162959.mp4', single_frame=True),
-        FileReader('./data/lr/starboard_0120220423163949.mp4', 10.3, True)
+        FileReader("./data/lr/port_0120220423162959.mp4"),
+        FileReader("./data/lr/starboard_0120220423163949.mp4", 9.2)
         # FakeRtspReader('./data/lr/img/first'),
         # FakeRtspReader('./data/lr/img/second'),
     )
-    writers: List[BaseWriter] = [
-        ScreenOutput('Stitched')
-    ]
-    input_window = ScreenOutput('Input')
+    writers: List[BaseWriter] = [ScreenOutput("Stitched")]
+    input_window = ScreenOutput("Input")
 
     # Loop
     ctr = 0
     while True:
         # Read
-        results = await asyncio.gather(
-            readers[0].read_image(),
-            readers[1].read_image()
-        )
+        results = await asyncio.gather(readers[0].read_image(), readers[1].read_image())
         success1, image1 = results[0]
         success2, image2 = results[1]
 
         if not success1 or not success2:
-            print('readers failed')
+            print("readers failed")
             break
 
         # Process
@@ -56,12 +51,12 @@ async def run():
 
         # Misc
         key = cv2.waitKey(25) & 0xFF
-        if key == ord('q'):
+        if key == ord("q"):
             break
-        if key == ord('s'):
-            cv2.imwrite(f'./data/lr/img/first/{ctr}.jpg', image1)
-            cv2.imwrite(f'./data/lr/img/second/{ctr}.jpg', image2)
+        if key == ord("s"):
+            cv2.imwrite(f"./data/lr/img/first/{ctr}.jpg", image1)
+            cv2.imwrite(f"./data/lr/img/second/{ctr}.jpg", image2)
             ctr += 1
-        if key == ord('p'):
-            while cv2.waitKey(25) & 0xFF != ord('p'):
+        if key == ord("p"):
+            while cv2.waitKey(25) & 0xFF != ord("p"):
                 pass
