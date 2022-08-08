@@ -4,22 +4,24 @@ import cv2
 import asyncio
 
 from suturis.io.reader import BaseReader, FileReader
-from suturis.io.writer import BaseWriter, ScreenOutput
+from suturis.io.writer import BaseWriter, ScreenOutput, FileWriter
 from suturis.processing import stitching
-from suturis.processing.stitcher.video_stitcher import VideoStitcher
-from suturis.processing.util import concat_images, draw_matches, highlight_features
+
+STEPWISE = False
 
 
 async def run():
     # Define readers / writers
     readers: Tuple[BaseReader, BaseReader] = (
-        FileReader("./data/lr/port_0120220423162959.mp4"),
-        FileReader("./data/lr/starboard_0120220423163949.mp4", 9.2)
+        FileReader("./data/lr/starboard_0120220423163949.mp4", 9.2, single_frame=True),
+        FileReader("./data/lr/port_0120220423162959.mp4", single_frame=True)
         # FakeRtspReader('./data/lr/img/first'),
         # FakeRtspReader('./data/lr/img/second'),
     )
-    writers: List[BaseWriter] = [ScreenOutput("Stitched")]
-    input_window = ScreenOutput("Input")
+    writers: List[BaseWriter] = [
+        ScreenOutput("Stitched"),
+        # FileWriter('Final', 'Test')
+    ]
 
     # Loop
     ctr = 0
@@ -36,16 +38,6 @@ async def run():
         # Process
         image = await stitching.compute(image1, image2)
 
-        # Show input
-        stitcher = stitching.get_sticher()
-        if isinstance(stitcher, VideoStitcher):
-            (kpsA, kpsB) = stitcher.keypoints
-            (matches, status) = (stitcher.cachedH[0], stitcher.cachedH[2])
-
-            input_vis = draw_matches(image1, image2, kpsA, kpsB, matches, status)
-            resize_vis = cv2.resize(input_vis, (0, 0), None, 0.5, 0.5)
-            await input_window.write_image(resize_vis)
-
         # Write output
         await asyncio.gather(*[w.write_image(image) for w in writers])
 
@@ -57,6 +49,6 @@ async def run():
             cv2.imwrite(f"./data/lr/img/first/{ctr}.jpg", image1)
             cv2.imwrite(f"./data/lr/img/second/{ctr}.jpg", image2)
             ctr += 1
-        if key == ord("p"):
+        if key == ord("p") or STEPWISE:
             while cv2.waitKey(25) & 0xFF != ord("p"):
                 pass

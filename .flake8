@@ -1,6 +1,6 @@
 [flake8]
 max-line-length = 120
-ignore = E741
+ignore = E741, E203
 exclude = 
     misc/
     main.py
