@@ -23,12 +23,12 @@ async def process(data):
         updating_task.add(new_task)
         new_task.add_done_callback(updating_task.discard)
 
-    if param is None and len(updating_task) == 1:
+    if param is None:
         printt("Return default while init")
         return -1
 
     printt("Process")
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.1)  # What if these are not awaitable
     return data * param
 
 
@@ -36,15 +36,15 @@ async def update_params(data):
     global param
 
     printt("Param update start")
-    await asyncio.sleep(5)
+    await asyncio.sleep(3)
     if param is None:
         param = 1
     param += 1
-    printt("Param update complete")
+    printt(f"Param update complete (value: {param})")
 
 
 async def main():
-    while True:
+    while perf_counter() - start_time < 6:
         x = await get_data()
         y = await process(x)
         printt(f"Values: {x} {y}")
