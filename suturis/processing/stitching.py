@@ -2,6 +2,7 @@ import suturis.processing._homography as hg
 import suturis.processing._seaming as seam
 import suturis.processing._masking as mask
 import numpy as np
+import cv2
 
 
 def compute(*images):
@@ -42,9 +43,13 @@ def compute(*images):
     modified_img = seam.prepare_img_for_seam_finding(
         img1_translated, img2_warped, preferred_seam, seam_start
     )
-    seammat = seam.find_seam_dynamically(
-        modified_img, img2_warped, seam_start, seam_end
+    # seammat = seam.find_seam_dynamically(
+    #     modified_img, img2_warped, seam_start, seam_end
+    # )
+    seammat = np.zeros(
+        (seam_end[0] - seam_start[0], seam_end[1] - seam_start[1]), dtype=bool
     )
+    seammat[seammat.shape[0] // 2, :] = True
 
     # # Create mask
     x_trans = h_translation[0][2]
@@ -69,5 +74,8 @@ def compute(*images):
     seam_line = np.zeros(shape=masked_img.shape[:2], dtype=bool)
     seam_line[seam_start[0] : seam_end[0], seam_start[1] : seam_end[1]] = seammat
     masked_img[seam_line] = [0, 255, 0]
+
+    cv2.circle(masked_img, seam_start[::-1], 4, [255, 0, 0], -1)
+    cv2.circle(masked_img, seam_end[::-1], 4, [255, 0, 0], -1)
 
     return masked_img

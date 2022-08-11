@@ -24,7 +24,7 @@ def timed(func):
         result = func(*args, **kwargs)
         end = perf_counter_ns()
         duration = (end - begin) / 1000 / 1000 / 1000
-        print(f'Runtime of "{func.__name__}": {duration:.5f} secs.')
+        # print(f'Runtime of "{func.__name__}": {duration:.5f} secs.')
         return result
 
     return _wrapper
