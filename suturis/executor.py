@@ -13,8 +13,8 @@ STEPWISE = False
 async def run():
     # Define readers / writers
     readers: Tuple[BaseReader, BaseReader] = (
-        FileReader("./data/lr/starboard_0120220423163949.mp4", 9.2, single_frame=True),
-        FileReader("./data/lr/port_0120220423162959.mp4", single_frame=True)
+        FileReader("./data/lr/starboard_0120220423163949.mp4", 9.2),
+        FileReader("./data/lr/port_0120220423162959.mp4")
         # FakeRtspReader('./data/lr/img/first'),
         # FakeRtspReader('./data/lr/img/second'),
     )
@@ -36,10 +36,11 @@ async def run():
             break
 
         # Process
-        image = await stitching.compute(image1, image2)
+        image = stitching.compute(image1, image2)
 
         # Write output
-        await asyncio.gather(*[w.write_image(image) for w in writers])
+        for w in writers:
+            w.write_image(image)
 
         # Misc
         key = cv2.waitKey(25) & 0xFF

@@ -4,7 +4,7 @@ import suturis.processing._masking as mask
 import numpy as np
 
 
-async def compute(*images):
+def compute(*images):
     assert len(images) == 2
     image1, image2 = images
 

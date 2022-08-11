@@ -14,6 +14,6 @@ class FileWriter(BaseWriter):
         if not isdir(f"out/{self.dir}/"):
             makedirs(f"out/{self.dir}/")
 
-    async def write_image(self, image) -> None:
+    def write_image(self, image) -> None:
         cv2.imwrite(f"out/{self.dir}/{self.name}_{self.counter}.png", image)
         self.counter += 1
