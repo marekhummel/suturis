@@ -16,4 +16,5 @@ import suturis.executor as runner
 
 
 # # asyncio.run(main())
-asyncio.run(runner.run())
+if __name__ == '__main__':
+    asyncio.run(runner.run())
