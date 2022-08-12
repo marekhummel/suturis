@@ -13,12 +13,19 @@ class Param(Enum):
 
 
 class LocalParams:
-    def __init__(self, shared: "SharedParams") -> None:
-        self.translated_base = self._transfer_np_array(*shared.translated_base)
-        self.warped_query = self._transfer_np_array(*shared.warped_query)
-        self.stitch_mask = self._transfer_np_array(*shared.stitch_mask)
-        self.seam_corners = self._transfer_np_array(*shared.seam_corners)
-        self.seam_matrix = self._transfer_np_array(*shared.seam_corners)
+    def __init__(self, img1, img2, mask, seam_corner, seammat) -> None:
+        self.translated_base = img1
+        self.warped_query = img2
+        self.stitch_mask = mask
+        self.seam_corners = seam_corner
+        self.seam_matrix = seammat
+
+    # def __init__(self, shared: "SharedParams") -> None:
+    #     self.translated_base = self._transfer_np_array(*shared.translated_base)
+    #     self.warped_query = self._transfer_np_array(*shared.warped_query)
+    #     self.stitch_mask = self._transfer_np_array(*shared.stitch_mask)
+    #     self.seam_corners = self._transfer_np_array(*shared.seam_corners)
+    #     self.seam_matrix = self._transfer_np_array(*shared.seam_corners)
 
     def _transfer_np_array(self, mp_name, mp_shape) -> np.ndarray:
         shm_name = mp_name.value
