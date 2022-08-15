@@ -5,7 +5,7 @@ import multiprocessing as mp
 import threading
 import logging as log
 import sys
-from suturis.processing.computation.memory import LocalParams, Param, SharedParams
+from suturis.processing.computation.memory import CParamsStruct, LocalParams
 from typing import Optional
 
 background_running = False
@@ -18,14 +18,16 @@ def get_params(image1, image2) -> Optional[LocalParams]:
 
     if not background_running:
         log.info("Recompute stitching params")
-        local, fork = mp.Pipe(duplex=True)
-        proc = mp.Process(target=_compute, args=(fork,), daemon=True)
+        memory = mp.RawValue(CParamsStruct)
+        memory.input_base = image1
+        memory.input_warped = image2
+        proc = mp.Process(target=_compute, args=(memory,), daemon=True)
         background_running = True
         proc.start()
         log.info("Process started")
 
         watcher = threading.Thread(
-            target=_computation_watcher, args=(proc, local, image1, image2), daemon=True
+            target=_computation_watcher, args=(proc, memory), daemon=True
         )
         watcher.start()
         log.info("Watcher started")
@@ -35,27 +37,23 @@ def get_params(image1, image2) -> Optional[LocalParams]:
     return local_params
 
 
-def _computation_watcher(process, pipe_conn, image1, image2):
+def _computation_watcher(process, memory):
     global background_running, local_params
 
-    # Send data
-    log.info("Watcher: Send images")
-    pipe_conn.send(image1)
-    pipe_conn.send(image2)
-
     # Block until receiving data
-    log.info("Watcher: Receive params")
-    img1_translated = pipe_conn.recv()
-    img2_warped = pipe_conn.recv()
-    stitch_mask = pipe_conn.recv()
-    (seam_start, seam_end) = pipe_conn.recv()
-    seammat = pipe_conn.recv()
+    log.info("Watcher: Block until params received")
+    process.join()
 
     # Finish
     log.info("Watcher: Update params")
-    process.join()
+    img1_translated = memory.translated_base
+    img2_warped = memory.warped_query
+    stitch_mask = memory.stitch_mask
+    seam_corners = memory.seam_corners
+    seammat = memory.seammat
+
     local_params = LocalParams(
-        img1_translated, img2_warped, stitch_mask, [*seam_start, *seam_end], seammat
+        img1_translated, img2_warped, stitch_mask, seam_corners, seammat
     )
     background_running = False
 
