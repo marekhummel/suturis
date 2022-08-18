@@ -3,6 +3,7 @@ import multiprocessing as mp
 import multiprocessing.shared_memory as mpsm
 import numpy.ctypeslib as npc
 import ctypes
+import numpy as np
 
 
 class CParamsStruct(ctypes.Structure):

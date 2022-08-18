@@ -19,8 +19,9 @@ def get_params(image1, image2) -> Optional[LocalParams]:
     if not background_running:
         log.info("Recompute stitching params")
         memory = mp.RawValue(CParamsStruct)
-        memory.input_base = image1
-        memory.input_warped = image2
+        struct = CParamsStruct(image1, image2)
+
+        memory.value = struct
         proc = mp.Process(target=_compute, args=(memory,), daemon=True)
         background_running = True
         proc.start()

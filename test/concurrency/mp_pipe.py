@@ -1,3 +1,4 @@
+from asyncio.windows_utils import pipe
 import multiprocessing as mp
 import random as rnd
 from time import perf_counter, sleep
@@ -10,7 +11,7 @@ param = None
 
 
 def printt(text):
-    print(f"{perf_counter() - start_time:.3f}s: " + text)
+    print(f"{perf_counter() - start_time:.3f}s: {text}")
 
 
 def get_data():
@@ -23,15 +24,15 @@ def process(data):
     global background_running, param
 
     if not background_running:
-        mpvar = mp.Value("i")
-        proc = mp.Process(target=update_param, args=(data, mpvar), daemon=True)
+        local, fork = mp.Pipe(duplex=True)
+        proc = mp.Process(target=update_param, args=(fork,), daemon=True)
 
         printt(f"Param update start (input: {data})")
         background_running = True
         proc.start()
 
         watcher = threading.Thread(
-            target=update_param_watcher, args=(proc, mpvar), daemon=True
+            target=update_param_watcher, args=(proc, data, local), daemon=True
         )
         watcher.start()
 
@@ -44,18 +45,23 @@ def process(data):
     return data * param
 
 
-def update_param_watcher(process, mpvalue):
+def update_param_watcher(process, data, pipe_conn):
     global param, background_running
+    pipe_conn.send(data)
+
+    result = pipe_conn.recv()
     process.join()
 
-    printt(f"Background process done (value: {mpvalue.value})")
-    param = mpvalue.value
+    printt(f"Background process done (value: {result})")
+    param = result
     background_running = False
 
 
-def update_param(data, var):
+def update_param(pipe_conn):
+    data = pipe_conn.recv()
     sleep(3)
-    var.value = data // 2
+    result = data // 2
+    pipe_conn.send(result)
 
 
 def main():
