@@ -103,10 +103,10 @@ def update_param(pipe_conn):
 def main():
     global shutdown
 
-    while perf_counter() - start_time < 7:
+    while perf_counter() - start_time < 10:
         x = get_data()
         y = process(x)
-        printt(f"Values: {type(x)} {type(y)}")
+        printt(f"Values: {type(x)} {type(y)} {param}")
 
     shutdown = True
     printt("EXIT")
