@@ -1,7 +1,7 @@
-from csv import excel
 import multiprocessing as mp
-from time import perf_counter, sleep
 import threading
+from time import perf_counter, sleep
+
 import numpy as np
 
 
