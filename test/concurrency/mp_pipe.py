@@ -36,7 +36,6 @@ def process(data):
 
         printt(f"Param update start (data: {type(data)})")
         background_running = True
-        proc.start()
 
         watcher = threading.Thread(
             target=update_param_watcher, args=(proc, data, local, fork), daemon=True
@@ -60,6 +59,7 @@ def update_param_watcher(process, data, pipe_local, pipe_fork):
     # Send data to process via pipe
 
     try:
+        process.start()
         pipe_local.send(data1)
         pipe_local.send(data2)
 

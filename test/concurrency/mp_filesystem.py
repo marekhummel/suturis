@@ -34,7 +34,6 @@ def process(data):
 
         printt(f"Param update start (data: {type(data)})")
         background_running = True
-        proc.start()
 
         watcher = threading.Thread(
             target=update_param_watcher, args=(proc, data), daemon=True
@@ -60,6 +59,7 @@ def update_param_watcher(process, data):
     np.save(file_dir + "data2", data2)
 
     # Idle until results
+    process.start()
     process.join()
     result = float(open(file_dir + "result1.txt", mode="r").readline())
     _ = np.load(file_dir + "result2.npy")
