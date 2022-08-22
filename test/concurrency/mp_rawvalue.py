@@ -91,12 +91,16 @@ def update_param_watcher(process, data, memory):
     # Send data in manager
     memory.data1 = to_shared_array(data1)
     memory.data2 = to_shared_array(data2)
+    memory.result1 = mp.RawValue(ctypes.c_float, 0)
+    memory.result2 = RawNumpyArray(
+        mp.RawArray(ctypes.c_double, 720 * 1280 * 3), (720, 1280, 3), 3
+    )
 
     # Idle until results
     process.start()
     process.join()
-    result = memory.result1
-    result2 = from_shared_array(memory.result2)
+    result = memory.result1.value
+    _ = from_shared_array(memory.result2)
 
     # Update param object
     printt(f"Background process done (value: {result})")
@@ -106,20 +110,20 @@ def update_param_watcher(process, data, memory):
 
 def update_param(memory):
     # Receive data for computation
-    # print("e")
     data1 = from_shared_array(memory.data1)
     data2 = from_shared_array(memory.data2)
 
     # Compute new params
-    # print("t")
     sleep(3)
     result = np.average(data1) + np.average(data2)
-    print(result)
     result2 = np.random.rand(720, 1280, 3)
 
     # Return results
-    memory.result1 = mp.RawValue(ctypes.c_float, result)
-    memory.result2 = to_shared_array(result2)
+    memory.result1.value = result
+    buffered_result = np.ndarray(
+        memory.result2.shape, dtype=np.float64, buffer=memory.result2.data
+    )
+    np.copyto(buffered_result, result2.astype(np.float64))
 
 
 def main():
