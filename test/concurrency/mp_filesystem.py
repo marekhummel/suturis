@@ -7,6 +7,8 @@ import os
 
 start_time = perf_counter()
 background_running = False
+
+# Works, but slow due to file system. Use tempfile.mkstemp and RAM mounted folder with tmpfs
 file_dir = "/tmp/"
 param = None
 shutdown = False
