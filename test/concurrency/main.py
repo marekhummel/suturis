@@ -13,10 +13,10 @@ import benchmarks.mp_sharedmemory as mpshm
 import benchmarks.mt_basic as mtbas
 from util import average_delta, get_data, printt, process
 
-DELAY_DATA_RETREIVE = [0.5, 0.1, 0.05]
-DELAY_PROCESSING = [0.1, 0.02, 0.01]
+DELAY_DATA_RETREIVE = [0.5, 0.1, 0.05, 0]
+DELAY_PROCESSING = [0.1, 0.02, 0.01, 0]
 DELAY_UPDATE_PARAM = [3]
-MAX_RUNTIME = 10
+MAX_RUNTIME = 120
 MODULES = [mpfile, mpfuture, mpmdict, mpmns, mpmmap, mppipe, mpraw, mpshm, mtbas]
 
 
