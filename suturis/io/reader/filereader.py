@@ -30,9 +30,9 @@ class FileReader(BaseReader):
         if self.single_frame is not None:
             return True, self.single_frame
 
-        # now = time()
-        # if self.last_read and (now - self.last_read) < self.frame_time:
-        #     await asyncio.sleep(self.last_read + self.frame_time - now)
+        now = time()
+        if self.last_read and (now - self.last_read) < self.frame_time:
+            await asyncio.sleep(self.last_read + self.frame_time - now)
 
         success, frame = self.capture.read()
         if not success:
