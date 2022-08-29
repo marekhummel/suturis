@@ -13,8 +13,8 @@ STEPWISE = False
 async def run():
     # Define readers / writers
     readers: Tuple[BaseReader, BaseReader] = (
-        FileReader("./data/lr/starboard_0120220423163949.mp4", 9.2),
-        FileReader("./data/lr/port_0120220423162959.mp4")
+        FileReader("./data/lr/starboard_0120220423163949.mp4", skip=9.2, speed_up=4),
+        FileReader("./data/lr/port_0120220423162959.mp4", speed_up=4)
         # FakeRtspReader('./data/lr/img/first'),
         # FakeRtspReader('./data/lr/img/second'),
     )

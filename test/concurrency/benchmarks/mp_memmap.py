@@ -8,7 +8,7 @@ import numpy as np
 from util import compute_param
 
 # Notes:
-#
+# tempfiles might work better on *nix due to memory mounted files
 
 background_running = False
 tmp_dirs = []

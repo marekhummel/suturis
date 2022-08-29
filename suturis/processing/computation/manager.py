@@ -1,36 +1,33 @@
-import suturis.processing.computation._homography as hg
-import suturis.processing.computation._seaming as seam
-import suturis.processing.computation._masking as mask
-import multiprocessing as mp
-import threading
 import logging as log
+import multiprocessing as mp
 import sys
-from suturis.processing.computation.memory import CParamsStruct, LocalParams
-from typing import Optional
+import threading
+from typing import Optional, Any
+
+import suturis.processing.computation._homography as hg
+import suturis.processing.computation._masking as mask
+import suturis.processing.computation._seaming as seam
 
 background_running = False
 local_params = None
 
 
-def get_params(image1, image2) -> Optional[LocalParams]:
+def get_params(image1, image2) -> Optional[Any]:
     global background_running, local_params
-    log.info("Getting params")
 
     if not background_running:
         log.info("Recompute stitching params")
-        memory = mp.RawValue(CParamsStruct)
-        struct = CParamsStruct(image1, image2)
 
-        memory.value = struct
-        proc = mp.Process(target=_compute, args=(memory,), daemon=True)
-        background_running = True
-        proc.start()
-        log.info("Process started")
+        local, fork = mp.Pipe(duplex=True)
+        proc = mp.Process(target=_compute, args=(fork,), daemon=True)
 
         watcher = threading.Thread(
-            target=_computation_watcher, args=(proc, memory), daemon=True
+            target=_computation_watcher,
+            args=(proc, image1, image2, local, fork),
+            daemon=True,
         )
         watcher.start()
+        background_running = True
         log.info("Watcher started")
 
     # Return (is None until first computation has been completed)
@@ -38,25 +35,36 @@ def get_params(image1, image2) -> Optional[LocalParams]:
     return local_params
 
 
-def _computation_watcher(process, memory):
+def _computation_watcher(process, image1, image2, pipe_local, pipe_fork):
     global background_running, local_params
 
     # Block until receiving data
-    log.info("Watcher: Block until params received")
-    process.join()
+    try:
+        log.info("Watcher: Start process and send data.")
+        process.start()
+        pipe_local.send(image1)
+        pipe_local.send(image2)
 
-    # Finish
-    log.info("Watcher: Update params")
-    img1_translated = memory.translated_base
-    img2_warped = memory.warped_query
-    stitch_mask = memory.stitch_mask
-    seam_corners = memory.seam_corners
-    seammat = memory.seammat
+        # Idle until results
+        log.info("Watcher: Wait until results received.")
+        warping_info = pipe_local.recv()
+        stitch_mask = pipe_local.recv()
+        seam_corners = pipe_local.recv()
+        seammat = pipe_local.recv()
+        process.join()
 
-    local_params = LocalParams(
-        img1_translated, img2_warped, stitch_mask, seam_corners, seammat
-    )
-    background_running = False
+        # Update param object
+        log.info("Watcher: Connection completed, update data.")
+        pipe_local.close()
+        pipe_fork.close()
+        local_params = warping_info, stitch_mask, seam_corners, seammat
+
+    except EOFError:
+        log.error("Watcher: Pipe error, update aborted.")
+        return
+    finally:
+        background_running = False
+        log.info("Watcher: Update complete.")
 
 
 def _compute(pipe_conn):
@@ -85,10 +93,8 @@ def _compute(pipe_conn):
         image1,
         image2,
         h_translation,
-        x_max,
-        x_min,
-        y_max,
-        y_min,
+        x_max - x_min,
+        y_max - y_min,
         homography,
         translation_dist,
         rows1,
@@ -130,8 +136,17 @@ def _compute(pipe_conn):
 
     # Set computed values in shared memory
     log.info("Process: Return params")
-    pipe_conn.send(img1_translated)
-    pipe_conn.send(img2_warped)
+    pipe_conn.send(
+        (
+            h_translation,
+            x_max - x_min,
+            y_max - y_min,
+            homography,
+            translation_dist,
+            rows1,
+            cols1,
+        )
+    )
     pipe_conn.send(stitch_mask)
     pipe_conn.send((seam_start, seam_end))
     pipe_conn.send(seammat)

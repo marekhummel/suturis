@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import suturis.processing.computation._homography as hg
 
 import suturis.processing.computation.manager as mgr
 
@@ -15,10 +16,9 @@ def compute(*images):
         return np.zeros_like(image1)
 
     # Unpack
-    img1_translated = params.translated_base
-    img2_warped = params.warped_query
-    stitch_mask = params.stitch_mask
-    seam_start_x, seam_start_y, seam_end_x, seam_end_y = params.seam_corners
+    img1_translated, img2_warped = hg.translate_and_warp(image1, image2, *(params[0]))
+    stitch_mask = params[1]
+    (seam_start_y, seam_start_x), (seam_end_y, seam_end_x) = params[2]
 
     # ** Stitch
     masked_img1 = stitch_mask * img1_translated.astype(np.float64)
@@ -27,7 +27,7 @@ def compute(*images):
 
     # Seam
 
-    seammat = params.seam_matrix
+    seammat = params[3]
     seam_line = np.zeros(shape=masked_img.shape[:2], dtype=bool)
     seam_line[seam_start_y:seam_end_y, seam_start_x:seam_end_x] = seammat
     masked_img[seam_line] = [0, 255, 0]

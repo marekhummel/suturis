@@ -4,19 +4,6 @@ import cv2
 import numpy as np
 
 
-def single_call(func):
-    cache = None
-
-    @wraps(func)
-    def _wrapper(*args, **kwargs):
-        nonlocal cache
-        if cache is None:
-            cache = func(*args, **kwargs)
-        return cache
-
-    return _wrapper
-
-
 def timed(func):
     @wraps(func)
     def _wrapper(*args, **kwargs):

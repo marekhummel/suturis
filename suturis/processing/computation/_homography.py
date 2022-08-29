@@ -1,11 +1,7 @@
 import cv2
 import numpy as np
 
-from suturis.processing.util import single_call, timed
 
-
-@timed
-@single_call
 def find_homography_matrix(img1, img2):
     """
     Finds a homography matrix for two images that can be used to warp one image to the other
@@ -38,7 +34,6 @@ def find_homography_matrix(img1, img2):
     return m, good, query_keypoints, train_keypoints
 
 
-@timed
 def find_transformation(image1, image2, m):
     """
     Finds a translation matrix and other attributes.
@@ -73,23 +68,18 @@ def find_transformation(image1, image2, m):
     return h_translation, x_max, x_min, y_max, y_min, translation_dist, rows1, cols1
 
 
-@timed
 def translate_and_warp(
     base,
     query,
     h_translation,
-    x_max,
-    x_min,
-    y_max,
-    y_off,
+    x_delta,
+    y_delta,
     M,
     translation_dist,
     rows1,
     cols1,
 ):
-    query_warped = cv2.warpPerspective(
-        query, h_translation.dot(M), (x_max - x_min, y_max - y_off)
-    )
+    query_warped = cv2.warpPerspective(query, h_translation.dot(M), (x_delta, y_delta))
 
     base_translated = np.zeros_like(query_warped)
     base_translated[

@@ -1,10 +1,7 @@
 import numpy as np
 import cv2
-from suturis.processing.util import single_call, timed
 
 
-@timed
-@single_call
 def create_binary_mask(
     seammat, im1, im2, xoff, yoff, x_trans, y_trans, result_width, result_height
 ):

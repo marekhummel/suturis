@@ -1,10 +1,7 @@
 import numpy as np
 import cv2
-from suturis.processing.util import single_call, timed
 
 
-@timed
-@single_call
 def find_important_pixels(orig_img, hom, trans):
     """
     Finds start and end pixel using euclidean measure. Start is pixel with lowest euclidean distance to the origin,
@@ -43,8 +40,6 @@ def find_important_pixels(orig_img, hom, trans):
     return start, end
 
 
-@timed
-@single_call
 def find_seam_dynamically(im1, im2, start, end):
     """
     Finds an optimal seam using the dynamic approach. Error computes with the squared differences of each of the L*a*b*
@@ -156,7 +151,6 @@ def find_seam_dynamically(im1, im2, start, end):
     return _find_bool_matrix(previous)
 
 
-@timed
 def prepare_img_for_seam_finding(base, query, base_seam, offset):
     modified_img = base.copy()
     y_off, x_off = offset
