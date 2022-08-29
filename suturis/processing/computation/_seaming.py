@@ -2,10 +2,18 @@ import numpy as np
 import cv2
 
 
+# Seam finding
+F_BOT_LEFT = 1
+F_LEFT = 2
+F_TOP_LEFT = 3
+F_TOP = 4
+F_TOP_RIGHT = 5
+END = 0
+
+
 def find_important_pixels(orig_img, hom, trans):
     """
-    Finds start and end pixel using euclidean measure. Start is pixel with lowest euclidean distance to the origin,
-    end is pixel with highest euclidean distance to origin. Big performance issues, but works correctly so far.
+    Finds start and end pixel using the top left and bottom right pixel of the overlapping area.
     """
     #        Top left       Top right          Bottom left            Bottom right
     points = np.array(
@@ -75,7 +83,7 @@ def find_seam_dynamically(im1, im2, start, end):
         if idx == 0:
             # Top left corner. Nothing to do here but put the distance in and indicate the end
             errors[idx][idx] = dist
-            previous[idx][idx] = 0
+            previous[idx][idx] = END
         else:
             # Somewhere in the middle
             if idx < errors.shape[0] - 1 and idx < errors.shape[1] - 1:
@@ -113,26 +121,26 @@ def find_seam_dynamically(im1, im2, start, end):
                 is_last_row = True
                 is_last_col = True
 
-            # Where is the value from you ask? Let's find that out!
+            # Where is the value from you may ask? Let's find that out!
             if errors[idx][idx] == dist + errors[idx - 1][idx - 1]:
                 # Top left
-                previous[idx][idx] = 3
+                previous[idx][idx] = F_TOP_LEFT
             elif errors[idx][idx] == dist + errors[idx][idx - 1]:
                 # Left
-                previous[idx][idx] = 2
+                previous[idx][idx] = F_LEFT
             elif errors[idx][idx] == dist + errors[idx - 1][idx]:
                 # Top
-                previous[idx][idx] = 4
+                previous[idx][idx] = F_TOP
             elif (
                 not is_last_row and errors[idx][idx] == dist + errors[idx + 1][idx - 1]
             ):
                 # Bottom left
-                previous[idx][idx] = 1
+                previous[idx][idx] = F_BOT_LEFT
             elif (
                 not is_last_col and errors[idx][idx] == dist + errors[idx - 1][idx + 1]
             ):
                 # Top right
-                previous[idx][idx] = 5
+                previous[idx][idx] = F_TOP_RIGHT
 
         if is_last_col:
             # Now we reached the end of the columns so we only need to fill that column, then we're done
@@ -195,22 +203,22 @@ def _fill_row(row, im1, im2, errors, y_off, x_off, previous):
                 )
             if errors[row][col] == dist + errors[row - 1][col - 1]:
                 # Top left
-                previous[row][col] = 3
+                previous[row][col] = F_TOP_LEFT
             elif errors[row][col] == dist + errors[row][col - 1]:
                 # Left
-                previous[row][col] = 2
+                previous[row][col] = F_LEFT
             elif errors[row][col] == dist + errors[row - 1][col]:
                 # Top
-                previous[row][col] = 4
+                previous[row][col] = F_TOP
             elif (
                 not is_last_one and errors[row][col] == dist + errors[row - 1][col + 1]
             ):
                 # Top right
-                previous[row][col] = 5
+                previous[row][col] = F_TOP_RIGHT
         else:
             errors[row][col] = dist + errors[row][col - 1]
             # Left
-            previous[row][col] = 2
+            previous[row][col] = F_LEFT
     return errors, previous
 
 
@@ -246,31 +254,31 @@ def _fill_column(col, im1, im2, errors, yoff, xoff, previous):
                     errors[row - 1][col], errors[row - 1][col - 1], errors[row][col - 1]
                 )
                 is_last_one = True
-
             if errors[row][col] == dist + errors[row - 1][col]:
                 # Top
-                previous[row][col] = 4
+                previous[row][col] = F_TOP
             elif errors[row][col] == dist + errors[row - 1][col - 1]:
                 # Top left
-                previous[row][col] = 3
+                previous[row][col] = F_TOP_LEFT
             elif errors[row][col] == dist + errors[row][col - 1]:
                 # Left
-                previous[row][col] = 2
+                previous[row][col] = F_LEFT
             elif (
                 not is_last_one and errors[row][col] == dist + errors[row + 1][col - 1]
             ):
                 # Bottom left
-                previous[row][col] = 1
+                previous[row][col] = F_BOT_LEFT
         else:
             errors[row][col] = dist + errors[row - 1][col]
             # Top
-            previous[row][col] = 4
+            previous[row][col] = F_TOP
     return errors, previous
 
 
 def _find_bool_matrix(previous):
     """
-    Does the last seam finding step by calculating the perfect seam from the found path
+    Does the last seam finding step by calculating the perfect seam from the found path. This is to be considered going
+    back the best path.
     """
     finished = False
     current_x = previous.shape[1] - 1
@@ -278,48 +286,19 @@ def _find_bool_matrix(previous):
     bool_matrix = np.full(previous.shape, False)
     while not finished:
         bool_matrix[current_y][current_x] = True
-        if previous[current_y][current_x] == 1:
+        if previous[current_y][current_x] == F_BOT_LEFT:
             current_x -= 1
             current_y += 1
-        elif previous[current_y][current_x] == 2:
+        elif previous[current_y][current_x] == F_LEFT:
             current_x -= 1
-        elif previous[current_y][current_x] == 3:
+        elif previous[current_y][current_x] == F_TOP_LEFT:
             current_x -= 1
             current_y -= 1
-        elif previous[current_y][current_x] == 4:
+        elif previous[current_y][current_x] == F_TOP:
             current_y -= 1
-        elif previous[current_y][current_x] == 5:
+        elif previous[current_y][current_x] == F_TOP_RIGHT:
             current_x += 1
             current_y -= 1
-        elif previous[current_y][current_x] == 0:
+        elif previous[current_y][current_x] == END:
             finished = True
     return bool_matrix
-
-
-def _create_seam_image(xoff, yoff, im1, im2, seammat, x_max, y_max):
-    """
-    Creates an image with a hard seam along a previously calculated seam.
-    """
-    seam_image = np.zeros_like(im2)
-    for i in range(0, im2.shape[0]):
-        is_overlapping_row = y_max >= i >= yoff
-        first_image = True
-        for j in range(0, im2.shape[1]):
-            if (
-                is_overlapping_row
-                and i >= yoff
-                and j >= xoff
-                and i < y_max
-                and j < x_max
-                and not seammat[i - yoff][j - xoff]
-            ):
-                if j > xoff and seammat[i - yoff][j - xoff - 1]:
-                    first_image = not first_image
-
-            if is_overlapping_row and first_image:
-                seam_image[i][j] = im1[i][j]
-            elif is_overlapping_row and not first_image:
-                seam_image[i][j] = im2[i][j]
-            else:
-                seam_image[i][j] = im1[i][j] + im2[i][j]
-    return seam_image

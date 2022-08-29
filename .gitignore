@@ -7,12 +7,10 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
-# distribution
-build/
-*.egg-info/
-dist/
+# Log
+log/
 
-# test data
+# Test data
 data/
 
 # Test files

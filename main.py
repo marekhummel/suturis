@@ -1,12 +1,28 @@
 import asyncio
-
-import suturis.executor as runner
 import logging as log
-import sys
+import logging.config
+import os
+import os.path
+
+import yaml
+import suturis.processing.computation.manager as mgr
+
+import suturis.executor
 
 
-# # asyncio.run(main())
 if __name__ == "__main__":
-    log.basicConfig(level=log.INFO, handlers=[log.StreamHandler(sys.stdout)])
-    log.info("Lets go")
-    asyncio.run(runner.run())
+    if not os.path.isdir("log"):
+        os.mkdir("log")
+    with open("logconf.yaml") as f:
+        logging.config.dictConfig(yaml.safe_load(f.read()))
+
+    while True:
+        try:
+            log.info("Process start")
+            asyncio.run(suturis.executor.run())
+            log.info("Process finished")
+        except:
+            log.exception("Exception occured, restarting suturis")
+            mgr.local_params = None
+        else:
+            break

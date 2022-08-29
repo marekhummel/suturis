@@ -6,7 +6,9 @@ def find_homography_matrix(img1, img2):
     """
     Finds a homography matrix for two images that can be used to warp one image to the other
     """
-    orb = cv2.ORB_create(nfeatures=50_000)
+    orb = cv2.ORB_create(
+        nfeatures=50_000
+    )  # Can be changed, if quality is unsatisfying/speed is low
     query_keypoints, query_descriptors = orb.detectAndCompute(img1, None)  # queryImage
     train_keypoints, train_descriptors = orb.detectAndCompute(img2, None)  # trainImage
 
@@ -18,6 +20,10 @@ def find_homography_matrix(img1, img2):
             good.append((m, n))
 
     min_matches = 10
+    # best_match = query_keypoints[sorted(good, key=lambda x: x.distance)[0].queryIdx].pt
+    # matchpoints1 = query_keypoints[:, 0].queryIdx
+    # matchpoints2 = query_keypoints[:, 1].queryIdx
+    # print(best_match)
     if len(good) > min_matches:
         # Convert keypoints to an argument for findHomography
         dst_pts = np.float32(
@@ -28,7 +34,7 @@ def find_homography_matrix(img1, img2):
         ).reshape(-1, 1, 2)
 
         # Establish a homography
-        m = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC)[0]
+        m, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC)
     else:
         m = np.zeros((3, 3))
     return m, good, query_keypoints, train_keypoints
@@ -41,7 +47,6 @@ def find_transformation(image1, image2, m):
     rows1, cols1 = image1.shape[:2]
     rows2, cols2 = image2.shape[:2]
 
-    # Error must be somewhere around here||||||||||||||||||
     # Get a valid input value for the perspective transform
     list_of_points_1 = np.float32(
         [[0, 0], [0, rows1], [cols1, rows1], [cols1, 0]]
@@ -60,7 +65,6 @@ def find_transformation(image1, image2, m):
 
     # Get the translation parameters
     translation_dist = [-x_min, -y_min]
-    # and here ||||||||||||||||||||||||||||||||||||||
     # Put translation matrix together
     h_translation = np.array(
         [[1, 0, translation_dist[0]], [0, 1, translation_dist[1]], [0, 0, 1]]
