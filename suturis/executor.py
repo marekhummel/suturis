@@ -1,21 +1,33 @@
-import cv2
-import asyncio
-from suturis.processing import stitching
-import suturis.processing.computation.manager as mgr
 import logging as log
+from concurrent.futures import ThreadPoolExecutor, wait
+from typing import List, Tuple
+
+import cv2
+
+import suturis.processing.computation.manager as mgr
+from suturis.io.reader.basereader import BaseReader
+from suturis.io.writer.basewriter import BaseWriter
+from suturis.processing import stitching
 
 STEPWISE = False
 
 
-async def run(io):
+def run(io: Tuple[List[BaseReader], List[BaseWriter]]):
     readers, writers = io
+    assert len(readers) == 2
 
     # Loop
     log.debug("Starting main loop")
     while True:
-        # Read
+        # ** Read (reading might block thus the threads)
         log.debug("Read images")
-        results = await asyncio.gather(readers[0].read_image(), readers[1].read_image())
+        with ThreadPoolExecutor(max_workers=len(readers)) as tpe:
+            results = list(tpe.map(lambda r: r.read_image(), readers))
+
+        if len(results) != len(readers):
+            log.error("Readers failed")
+            break
+
         success1, image1 = results[0]
         success2, image2 = results[1]
 
@@ -23,16 +35,16 @@ async def run(io):
             log.error("Readers failed")
             break
 
-        # Process
+        # ** Process
         log.debug("Compute stitched image")
         image = stitching.compute(image1, image2)
 
-        # Write output
+        # ** Write output
         log.debug("Write stitched image to outputs")
         for w in writers:
             w.write_image(image)
 
-        # Debug
+        # ** Debug
         key = cv2.waitKey(25) & 0xFF
         if key == ord("q"):
             log.info("Manually aborting")

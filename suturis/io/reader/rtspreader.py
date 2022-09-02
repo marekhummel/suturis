@@ -9,12 +9,12 @@ import numpy as np
 class RtspReader(BaseReader):
     capture: cv2.VideoCapture
 
-    def __init__(self, uri: str) -> None:
+    def __init__(self, index: int, /, uri: str) -> None:
         log.debug("Init rtsp reader from {uri}")
-        super().__init__()
+        super().__init__(index)
         self.capture = cv2.VideoCapture(uri)
 
-    async def read_image(self) -> Tuple[bool, np.ndarray]:
+    def read_image(self) -> Tuple[bool, np.ndarray]:
         log.debug("Reading image")
         if not self.capture.isOpened():
             log.info("Trying to read from closed capture, return")

@@ -6,8 +6,9 @@ import logging as log
 
 
 class ScreenOutput(BaseWriter):
-    def __init__(self, title: str = None) -> None:
-        self.title = title if title else "Current Frame"
+    def __init__(self, index, /, title: str = None) -> None:
+        super().__init__(index)
+        self.title = title or "Current Frame"
 
     def write_image(self, image: np.ndarray) -> None:
         log.debug("Display image in window '%s'", self.title)

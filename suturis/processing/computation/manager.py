@@ -44,7 +44,8 @@ def get_params(image1, image2) -> Optional[Any]:
 
 def shutdown():
     global shutdown_event
-    shutdown_event.set()
+    if shutdown_event:
+        shutdown_event.set()
 
 
 def _computation_watcher(process, image1, image2, pipe_local, pipe_fork, log_queue):
@@ -59,13 +60,13 @@ def _computation_watcher(process, image1, image2, pipe_local, pipe_fork, log_que
         ql.start()
 
         # Start and send data
-        log.debug("Start process and send data.")
+        log.debug("Start process and send data")
         process.start()
         pipe_local.send(image1)
         pipe_local.send(image2)
 
         # Idle until results
-        log.debug("Wait until results received.")
+        log.debug("Wait until results received")
         warping_info = pipe_local.recv()
         seam_corners = pipe_local.recv()
         seammat = pipe_local.recv()
@@ -73,17 +74,17 @@ def _computation_watcher(process, image1, image2, pipe_local, pipe_fork, log_que
         process.join()
 
         # Update param object
-        log.debug("Connection completed, update data.")
+        log.debug("Connection completed, update data")
         pipe_local.close()
         pipe_fork.close()
 
         if local_params is None:
-            log.info("Initial computation of params completed.")
+            log.info("Initial computation of params completed")
         local_params = warping_info, stitch_mask, seam_corners, seammat
 
     except EOFError:
         if not shutdown_event.is_set():
-            log.error("Pipe error, update aborted.")
+            log.error("Pipe error, update aborted")
         return
     finally:
         background_running = False

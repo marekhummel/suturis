@@ -3,10 +3,10 @@ io:
     - type: FileReader
       path: ./data/lr/starboard_0120220423163949.mp4
       skip: 9.2
-      speed_up: 4
+      speed_up: 1
     - type: FileReader
       path: ./data/lr/port_0120220423162959.mp4
-      speed_up: 4
+      speed_up: 1
   outputs:
     - type: ScreenOutput
       title: Stitched

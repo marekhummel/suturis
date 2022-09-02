@@ -5,8 +5,8 @@ import cv2
 
 
 class FileWriter(BaseWriter):
-    def __init__(self, subdir: str, name: str) -> None:
-        super().__init__()
+    def __init__(self, index: int, /, subdir: str, name: str) -> None:
+        super().__init__(index)
         self.dir = subdir
         self.name = name
         self.counter = 0

@@ -1,15 +1,15 @@
-import logging as log
+import logging
 import logging.config
 import logging.handlers
 import os
 import os.path
 import re
-from typing import List, Tuple
+from typing import List
 
 import yaml
 
-from suturis.io.reader import BaseReader, FileReader
-from suturis.io.writer import BaseWriter, ScreenOutput
+from suturis.io.reader import BaseReader
+from suturis.io.writer import BaseWriter
 
 
 def parse(path):
@@ -33,6 +33,9 @@ def _config_logging(cfg):
 
     # Load logger config
     logging.config.dictConfig(cfg)
+    logging.logThreads = False
+    logging.logProcesses = False
+    logging.logMultiprocessing = False
 
     # Define namer method to rename files (put date before ext and add counter for exceptions)
     def _namer(new_name):
@@ -43,23 +46,25 @@ def _config_logging(cfg):
         )
         return sub
 
-    for handler in log.getLogger().handlers:
+    for handler in logging.getLogger().handlers:
         handler.namer = _namer
+
+    logging.info("Setup of loggers successful")
 
 
 def _define_io(cfg: dict):
-    log.debug("Define readers and writers")
+    logging.debug("Define readers and writers")
 
     # Check input output fields
-    inputs: List[dict] = cfg.get("inputs", None)
-    outputs: List[dict] = cfg.get("outputs", None)
+    inputs: List[dict] = cfg.get("inputs")
+    outputs: List[dict] = cfg.get("outputs")
     if inputs is None or outputs is None:
-        log.error("Malformed config: Input or output missing for IO")
+        logging.error("Malformed config: Input or output missing for IO")
         return None
 
     # Verify input count
     if len(inputs) != 2:
-        log.error("Malformed config: Suturis only works with exactly two inputs")
+        logging.error("Malformed config: Suturis only works with exactly two inputs")
         return None
 
     # Create readers and writers
@@ -74,24 +79,26 @@ def _define_io(cfg: dict):
 def _create_instances(base_class, configs):
     instances = []
     classes = {sc.__name__: sc for sc in base_class.__subclasses__()}
-    for cfg in configs:
+    for i, cfg in enumerate(configs):
         # Get (and remove) type
         cls_name = cfg.pop("type", None)
         if cls_name is None:
-            log.error("Malformed config: IO instances need a type")
+            logging.error("Malformed config: IO instances need a type")
             return None
 
         # Try to find and instantiate class
-        cls_obj = classes.get(cls_name, None)
+        cls_obj = classes.get(cls_name)
         if cls_obj is None:
-            log.error(f"Malformed config: Type '{cls_name}' is unknown")
+            logging.error(f"Malformed config: Type '{cls_name}' is unknown")
             return None
 
         try:
-            instance = cls_obj(**cfg)
+            instance = cls_obj(i, **cfg)
             instances.append(instance)
         except TypeError:
-            log.error(f"Malformed config: Undefined init params for class '{cls_name}'")
+            logging.error(
+                f"Malformed config: Undefined init params for class '{cls_name}'"
+            )
             return None
 
     return instances
