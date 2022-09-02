@@ -11,22 +11,10 @@ import logging as log
 STEPWISE = False
 
 
-async def run():
-    # Define readers / writers
-    log.debug("Define readers and writers")
-    readers: Tuple[BaseReader, BaseReader] = (
-        FileReader("./data/lr/starboard_0120220423163949.mp4", skip=9.2, speed_up=8),
-        FileReader("./data/lr/port_0120220423162959.mp4", speed_up=8)
-        # FakeRtspReader('./data/lr/img/first'),
-        # FakeRtspReader('./data/lr/img/second'),
-    )
-    writers: List[BaseWriter] = [
-        ScreenOutput("Stitched"),
-        # FileWriter('Final', 'Test')
-    ]
+async def run(io):
+    readers, writers = io
 
     # Loop
-    ctr = 0
     log.debug("Starting main loop")
     while True:
         # Read
@@ -48,14 +36,11 @@ async def run():
         for w in writers:
             w.write_image(image)
 
-        # Misc
+        # Debug
         key = cv2.waitKey(25) & 0xFF
         if key == ord("q"):
             break
-        if key == ord("s"):
-            # cv2.imwrite(f"./data/lr/img/first/{ctr}.jpg", image1)
-            # cv2.imwrite(f"./data/lr/img/second/{ctr}.jpg", image2)
-            # ctr += 1
+        if key == ord("e"):
             raise ZeroDivisionError
         if key == ord("p") or STEPWISE:
             while cv2.waitKey(25) & 0xFF != ord("p"):

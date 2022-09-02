@@ -1,0 +1,37 @@
+io:
+  inputs:
+    - type: FileReader
+      path: ./data/lr/starboard_0120220423163949.mp4
+      skip: 9.2
+      speed_up: 4
+    - type: FileReader
+      path: ./data/lr/port_0120220423162959.mp4
+      speed_up: 4
+  outputs:
+    - type: ScreenOutput
+      title: Stitched
+logging:
+  version: 1
+  formatters:
+    precise:
+      format: "%(asctime)s.%(msecs)03d: %(levelname)s@%(module)s:%(lineno)d(%(funcName)s) - %(message)s."
+      datefmt: "%Y-%m-%d %H:%M:%S"
+    brief:
+      format: "%(asctime)s.%(msecs)03d: %(levelname)s - %(message)s."
+      datefmt: "%H:%M:%S"
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: INFO
+      formatter: brief
+      stream: ext://sys.stdout
+    file:
+      class: logging.handlers.TimedRotatingFileHandler
+      level: DEBUG
+      formatter: precise
+      filename: log/suturis.log
+      when: MIDNIGHT
+      backupCount: 14
+  root:
+    level: DEBUG
+    handlers: [console, file]
