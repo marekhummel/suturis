@@ -1,11 +1,7 @@
-from typing import List, Tuple
-
 import cv2
 import asyncio
-
-from suturis.io.reader import BaseReader, FileReader
-from suturis.io.writer import BaseWriter, ScreenOutput, FileWriter
 from suturis.processing import stitching
+import suturis.processing.computation.manager as mgr
 import logging as log
 
 STEPWISE = False
@@ -39,9 +35,16 @@ async def run(io):
         # Debug
         key = cv2.waitKey(25) & 0xFF
         if key == ord("q"):
+            log.info("Manually aborting")
             break
         if key == ord("e"):
+            log.info("Manually raising error")
             raise ZeroDivisionError
         if key == ord("p") or STEPWISE:
+            log.info("Manually pausing")
             while cv2.waitKey(25) & 0xFF != ord("p"):
                 pass
+
+
+def shutdown():
+    mgr.shutdown()
