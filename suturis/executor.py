@@ -1,5 +1,5 @@
 import logging as log
-from concurrent.futures import ThreadPoolExecutor, wait
+from concurrent.futures import ThreadPoolExecutor
 from typing import List, Tuple
 
 import cv2
@@ -19,7 +19,7 @@ def run(io: Tuple[List[BaseReader], List[BaseWriter]]):
     # Loop
     log.debug("Starting main loop")
     while True:
-        # ** Read (reading might block thus the threads)
+        # ** Read (reading might block hence the threads)
         log.debug("Read images")
         with ThreadPoolExecutor(max_workers=len(readers)) as tpe:
             results = list(tpe.map(lambda r: r.read_image(), readers))

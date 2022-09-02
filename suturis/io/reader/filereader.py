@@ -39,15 +39,17 @@ class FileReader(BaseReader):
         if self.single_frame is not None:
             return True, self.single_frame
 
-        now = time.time()
-        if self.last_read and (now - self.last_read) < self.frame_time:
-            time.sleep(self.last_read + self.frame_time - now)
-
         success, frame = self.capture.read()
         if not success:
             log.info(f"Reading image failed in reader #{self.index}, return")
             return False, None
 
+        now = time.perf_counter()
+        if self.last_read and (now - self.last_read) < self.frame_time:
+            delay = self.frame_time - (now - self.last_read)
+            log.debug(f"Delay read of reader {self.index} by {delay:.6f}s to match fps")
+            time.sleep(delay)
+
         log.debug(f"Reading image from reader #{self.index} successful")
-        self.last_read = time.time()
+        self.last_read = time.perf_counter()
         return True, frame
