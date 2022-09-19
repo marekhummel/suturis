@@ -76,7 +76,7 @@ def _define_io(cfg: dict):
     # Create readers and writers
     readers = _create_instances(BaseReader, inputs)
     writers = _create_instances(BaseWriter, outputs)
-    return readers, writers if readers is not None and writers is not None else None
+    return (readers, writers) if readers is not None and writers is not None else None
 
 
 def _create_instances(base_class, configs):
@@ -101,6 +101,11 @@ def _create_instances(base_class, configs):
         except TypeError:
             logging.error(
                 f"Malformed config: Undefined init params for class '{cls_name}'"
+            )
+            return None
+        except Exception:
+            logging.exception(
+                f"Malformed config: Creation of instance of '{cls_name}' failed"
             )
             return None
 

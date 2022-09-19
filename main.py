@@ -9,8 +9,8 @@ from suturis.config_parser import parse
 if __name__ == "__main__":
     io, misc = parse("config.yaml")
 
-    log.info("============ Application start ============")
     if io is not None and misc is not None:
+        log.info("============ Application start ============")
         restart = False
 
         try:
@@ -28,4 +28,4 @@ if __name__ == "__main__":
             # Works on linux ?
             os.execv(sys.executable, [sys.executable, __file__] + sys.argv)
 
-    log.info("Application exited")
+    log.info("============ Application exited ============")

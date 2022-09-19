@@ -20,6 +20,10 @@ class FileReader(BaseReader):
         super().__init__(index)
         self.capture = cv2.VideoCapture(path)
 
+        if not self.capture.isOpened():
+            log.error("Opening capture failed, probably due to a invalid path")
+            raise FileNotFoundError(path)
+
         fps = self.capture.get(cv2.CAP_PROP_FPS)
         self.frame_time = 1.0 / (fps * speed_up)
         for _ in range(int(fps * skip)):
