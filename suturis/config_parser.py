@@ -23,7 +23,12 @@ def parse(path):
 
     # IO
     io_config = config["io"]
-    return _define_io(io_config)
+    io = _define_io(io_config)
+
+    # Misc
+    misc_config = config["misc"]
+
+    return io, misc_config
 
 
 def _config_logging(cfg):
@@ -47,7 +52,8 @@ def _config_logging(cfg):
         return sub
 
     for handler in logging.getLogger().handlers:
-        handler.namer = _namer
+        if isinstance(handler, logging.FileHandler):
+            handler.namer = _namer
 
     logging.info("Setup of loggers successful")
 
@@ -70,10 +76,7 @@ def _define_io(cfg: dict):
     # Create readers and writers
     readers = _create_instances(BaseReader, inputs)
     writers = _create_instances(BaseWriter, outputs)
-    if readers is None or writers is None:
-        return None
-
-    return readers, writers
+    return readers, writers if readers is not None and writers is not None else None
 
 
 def _create_instances(base_class, configs):

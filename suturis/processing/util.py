@@ -1,20 +1,5 @@
-from functools import wraps
-from time import perf_counter_ns
 import cv2
 import numpy as np
-
-
-def timed(func):
-    @wraps(func)
-    def _wrapper(*args, **kwargs):
-        begin = perf_counter_ns()
-        result = func(*args, **kwargs)
-        end = perf_counter_ns()
-        duration = (end - begin) / 1000 / 1000 / 1000
-        # print(f'Runtime of "{func.__name__}": {duration:.5f} secs.')
-        return result
-
-    return _wrapper
 
 
 def highlight_features(image, keypoints, matches, status, kpsIndex):

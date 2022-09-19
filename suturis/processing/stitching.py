@@ -1,12 +1,13 @@
-import numpy as np
-import cv2
-import suturis.processing.computation._homography as hg
-
-import suturis.processing.computation.manager as mgr
-
 import logging as log
 
+import cv2
+import numpy as np
+import suturis.processing.computation._homography as hg
+import suturis.processing.computation.manager as mgr
+from suturis.timer import track_timings
 
+
+@track_timings(name="Stitching")
 def compute(*images):
     assert len(images) == 2
     image1, image2 = images

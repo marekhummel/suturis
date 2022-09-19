@@ -5,19 +5,27 @@ import sys
 import suturis.executor
 from suturis.config_parser import parse
 
-if __name__ == "__main__":
-    log.info("Main start")
-    io = parse("config.yaml")
 
-    if io is not None:
+if __name__ == "__main__":
+    io, misc = parse("config.yaml")
+
+    log.info("============ Application start ============")
+    if io is not None and misc is not None:
+        restart = False
+
         try:
-            log.info("Process start")
             suturis.executor.run(io)
-            log.info("Process finished")
-        except KeyboardInterrupt:
+            log.info("Main process finished")
+        except (KeyboardInterrupt, SystemExit):
             log.info("Suturis was aborted")
         except Exception:
-            # Works on linux ?
             log.exception("Exception occured, restarting suturis")
+            restart = True
+        finally:
             suturis.executor.shutdown()
-            # os.execv(sys.executable, [sys.executable, __file__] + sys.argv)
+
+        if restart and misc["automatic_restart"]:
+            # Works on linux ?
+            os.execv(sys.executable, [sys.executable, __file__] + sys.argv)
+
+    log.info("Application exited")

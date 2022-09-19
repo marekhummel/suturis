@@ -7,16 +7,18 @@ from typing import Any, Optional
 import suturis.processing.computation._homography as hg
 import suturis.processing.computation._masking as mask
 import suturis.processing.computation._seaming as seam
+from suturis.timer import track_timings
 
-background_running = False
+computation_running = None
 shutdown_event: mp.Event = None
 local_params = None
 
 
 def get_params(image1, image2) -> Optional[Any]:
-    global background_running, shutdown_event, local_params
+    global computation_running, local_params, shutdown_event
 
-    if not background_running:
+    # Recompute params when possible
+    if not computation_running:
         log.debug("Recompute stitching params")
 
         # Prepare logging
@@ -34,10 +36,10 @@ def get_params(image1, image2) -> Optional[Any]:
             daemon=True,
         )
         watcher.start()
-        background_running = True
+        computation_running = True
         log.debug("Watcher started")
 
-    # Return (is None until first computation has been completed)
+    # Return
     log.debug("Return params")
     return local_params
 
@@ -48,8 +50,9 @@ def shutdown():
         shutdown_event.set()
 
 
+@track_timings(name="Computation")
 def _computation_watcher(process, image1, image2, pipe_local, pipe_fork, log_queue):
-    global background_running, shutdown_event, local_params
+    global computation_running, shutdown_event, local_params
 
     try:
         # Logging
@@ -87,7 +90,7 @@ def _computation_watcher(process, image1, image2, pipe_local, pipe_fork, log_que
             log.error("Pipe error, update aborted")
         return
     finally:
-        background_running = False
+        computation_running = False
         log.debug("Update complete.")
         ql.stop()
 

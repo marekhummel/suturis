@@ -10,6 +10,8 @@ io:
   outputs:
     - type: ScreenOutput
       title: Stitched
+misc:
+  automatic_restart: True
 logging:
   version: 1
   formatters:
