@@ -1,7 +1,5 @@
 from typing import TypeVar, Type
 
-from logging import 
-
 
 T = TypeVar("T")
 

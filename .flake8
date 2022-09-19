@@ -1,11 +1,8 @@
 [flake8]
 max-line-length = 120
-ignore = E741, E203
+ignore = E741, E203, W503
 exclude = 
-    misc/
-    main.py
+    test/
 per-file-ignores =
     __init__.py:F401
-    h2libpy/lib/*.py:E226,E302,E402,E501,E701
-    h2libpy/lib/__init__.py:F401
-    example_*matrix_bem3d*.py:E303,E501
+
