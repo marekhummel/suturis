@@ -1,13 +1,14 @@
 import logging as log
 from functools import wraps
 from time import perf_counter_ns
+from typing import Any, Callable, Dict, List
 
 import numpy as np
 
-timings = {}
+timings: Dict[str, List[float]] = {}
 
 
-def track_timings(*, name):
+def track_timings(*, name: str) -> Callable[[Callable], Any]:
     assert name not in timings, "Function with same name already tracked."
     timings[name] = []
 
@@ -25,13 +26,11 @@ def track_timings(*, name):
     return decorator
 
 
-def finalize_timings():
+def finalize_timings() -> None:
     for name, times in timings.items():
         if len(times) > 0:
             avg_time = np.mean(times) / 1e9
             std_time = np.std(times) / 1e9
-            log.info(
-                f"Timings of '{name}' (mean ± std): {avg_time:.5f} ± {std_time:.5f} secs"
-            )
+            log.info(f"Timings of '{name}' (mean ± std): {avg_time:.5f} ± {std_time:.5f} secs")
         else:
             log.info(f"Timings of '{name}' unknown, method has not finished once")

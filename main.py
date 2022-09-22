@@ -10,7 +10,7 @@ if __name__ == "__main__":
     io, misc = parse("config.yaml")
 
     if io is not None and misc is not None:
-        log.info("============ Application start ============")
+        log.info("============ Application started ============")
         restart = False
 
         try:

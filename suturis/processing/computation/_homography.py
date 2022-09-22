@@ -6,9 +6,7 @@ def find_homography_matrix(img1, img2):
     """
     Finds a homography matrix for two images that can be used to warp one image to the other
     """
-    orb = cv2.ORB_create(
-        nfeatures=50_000
-    )  # Can be changed, if quality is unsatisfying/speed is low
+    orb = cv2.ORB_create(nfeatures=50_000)  # Can be changed, if quality is unsatisfying/speed is low
     query_keypoints, query_descriptors = orb.detectAndCompute(img1, None)  # queryImage
     train_keypoints, train_descriptors = orb.detectAndCompute(img2, None)  # trainImage
 
@@ -26,12 +24,8 @@ def find_homography_matrix(img1, img2):
     # print(best_match)
     if len(good) > min_matches:
         # Convert keypoints to an argument for findHomography
-        dst_pts = np.float32(
-            [query_keypoints[m.queryIdx].pt for (m, _) in good]
-        ).reshape(-1, 1, 2)
-        src_pts = np.float32(
-            [train_keypoints[m.trainIdx].pt for (m, _) in good]
-        ).reshape(-1, 1, 2)
+        dst_pts = np.float32([query_keypoints[m.queryIdx].pt for (m, _) in good]).reshape(-1, 1, 2)
+        src_pts = np.float32([train_keypoints[m.trainIdx].pt for (m, _) in good]).reshape(-1, 1, 2)
 
         # Establish a homography
         m, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC)
@@ -48,12 +42,8 @@ def find_transformation(image1, image2, m):
     rows2, cols2 = image2.shape[:2]
 
     # Get a valid input value for the perspective transform
-    list_of_points_1 = np.float32(
-        [[0, 0], [0, rows1], [cols1, rows1], [cols1, 0]]
-    ).reshape(-1, 1, 2)
-    temp_points = np.float32([[0, 0], [0, rows2], [cols2, rows2], [cols2, 0]]).reshape(
-        -1, 1, 2
-    )
+    list_of_points_1 = np.float32([[0, 0], [0, rows1], [cols1, rows1], [cols1, 0]]).reshape(-1, 1, 2)
+    temp_points = np.float32([[0, 0], [0, rows2], [cols2, rows2], [cols2, 0]]).reshape(-1, 1, 2)
 
     # Change field of view
     list_of_points_2 = cv2.perspectiveTransform(temp_points, m)
@@ -66,9 +56,7 @@ def find_transformation(image1, image2, m):
     # Get the translation parameters
     translation_dist = [-x_min, -y_min]
     # Put translation matrix together
-    h_translation = np.array(
-        [[1, 0, translation_dist[0]], [0, 1, translation_dist[1]], [0, 0, 1]]
-    )
+    h_translation = np.array([[1, 0, translation_dist[0]], [0, 1, translation_dist[1]], [0, 0, 1]])
     return h_translation, x_max, x_min, y_max, y_min, translation_dist, rows1, cols1
 
 

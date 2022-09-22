@@ -1,4 +1,5 @@
 import logging as log
+from typing import List
 
 import cv2
 import numpy as np
@@ -8,7 +9,7 @@ from suturis.timer import track_timings
 
 
 @track_timings(name="Stitching")
-def compute(*images):
+def compute(*images: np.ndarray) -> np.ndarray:
     assert len(images) == 2
     image1, image2 = images
 

@@ -1,26 +1,24 @@
 import logging as log
-from typing import Tuple
 
 import cv2
-from suturis.io.reader.basereader import BaseReader
-import numpy as np
+from suturis.io.reader.basereader import BaseReader, _ReadImageType
 
 
 class RtspReader(BaseReader):
-    capture: cv2.VideoCapture
+    _capture: cv2.VideoCapture
 
     def __init__(self, index: int, /, uri: str) -> None:
         log.debug("Init rtsp reader from {uri}")
         super().__init__(index)
-        self.capture = cv2.VideoCapture(uri)
+        self._capture = cv2.VideoCapture(uri)
 
-    def read_image(self) -> Tuple[bool, np.ndarray]:
+    def read_image(self) -> _ReadImageType:
         log.debug("Reading image")
-        if not self.capture.isOpened():
+        if not self._capture.isOpened():
             log.info("Trying to read from closed capture, return")
             return False, None
 
-        success, frame = self.capture.read()
+        success, frame = self._capture.read()
         if not success:
             log.info("Reading image failed, return")
             return False, None

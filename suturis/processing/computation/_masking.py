@@ -2,9 +2,7 @@ import numpy as np
 import cv2
 
 
-def create_binary_mask(
-    seammat, im1, im2, xoff, yoff, x_trans, y_trans, result_width, result_height
-):
+def create_binary_mask(seammat, im1, im2, xoff, yoff, x_trans, y_trans, result_width, result_height):
     """
     Creates a mask for the merged images with values between 0 and 1. 1 is for fully filling the left image,
     0 is for fully filling the right image. Everything else is in between.
@@ -31,13 +29,11 @@ def create_binary_mask(
             True,
         )
     else:
-        for row in range(0, seammat.shape[0]):
+        for row in range(seammat.shape[0]):
             if not seammat[row][0]:
-                _flood_fill(
-                    seammat, seammat.shape[0], seammat.shape[1], 0, row, False, True
-                )
+                _flood_fill(seammat, seammat.shape[0], seammat.shape[1], 0, row, False, True)
 
-        for col in range(0, seammat.shape[1]):
+        for col in range(seammat.shape[1]):
             if not seammat[seammat.shape[0] - 1][col]:
                 _flood_fill(
                     seammat,
@@ -50,29 +46,20 @@ def create_binary_mask(
                 )
 
     # Go through seammat area and fill in zeros at the right manually
-    for row in range(0, seammat.shape[0]):
+    for row in range(seammat.shape[0]):
         for col in range(0, seammat.shape[1]):
             if not seammat[row][col]:
                 mask_mat[row + yoff][col + xoff + 1] = [0.0, 0.0, 0.0]
     # Add a bit of gauss and return it
     # stitch.show_image('Mask', mask_mat)
-    return cv2.GaussianBlur(
-        mask_mat, (17, 17), 0, sigmaY=0, borderType=cv2.BORDER_REPLICATE
-    )
+    return cv2.GaussianBlur(mask_mat, (17, 17), 0, sigmaY=0, borderType=cv2.BORDER_REPLICATE)
 
 
 def _is_valid(seammat, xmax, ymax, x, y, previous_val, new_val):
     """
     Helping function for the floodfill that checks, whether a given pixel can be overridden.
     """
-    if (
-        x < 0
-        or x >= xmax
-        or y < 0
-        or y >= ymax
-        or seammat[x][y] != previous_val
-        or seammat[x][y] == new_val
-    ):
+    if x < 0 or x >= xmax or y < 0 or y >= ymax or seammat[x][y] != previous_val or seammat[x][y] == new_val:
         return False
     return True
 
@@ -128,28 +115,28 @@ def _flood_fill(seammat, xmax, ymax, x, y, previous_val, new_val):
 
 
 def _is_top(im):
-    for col in range(0, im.shape[1]):
+    for col in range(im.shape[1]):
         if sum(im[0][col]) != 0:
             return True
     return False
 
 
 def _is_bottom(im):
-    for col in range(0, im.shape[1]):
+    for col in range(im.shape[1]):
         if sum(im[im.shape[0] - 1][col]) != 0:
             return True
     return False
 
 
 def _is_left(im):
-    for row in range(0, im.shape[0]):
+    for row in range(im.shape[0]):
         if sum(im[row][0]) != 0:
             return True
     return False
 
 
 def _is_right(im):
-    for row in range(0, im.shape[0]):
+    for row in range(im.shape[0]):
         if sum(im[row][im.shape[1] - 1]):
             return True
     return False

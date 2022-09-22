@@ -1,20 +1,23 @@
 import logging as log
 import logging.handlers
 import multiprocessing as mp
+import multiprocessing.connection as mpc
 import threading
-from typing import Any, Optional
+from multiprocessing.synchronize import Event as EventType
+from typing import Any, Tuple
 
+import numpy as np
 import suturis.processing.computation._homography as hg
 import suturis.processing.computation._masking as mask
 import suturis.processing.computation._seaming as seam
 from suturis.timer import track_timings
 
-computation_running = None
-shutdown_event: mp.Event = None
-local_params = None
+computation_running: bool = False
+shutdown_event: EventType = mp.Event()
+local_params: Any = None
 
 
-def get_params(image1, image2) -> Optional[Any]:
+def get_params(image1: np.ndarray, image2: np.ndarray) -> Tuple | None:
     global computation_running, local_params, shutdown_event
 
     # Recompute params when possible
@@ -22,13 +25,9 @@ def get_params(image1, image2) -> Optional[Any]:
         log.debug("Recompute stitching params")
 
         # Prepare logging
-        log_queue = mp.Queue()
+        log_queue: mp.Queue = mp.Queue()
         local, fork = mp.Pipe(duplex=True)
-        if shutdown_event is None:
-            shutdown_event = mp.Event()
-        proc = mp.Process(
-            target=_compute_params, args=(fork, shutdown_event, log_queue), daemon=True
-        )
+        proc = mp.Process(target=_compute_params, args=(fork, shutdown_event, log_queue), daemon=True)
 
         watcher = threading.Thread(
             target=_computation_watcher,
@@ -44,22 +43,26 @@ def get_params(image1, image2) -> Optional[Any]:
     return local_params
 
 
-def shutdown():
+def shutdown() -> None:
     global shutdown_event
-    if shutdown_event:
-        shutdown_event.set()
+    shutdown_event.set()
 
 
 @track_timings(name="Computation")
-def _computation_watcher(process, image1, image2, pipe_local, pipe_fork, log_queue):
+def _computation_watcher(
+    process: mp.Process,
+    image1: np.ndarray,
+    image2: np.ndarray,
+    pipe_local: mpc.Connection,
+    pipe_fork: mpc.Connection,
+    log_queue: mp.Queue,
+) -> None:
     global computation_running, shutdown_event, local_params
 
     try:
         # Logging
         log.debug("Setup logging")
-        ql = logging.handlers.QueueListener(
-            log_queue, *log.getLogger().handlers, respect_handler_level=True
-        )
+        ql = logging.handlers.QueueListener(log_queue, *log.getLogger().handlers, respect_handler_level=True)
         ql.start()
 
         # Start and send data
@@ -95,7 +98,7 @@ def _computation_watcher(process, image1, image2, pipe_local, pipe_fork, log_que
         ql.stop()
 
 
-def _compute_params(pipe_conn, shutdown_event, logging_queue):
+def _compute_params(pipe_conn: mpc.Connection, shutdown_event: EventType, logging_queue: mp.Queue) -> None:
     # ** Set logging
     qh = logging.handlers.QueueHandler(logging_queue)
     proc_logger = log.getLogger()
@@ -147,18 +150,12 @@ def _compute_params(pipe_conn, shutdown_event, logging_queue):
 
         # ** Seam calculation
         proc_logger.debug("Compute seam")
-        seam_start, seam_end = seam.find_important_pixels(
-            image1, homography, h_translation
-        )
+        seam_start, seam_end = seam.find_important_pixels(image1, homography, h_translation)
         preferred_seam = [
             # (x, img2_warped.shape[0] // 2) for x in range(seam_start[1], seam_end[1])
         ]
-        modified_img = seam.prepare_img_for_seam_finding(
-            img1_translated, img2_warped, preferred_seam, seam_start
-        )
-        seammat = seam.find_seam_dynamically(
-            modified_img, img2_warped, seam_start, seam_end
-        )
+        modified_img = seam.prepare_img_for_seam_finding(img1_translated, img2_warped, preferred_seam, seam_start)
+        seammat = seam.find_seam_dynamically(modified_img, img2_warped, seam_start, seam_end)
         # seammat = np.zeros(
         #     (seam_end[0] - seam_start[0], seam_end[1] - seam_start[1]), dtype=bool
         # )

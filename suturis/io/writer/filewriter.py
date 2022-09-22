@@ -1,19 +1,25 @@
 from os import makedirs
 from os.path import isdir
-from suturis.io.writer.basewriter import BaseWriter
+
 import cv2
+import numpy as np
+from suturis.io.writer.basewriter import BaseWriter
 
 
 class FileWriter(BaseWriter):
+    subdir: str
+    name: str
+    _counter: int
+
     def __init__(self, index: int, /, subdir: str, name: str) -> None:
         super().__init__(index)
-        self.dir = subdir
         self.name = name
-        self.counter = 0
+        self.subdir = subdir
+        self._counter = 0
 
-        if not isdir(f"out/{self.dir}/"):
-            makedirs(f"out/{self.dir}/")
+        if not isdir(f"out/{self.subdir}/"):
+            makedirs(f"out/{self.subdir}/")
 
-    def write_image(self, image) -> None:
-        cv2.imwrite(f"out/{self.dir}/{self.name}_{self.counter}.png", image)
-        self.counter += 1
+    def write_image(self, image: np.ndarray) -> None:
+        cv2.imwrite(f"out/{self.subdir}/{self.name}_{self._counter}.png", image)
+        self._counter += 1

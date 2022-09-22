@@ -1,12 +1,14 @@
+import logging as log
+
 import cv2
 import numpy as np
 from suturis.io.writer.basewriter import BaseWriter
 
-import logging as log
-
 
 class ScreenOutput(BaseWriter):
-    def __init__(self, index, /, title: str = None) -> None:
+    title: str
+
+    def __init__(self, index: int, /, title: str | None = None) -> None:
         super().__init__(index)
         self.title = title or "Current Frame"
 

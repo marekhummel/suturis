@@ -4,7 +4,7 @@ import logging.handlers
 import os
 import os.path
 import re
-from typing import List
+from typing import Dict, List, Tuple, Any
 
 import yaml
 
@@ -12,7 +12,7 @@ from suturis.io.reader import BaseReader
 from suturis.io.writer import BaseWriter
 
 
-def parse(path):
+def parse(path: str) -> Tuple[Tuple[List[BaseReader], List[BaseWriter]] | None, Any]:
     # Read file
     with open(path) as f:
         config = yaml.safe_load(f.read())
@@ -31,7 +31,7 @@ def parse(path):
     return io, misc_config
 
 
-def _config_logging(cfg):
+def _config_logging(cfg: Dict) -> None:
     # Create output dir
     if not os.path.isdir("log"):
         os.mkdir("log")
@@ -52,18 +52,18 @@ def _config_logging(cfg):
         return sub
 
     for handler in logging.getLogger().handlers:
-        if isinstance(handler, logging.FileHandler):
+        if isinstance(handler, logging.handlers.BaseRotatingHandler):
             handler.namer = _namer
 
     logging.info("Setup of loggers successful")
 
 
-def _define_io(cfg: dict):
+def _define_io(cfg) -> Tuple[List[BaseReader], List[BaseWriter]] | None:
     logging.debug("Define readers and writers")
 
     # Check input output fields
-    inputs: List[dict] = cfg.get("inputs")
-    outputs: List[dict] = cfg.get("outputs")
+    inputs = cfg.get("inputs")
+    outputs = cfg.get("outputs")
     if inputs is None or outputs is None:
         logging.error("Malformed config: Input or output missing for IO")
         return None
@@ -79,7 +79,7 @@ def _define_io(cfg: dict):
     return (readers, writers) if readers is not None and writers is not None else None
 
 
-def _create_instances(base_class, configs):
+def _create_instances(base_class, configs: List[Dict]) -> List | None:
     instances = []
     classes = {sc.__name__: sc for sc in base_class.__subclasses__()}
     for i, cfg in enumerate(configs):
@@ -99,14 +99,10 @@ def _create_instances(base_class, configs):
             instance = cls_obj(i, **cfg)
             instances.append(instance)
         except TypeError:
-            logging.error(
-                f"Malformed config: Undefined init params for class '{cls_name}'"
-            )
+            logging.error(f"Malformed config: Undefined init params for class '{cls_name}'")
             return None
         except Exception:
-            logging.exception(
-                f"Malformed config: Creation of instance of '{cls_name}' failed"
-            )
+            logging.exception(f"Malformed config: Creation of instance of '{cls_name}' failed")
             return None
 
     return instances

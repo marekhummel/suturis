@@ -28,9 +28,7 @@ def find_important_pixels(orig_img, hom, trans):
     # Apply transformations to all of those corner points
     for pts in points:
         # Warp the points
-        tmp = cv2.perspectiveTransform(
-            np.array([[[pts[0], pts[1]]]], dtype=np.float32), hom
-        )
+        tmp = cv2.perspectiveTransform(np.array([[[pts[0], pts[1]]]], dtype=np.float32), hom)
         # Add the translation
         tmp = np.matmul(trans, np.array([tmp[0][0][0], tmp[0][0][1], 1]))
         hom_points = np.concatenate((hom_points, tmp))
@@ -68,14 +66,7 @@ def find_seam_dynamically(im1, im2, start, end):
     # Calculate distances
     for idx in range(0, min(errors.shape[0], errors.shape[1])):
         dist = np.sqrt(
-            sum(
-                [
-                    abs(int(x) - int(y))
-                    for x, y in zip(
-                        im1[idx + y_off][idx + x_off], im2[idx + y_off][idx + x_off]
-                    )
-                ]
-            )
+            sum([abs(int(x) - int(y)) for x, y in zip(im1[idx + y_off][idx + x_off], im2[idx + y_off][idx + x_off])])
         )
 
         is_last_col, is_last_row = False, False
@@ -115,9 +106,7 @@ def find_seam_dynamically(im1, im2, start, end):
                 is_last_row = True
             else:
                 # Reached bottom right of the area
-                errors[idx][idx] = dist + min(
-                    errors[idx - 1][idx - 1], errors[idx][idx - 1], errors[idx - 1][idx]
-                )
+                errors[idx][idx] = dist + min(errors[idx - 1][idx - 1], errors[idx][idx - 1], errors[idx - 1][idx])
                 is_last_row = True
                 is_last_col = True
 
@@ -131,31 +120,23 @@ def find_seam_dynamically(im1, im2, start, end):
             elif errors[idx][idx] == dist + errors[idx - 1][idx]:
                 # Top
                 previous[idx][idx] = F_TOP
-            elif (
-                not is_last_row and errors[idx][idx] == dist + errors[idx + 1][idx - 1]
-            ):
+            elif not is_last_row and errors[idx][idx] == dist + errors[idx + 1][idx - 1]:
                 # Bottom left
                 previous[idx][idx] = F_BOT_LEFT
-            elif (
-                not is_last_col and errors[idx][idx] == dist + errors[idx - 1][idx + 1]
-            ):
+            elif not is_last_col and errors[idx][idx] == dist + errors[idx - 1][idx + 1]:
                 # Top right
                 previous[idx][idx] = F_TOP_RIGHT
 
         if is_last_col:
             # Now we reached the end of the columns so we only need to fill that column, then we're done
-            errors, previous = _fill_column(
-                idx, im1, im2, errors, y_off, x_off, previous
-            )
+            errors, previous = _fill_column(idx, im1, im2, errors, y_off, x_off, previous)
         elif is_last_row:
             # Now we reached the end of the rows, so we only need to fill that row before we're done
             errors, previous = _fill_row(idx, im1, im2, errors, y_off, x_off, previous)
         else:
             # We have to fill both rows and columns
             errors, previous = _fill_row(idx, im1, im2, errors, y_off, x_off, previous)
-            errors, previous = _fill_column(
-                idx, im1, im2, errors, y_off, x_off, previous
-            )
+            errors, previous = _fill_column(idx, im1, im2, errors, y_off, x_off, previous)
     return _find_bool_matrix(previous)
 
 
@@ -172,20 +153,11 @@ def _fill_row(row, im1, im2, errors, y_off, x_off, previous):
     """
     Iterate through one row and fill in values
     """
-    assert (
-        row < errors.shape[0]
-    ), f"idx is: {row}, errors.shape[0] is: {errors.shape[0]}"
+    assert row < errors.shape[0], f"idx is: {row}, errors.shape[0] is: {errors.shape[0]}"
     # Go through columns
     for col in range(row + 1, errors.shape[1]):
         dist = np.sqrt(
-            sum(
-                [
-                    abs(int(x) - int(y))
-                    for x, y in zip(
-                        im1[row + y_off][col + x_off], im2[row + y_off][col + x_off]
-                    )
-                ]
-            )
+            sum([abs(int(x) - int(y)) for x, y in zip(im1[row + y_off][col + x_off], im2[row + y_off][col + x_off])])
         )
         if row > 0:
             is_last_one = False
@@ -198,9 +170,7 @@ def _fill_row(row, im1, im2, errors, y_off, x_off, previous):
                 )
             else:
                 is_last_one = True
-                errors[row][col] = dist + min(
-                    errors[row - 1][col - 1], errors[row][col - 1], errors[row - 1][col]
-                )
+                errors[row][col] = dist + min(errors[row - 1][col - 1], errors[row][col - 1], errors[row - 1][col])
             if errors[row][col] == dist + errors[row - 1][col - 1]:
                 # Top left
                 previous[row][col] = F_TOP_LEFT
@@ -210,9 +180,7 @@ def _fill_row(row, im1, im2, errors, y_off, x_off, previous):
             elif errors[row][col] == dist + errors[row - 1][col]:
                 # Top
                 previous[row][col] = F_TOP
-            elif (
-                not is_last_one and errors[row][col] == dist + errors[row - 1][col + 1]
-            ):
+            elif not is_last_one and errors[row][col] == dist + errors[row - 1][col + 1]:
                 # Top right
                 previous[row][col] = F_TOP_RIGHT
         else:
@@ -230,14 +198,7 @@ def _fill_column(col, im1, im2, errors, yoff, xoff, previous):
     # Go through rows
     for row in range(col + 1, errors.shape[0]):
         dist = np.sqrt(
-            sum(
-                [
-                    abs(int(x) - int(y))
-                    for x, y in zip(
-                        im1[row + yoff][col + xoff], im2[row + yoff][col + xoff]
-                    )
-                ]
-            )
+            sum([abs(int(x) - int(y)) for x, y in zip(im1[row + yoff][col + xoff], im2[row + yoff][col + xoff])])
         )
         if col > 0:
             # Check to not run out of bounds
@@ -250,9 +211,7 @@ def _fill_column(col, im1, im2, errors, yoff, xoff, previous):
                     errors[row + 1][col - 1],
                 )
             else:
-                errors[row][col] = dist + min(
-                    errors[row - 1][col], errors[row - 1][col - 1], errors[row][col - 1]
-                )
+                errors[row][col] = dist + min(errors[row - 1][col], errors[row - 1][col - 1], errors[row][col - 1])
                 is_last_one = True
             if errors[row][col] == dist + errors[row - 1][col]:
                 # Top
@@ -263,9 +222,7 @@ def _fill_column(col, im1, im2, errors, yoff, xoff, previous):
             elif errors[row][col] == dist + errors[row][col - 1]:
                 # Left
                 previous[row][col] = F_LEFT
-            elif (
-                not is_last_one and errors[row][col] == dist + errors[row + 1][col - 1]
-            ):
+            elif not is_last_one and errors[row][col] == dist + errors[row + 1][col - 1]:
                 # Bottom left
                 previous[row][col] = F_BOT_LEFT
         else:

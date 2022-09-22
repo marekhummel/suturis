@@ -16,6 +16,7 @@ mypy = "*"
 rope = "*"
 pygount = "*"
 black = "*"
+types-pyyaml = "*"
 
 [requires]
 python_version = "3.10"

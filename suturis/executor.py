@@ -22,13 +22,13 @@ def run(io: Tuple[List[BaseReader], List[BaseWriter]]):
         running = _run_iteration(readers, writers)
 
 
-def shutdown():
+def shutdown() -> None:
     mgr.shutdown()
     finalize_timings()
 
 
 @track_timings(name="Iteration")
-def _run_iteration(readers, writers):
+def _run_iteration(readers: List[BaseReader], writers: List[BaseWriter]) -> bool:
     # ** Read (reading might block hence the threads)
     log.debug("Read images")
     with ThreadPoolExecutor(max_workers=len(readers)) as tpe:
