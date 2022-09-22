@@ -4,7 +4,7 @@ import logging.handlers
 import os
 import os.path
 import re
-from typing import Dict, List, Tuple, Any
+from typing import Any
 
 import yaml
 
@@ -12,7 +12,7 @@ from suturis.io.reader import BaseReader
 from suturis.io.writer import BaseWriter
 
 
-def parse(path: str) -> Tuple[Tuple[List[BaseReader], List[BaseWriter]] | None, Any]:
+def parse(path: str) -> tuple[tuple[list[BaseReader], list[BaseWriter]] | None, Any]:
     # Read file
     with open(path) as f:
         config = yaml.safe_load(f.read())
@@ -31,7 +31,7 @@ def parse(path: str) -> Tuple[Tuple[List[BaseReader], List[BaseWriter]] | None, 
     return io, misc_config
 
 
-def _config_logging(cfg: Dict) -> None:
+def _config_logging(cfg: dict) -> None:
     # Create output dir
     if not os.path.isdir("log"):
         os.mkdir("log")
@@ -58,7 +58,7 @@ def _config_logging(cfg: Dict) -> None:
     logging.info("Setup of loggers successful")
 
 
-def _define_io(cfg) -> Tuple[List[BaseReader], List[BaseWriter]] | None:
+def _define_io(cfg) -> tuple[list[BaseReader], list[BaseWriter]] | None:
     logging.debug("Define readers and writers")
 
     # Check input output fields
@@ -79,7 +79,7 @@ def _define_io(cfg) -> Tuple[List[BaseReader], List[BaseWriter]] | None:
     return (readers, writers) if readers is not None and writers is not None else None
 
 
-def _create_instances(base_class, configs: List[Dict]) -> List | None:
+def _create_instances(base_class, configs: list[dict]) -> list | None:
     instances = []
     classes = {sc.__name__: sc for sc in base_class.__subclasses__()}
     for i, cfg in enumerate(configs):

@@ -1,8 +1,8 @@
-from typing import Literal, Tuple, Union
+from typing import Literal, Union
 import numpy as np
 
 
-_ReadImageType = Union[Tuple[Literal[True], np.ndarray], Tuple[Literal[False], None]]
+_ReadImageType = Union[tuple[Literal[True], np.ndarray], tuple[Literal[False], None]]
 
 
 class BaseReader:

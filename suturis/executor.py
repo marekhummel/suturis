@@ -1,6 +1,5 @@
 import logging as log
 from concurrent.futures import ThreadPoolExecutor
-from typing import List, Tuple
 
 import cv2
 
@@ -11,7 +10,7 @@ from suturis.processing import stitching
 from suturis.timer import finalize_timings, track_timings
 
 
-def run(io: Tuple[List[BaseReader], List[BaseWriter]]):
+def run(io: tuple[list[BaseReader], list[BaseWriter]]):
     readers, writers = io
     assert len(readers) == 2
 
@@ -28,7 +27,7 @@ def shutdown() -> None:
 
 
 @track_timings(name="Iteration")
-def _run_iteration(readers: List[BaseReader], writers: List[BaseWriter]) -> bool:
+def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter]) -> bool:
     # ** Read (reading might block hence the threads)
     log.debug("Read images")
     with ThreadPoolExecutor(max_workers=len(readers)) as tpe:

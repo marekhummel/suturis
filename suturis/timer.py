@@ -1,11 +1,11 @@
 import logging as log
 from functools import wraps
 from time import perf_counter_ns
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable
 
 import numpy as np
 
-timings: Dict[str, List[float]] = {}
+timings: dict[str, list[float]] = {}
 
 
 def track_timings(*, name: str) -> Callable[[Callable], Any]:

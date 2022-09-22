@@ -4,7 +4,7 @@ import multiprocessing as mp
 import multiprocessing.connection as mpc
 import threading
 from multiprocessing.synchronize import Event as EventType
-from typing import Any, Tuple
+from typing import Any
 
 import numpy as np
 import suturis.processing.computation._homography as hg
@@ -17,7 +17,7 @@ shutdown_event: EventType = mp.Event()
 local_params: Any = None
 
 
-def get_params(image1: np.ndarray, image2: np.ndarray) -> Tuple | None:
+def get_params(image1: np.ndarray, image2: np.ndarray) -> tuple | None:
     global computation_running, local_params, shutdown_event
 
     # Recompute params when possible
