@@ -10,8 +10,9 @@ __pycache__/
 # Log
 log/
 
-# Test data
+# Test input / output data
 data/
+out/
 
 # Test files
 # main.py

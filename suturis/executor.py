@@ -46,12 +46,13 @@ def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter]) -> bool
 
     # ** Process
     log.debug("Compute stitched image")
-    image = stitching.compute(image1, image2)
+    output = stitching.compute(image1, image2)
 
     # ** Write output
     log.debug("Write stitched image to outputs")
+    possibles = (image1, image2, output)
     for w in writers:
-        w.write_image(image)
+        w.write_image(possibles[w.source])
 
     # ** Debug
     key = cv2.waitKey(25) & 0xFF
