@@ -11,13 +11,7 @@ io:
     - type: ScreenOutput
       title: Stitched
     - type: FileWriter
-      dimensions: [640, 360]
-      fps: 4
-      source: INPUT_ONE
-      filename: "{date}_input1.mp4"
-    - type: FileWriter
       dimensions: [1280, 720]
-      fps: 4
       source: OUTPUT
       filename: "{date}_stitching.mp4"
 misc:
