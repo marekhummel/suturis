@@ -1,25 +1,25 @@
 io:
   inputs:
     - type: FileReader
-      path: ./data/lr/starboard_0120220423163949.mp4
+      path: ./data/input/lr/starboard_0120220423163949.mp4
       skip: 9.2
-      speed_up: 8
+      speed_up: 2
     - type: FileReader
-      path: ./data/lr/port_0120220423162959.mp4
-      speed_up: 8
+      path: ./data/input/lr/port_0120220423162959.mp4
+      speed_up: 2
   outputs:
     - type: ScreenOutput
       title: Stitched
     - type: FileWriter
       dimensions: [640, 360]
-      fps: 16
+      fps: 4
       source: INPUT_ONE
       filename: "{date}_input1.mp4"
     - type: FileWriter
       dimensions: [1280, 720]
-      fps: 16
+      fps: 4
       source: OUTPUT
-      filename: "{date}_suturis.mp4"
+      filename: "{date}_stitching.mp4"
 misc:
   automatic_restart: True
 logging:

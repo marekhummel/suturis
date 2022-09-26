@@ -21,7 +21,7 @@ class FileWriter(BaseWriter):
         *,
         dimensions: tuple[int, int],
         fps: int,
-        target_dir: str = "out/",
+        target_dir: str = "data/out/",
         filename: str = "stitching_{date}.mp4",
     ) -> None:
         log.debug(f"Init file writer #{index} with dimensions {dimensions} and {fps} fps to save {source} images")
