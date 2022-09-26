@@ -39,7 +39,7 @@ class FileWriter(BaseWriter):
         target = join(target_dir, filename)
         self._dimensions = dimensions
         self._writer = cv2.VideoWriter(target, fourcc, fps, dimensions)
-        log.debug(f"Target file of file writer #{index} is at '{target}'")
+        log.info(f"Target file of file writer #{index} is at '{target}'")
 
     def write_image(self, image: np.ndarray) -> None:
         log.debug(f"Writing image with writer #{self.index}")
