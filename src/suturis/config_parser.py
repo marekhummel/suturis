@@ -73,6 +73,10 @@ def _define_io(cfg) -> tuple[list[BaseReader], list[BaseWriter]] | None:
         logging.error("Malformed config: Suturis only works with exactly two inputs")
         return None
 
+    # Warning if no outputs
+    if len(outputs) == 0:
+        logging.warning("Config doesn't specify any outputs. Stitching results will be lost.")
+
     # Create readers and writers
     readers = _create_instances(BaseReader, inputs)
     writers = _create_instances(BaseWriter, outputs)

@@ -8,12 +8,13 @@ from suturis.config_parser import parse
 
 
 if __name__ == "__main__":
+    # Read and parse config
     parser = argparse.ArgumentParser(description="Suturis - real time image stiching.")
     parser.add_argument("config", type=str, nargs="?", default="src/config.yaml", help="Path to yaml config file")
     args = parser.parse_args()
-
     io, misc = parse(args.config)
 
+    # Start application
     if io is not None and misc is not None:
         log.info("============ Application started ============")
         restart = False

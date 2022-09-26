@@ -12,10 +12,10 @@ pyyaml = "*"
 
 [dev-packages]
 flake8 = "*"
+black = "*"
 mypy = "*"
 rope = "*"
 pygount = "*"
-black = "*"
 types-pyyaml = "*"
 
 [requires]

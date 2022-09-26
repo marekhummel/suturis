@@ -1,10 +1,10 @@
 # Editor settings
 .vscode/
 
-# Linting
+# Typing
 .mypy_cache
 
-# Byte-compiled / optimized / DLL files
+# Byte-compiled
 __pycache__/
 
 # Log
@@ -12,6 +12,3 @@ log/
 
 # Test input / output data
 data/
-
-# Test files
-# main.py
