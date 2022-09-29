@@ -1,20 +1,26 @@
 import logging as log
 
-import cv2
 import numpy as np
-import suturis.processing.computation._homography as hg
+from suturis.processing.computation.homography.base_homography_handler import BaseHomographyHandler
 import suturis.processing.computation.manager as mgr
+from suturis.processing.computation.masking.base_masking_handler import BaseMaskingHandler
 from suturis.timer import track_timings
+from suturis.typing import Image
+
+
+_homography_delegate: BaseHomographyHandler | None = None
+_masking_delegate: BaseMaskingHandler | None = None
 
 
 @track_timings(name="Stitching")
-def compute(*images: np.ndarray) -> np.ndarray:
+def compute(*images: Image) -> Image:
+    assert _homography_delegate and _masking_delegate
     assert len(images) == 2
     image1, image2 = images
 
     # ** Get data
     log.debug("Fetch current stitching params")
-    params = mgr.get_params(image1, image2)
+    params = mgr.get_params(image1, image2, _homography_delegate, _masking_delegate)
 
     if params is None:
         log.debug("Initial computation hasn't finished yet, return black image")
@@ -22,25 +28,13 @@ def compute(*images: np.ndarray) -> np.ndarray:
 
     # ** Stitch
     log.debug("Stitch images")
-    img1_translated, img2_warped = hg.translate_and_warp(image1, image2, *(params[0]))
-    stitch_mask = params[1]
-    (seam_start_y, seam_start_x), (seam_end_y, seam_end_x) = params[2]
-
-    masked_img1 = stitch_mask * img1_translated.astype(np.float64)
-    masked_img2 = (1 - stitch_mask) * img2_warped.astype(np.float64)
-    masked_img = masked_img1 + masked_img2
-
-    # Seam
-    log.debug("Draw seam")
-    seammat = params[3]
-    seam_line = np.zeros(shape=masked_img.shape[:2], dtype=bool)
-    seam_line[seam_start_y:seam_end_y, seam_start_x:seam_end_x] = seammat
-    masked_img[seam_line] = [0, 255, 0]
-
-    # Crop
-    log.debug("Crop image to relevant frame")
-    cv2.circle(masked_img, (seam_start_x, seam_start_y), 4, [255, 0, 0], -1)
-    cv2.circle(masked_img, (seam_end_x, seam_end_y), 4, [255, 0, 0], -1)
-    masked_img = masked_img[seam_start_y:seam_end_y, seam_start_x:seam_end_x]
+    img1_translated, img2_warped = _homography_delegate.apply_transformations(image1, image2, *params[0])
+    masked_img = _masking_delegate.apply_mask(img1_translated, img2_warped, params[1])
 
     return masked_img
+
+
+def set_delegates(homography: BaseHomographyHandler, masking: BaseMaskingHandler):
+    global _homography_delegate, _masking_delegate
+    _homography_delegate = homography
+    _masking_delegate = masking

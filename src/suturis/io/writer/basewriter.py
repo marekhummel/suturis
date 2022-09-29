@@ -1,5 +1,6 @@
-import numpy as np
 import enum
+
+from suturis.typing import Image
 
 
 class SourceImage(enum.IntEnum):
@@ -16,5 +17,5 @@ class BaseWriter:
         self.index = index
         self.source = SourceImage[source]
 
-    def write_image(self, _: np.ndarray) -> None:
+    def write_image(self, _: Image) -> None:
         raise NotImplementedError("Abstract method needs to be overriden")

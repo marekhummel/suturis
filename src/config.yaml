@@ -10,10 +10,19 @@ io:
   outputs:
     - type: ScreenOutput
       title: Stitched
-    - type: FileWriter
-      dimensions: [1280, 720]
-      source: OUTPUT
-      filename: "{date}_stitching.mp4"
+    # - type: FileWriter
+    #   dimensions: [1280, 720]
+    #   source: OUTPUT
+    #   filename: "{date}_stitching.mp4"
+stitching:
+  homography:
+    type: OrbRansacHandler
+    continous_recomputation: True
+    orb_features: 50000
+    min_matches: 10
+  masking:
+    type: SeamFinding
+    continous_recomputation: True
 misc:
   automatic_restart: True
 logging:

@@ -2,15 +2,15 @@ import logging as log
 import time
 
 import cv2
-import numpy as np
 from suturis.io.reader.basereader import BaseReader, _ReadImageType
+from suturis.typing import Image
 
 
 class FileReader(BaseReader):
     _capture: cv2.VideoCapture
     _last_read: float | None
     _frame_time: float
-    _single_frame: np.ndarray | None
+    _single_frame: Image | None
 
     def __init__(
         self, index: int, /, path: str, *, skip: int = 0, speed_up: int = 1, single_frame: bool = False

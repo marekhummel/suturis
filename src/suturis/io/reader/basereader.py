@@ -1,8 +1,9 @@
 from typing import Literal, Union
-import numpy as np
+
+from suturis.typing import Image
 
 
-_ReadImageType = Union[tuple[Literal[True], np.ndarray], tuple[Literal[False], None]]
+_ReadImageType = Union[tuple[Literal[True], Image], tuple[Literal[False], None]]
 
 
 class BaseReader:

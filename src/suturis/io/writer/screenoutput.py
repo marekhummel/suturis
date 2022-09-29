@@ -3,6 +3,7 @@ import logging as log
 import cv2
 import numpy as np
 from suturis.io.writer.basewriter import BaseWriter, SourceImage
+from suturis.typing import Image
 
 
 class ScreenOutput(BaseWriter):
@@ -13,7 +14,7 @@ class ScreenOutput(BaseWriter):
         super().__init__(index, source)
         self.title = title or "Current Frame"
 
-    def write_image(self, image: np.ndarray) -> None:
+    def write_image(self, image: Image) -> None:
         log.debug("Display image in window '%s'", self.title)
         cv2.namedWindow(self.title)
         cv2.imshow(self.title, image.astype(np.uint8))

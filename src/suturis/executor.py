@@ -4,14 +4,16 @@ from concurrent.futures import ThreadPoolExecutor
 import cv2
 
 import suturis.processing.computation.manager as mgr
+from suturis.config_parser import IOConfig, StichingConfig
 from suturis.io.reader.basereader import BaseReader
 from suturis.io.writer.basewriter import BaseWriter
 from suturis.processing import stitching
 from suturis.timer import finalize_timings, track_timings
 
 
-def run(io: tuple[list[BaseReader], list[BaseWriter]]):
+def run(io: IOConfig, delegates: StichingConfig):
     readers, writers = io
+    stitching.set_delegates(*delegates)
     assert len(readers) == 2
 
     # Loop

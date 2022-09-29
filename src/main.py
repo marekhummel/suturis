@@ -12,15 +12,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Suturis - real time image stiching.")
     parser.add_argument("config", type=str, nargs="?", default="src/config.yaml", help="Path to yaml config file")
     args = parser.parse_args()
-    io, misc = parse(args.config)
+    io, stitching, misc = parse(args.config)
+    print(sys.executable, __file__)
 
     # Start application
-    if io is not None and misc is not None:
+    if io and stitching and misc:
         log.info("============ Application started ============")
         restart = False
 
         try:
-            suturis.executor.run(io)
+            suturis.executor.run(io, stitching)
             log.info("Main process finished")
         except (KeyboardInterrupt, SystemExit):
             log.info("Suturis was aborted")
@@ -32,6 +33,6 @@ if __name__ == "__main__":
 
         if restart and misc["automatic_restart"]:
             # Works on linux ?
-            os.execv(sys.executable, [sys.executable, __file__] + sys.argv)
+            os.execv(sys.executable, [__file__] + sys.argv)
 
     log.info("============ Application exited ============")

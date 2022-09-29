@@ -4,15 +4,21 @@ import logging.handlers
 import os
 import os.path
 import re
-from typing import Any
 
 import yaml
 
 from suturis.io.reader import BaseReader
 from suturis.io.writer import BaseWriter
+from suturis.processing.computation.homography import BaseHomographyHandler
+from suturis.processing.computation.masking import BaseMaskingHandler
 
 
-def parse(path: str) -> tuple[tuple[list[BaseReader], list[BaseWriter]] | None, Any]:
+IOConfig = tuple[list[BaseReader], list[BaseWriter]]
+StichingConfig = tuple[BaseHomographyHandler, BaseMaskingHandler]
+MiscConfig = dict
+
+
+def parse(path: str) -> tuple[IOConfig | None, StichingConfig | None, MiscConfig]:
     # Read file
     with open(path) as f:
         config = yaml.safe_load(f.read())
@@ -25,10 +31,15 @@ def parse(path: str) -> tuple[tuple[list[BaseReader], list[BaseWriter]] | None, 
     io_config = config["io"]
     io = _define_io(io_config)
 
+    # Stitching
+    stitching_config = config["stitching"]
+    stitching = _define_stitching(stitching_config)
+
     # Misc
     misc_config = config["misc"]
 
-    return io, misc_config
+    # Return
+    return io, stitching, misc_config
 
 
 def _config_logging(cfg: dict) -> None:
@@ -58,7 +69,7 @@ def _config_logging(cfg: dict) -> None:
     logging.info("Setup of loggers successful")
 
 
-def _define_io(cfg) -> tuple[list[BaseReader], list[BaseWriter]] | None:
+def _define_io(cfg) -> IOConfig | None:
     logging.debug("Define readers and writers")
 
     # Check input output fields
@@ -78,19 +89,40 @@ def _define_io(cfg) -> tuple[list[BaseReader], list[BaseWriter]] | None:
         logging.warning("Config doesn't specify any outputs. Stitching results will be lost.")
 
     # Create readers and writers
-    readers = _create_instances(BaseReader, inputs)
-    writers = _create_instances(BaseWriter, outputs)
+    readers = _create_instances(BaseReader, inputs, True)
+    writers = _create_instances(BaseWriter, outputs, True)
     return (readers, writers) if readers is not None and writers is not None else None
 
 
-def _create_instances(base_class, configs: list[dict]) -> list | None:
+def _define_stitching(cfg) -> StichingConfig | None:
+    logging.debug("Define stitching classes")
+
+    # Check input output fields
+    homography = cfg.get("homography")
+    masking = cfg.get("masking")
+    if homography is None or masking is None:
+        logging.error("Malformed config: Homography or Masking missing for Stitching")
+        return None
+
+    # Create readers and writers
+    homography_handler = _create_instances(BaseHomographyHandler, [homography], False)
+    masking_handler = _create_instances(BaseMaskingHandler, [masking], False)
+    return (
+        (homography_handler[0], masking_handler[0])
+        if homography_handler is not None and masking_handler is not None
+        else None
+    )
+
+
+def _create_instances(base_class, configs: list[dict], include_index: bool) -> list | None:
     instances = []
     classes = {sc.__name__: sc for sc in base_class.__subclasses__()}
+
     for i, cfg in enumerate(configs):
         # Get (and remove) type
         cls_name = cfg.pop("type", None)
         if cls_name is None:
-            logging.error("Malformed config: IO instances need a type")
+            logging.error("Malformed config: Instances need a type")
             return None
 
         # Try to find and instantiate class
@@ -100,7 +132,7 @@ def _create_instances(base_class, configs: list[dict]) -> list | None:
             return None
 
         try:
-            instance = cls_obj(i, **cfg)
+            instance = cls_obj(i, **cfg) if include_index else cls_obj(**cfg)
             instances.append(instance)
         except TypeError:
             logging.error(f"Malformed config: Undefined init params for class '{cls_name}'")
