@@ -21,7 +21,7 @@ stitching:
     orb_features: 50000
     min_matches: 10
   masking:
-    type: SeamFinding
+    type: SeamCarvingWide
     continous_recomputation: True
 misc:
   automatic_restart: True

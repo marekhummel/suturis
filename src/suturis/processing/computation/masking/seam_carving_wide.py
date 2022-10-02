@@ -18,7 +18,7 @@ HIGH_LAB_IN_BGR = [0, 62, 255]
 GAUSS_SIZE = 17
 
 
-class SeamCarving(BaseMaskingHandler):
+class SeamCarvingWide(BaseMaskingHandler):
     def __init__(self, continous_recomputation: bool):
         log.debug("Init Seam Carving Masking Handler")
         super().__init__(continous_recomputation)
@@ -94,47 +94,104 @@ class SeamCarving(BaseMaskingHandler):
             # This row only consists of the differences between the two images
             paths[row, :] = dif[row, :]
             # No previous field to come from.
-            previous[row, :] = 0
+            previous[row, :] = END
         else:
             for col in range(dif.shape[1]):
-                if 0 < col < dif.shape[1] - 1:
+                if 1 < col < dif.shape[1] - 2:
                     # Just somewhere in the middle
-                    leftval = paths[row + 1][col - 1]
-                    downval = paths[row + 1][col]
-                    rightval = paths[row + 1][col + 1]
-                    m = min(leftval, downval, rightval)
+                    left_left = paths[row + 1][col - 2]
+                    left = paths[row + 1][col - 1]
+                    down = paths[row + 1][col]
+                    right = paths[row + 1][col + 1]
+                    right_right = paths[row + 1][col + 2]
+
+                    m = min(left_left, left, down, right, right_right)
                     # Get a new value
                     paths[row][col] = dif[row][col] + m
                     # Determine which value we used
-                    if m == leftval:
+                    if m == left_left:
+                        previous[row][col] = LEFT_LEFT
+                    elif m == left:
                         previous[row][col] = LEFT
-                    elif m == downval:
+                    elif m == down:
+                        previous[row][col] = BOTTOM
+                    elif m == right:
+                        previous[row][col] = RIGHT
+                    else:
+                        previous[row][col] = RIGHT_RIGHT
+                elif col == 1:
+                    # 1 off left side of the image.
+                    left = paths[row + 1][col - 1]
+                    down = paths[row + 1][col]
+                    right = paths[row + 1][col + 1]
+                    right_right = paths[row + 1][col + 2]
+                    m = min(left, down, right, right_right)
+                    paths[row][col] = dif[row][col] + m
+                    if m == left:
+                        previous[row][col] = LEFT
+                    elif m == down:
+                        previous[row][col] = BOTTOM
+                    elif m == right:
+                        previous[row][col] = RIGHT
+                    else:
+                        previous[row][col] = RIGHT_RIGHT
+                elif col == 0:
+                    # Very left side of image
+                    down = paths[row + 1][col]
+                    right = paths[row + 1][col + 1]
+                    right_right = paths[row + 1][col + 2]
+                    m = min(down, right, right_right)
+                    paths[row][col] = dif[row][col] + m
+                    if m == down:
+                        previous[row][col] = BOTTOM
+                    elif m == right:
+                        previous[row][col] = RIGHT
+                    else:
+                        previous[row][col] = RIGHT_RIGHT
+                elif col < dif.shape[1] - 1:
+                    # Nearly Right end of image
+                    left_left = paths[row + 1][col - 2]
+                    left = paths[row + 1][col - 1]
+                    down = paths[row + 1][col]
+                    right = paths[row + 1][col + 1]
+
+                    m = min(left_left, left, down, right)
+                    # Get a new value
+                    paths[row][col] = dif[row][col] + m
+                    # Determine which value we used
+                    if m == left_left:
+                        previous[row][col] = LEFT_LEFT
+                    elif m == left:
+                        previous[row][col] = LEFT
+                    elif m == down:
                         previous[row][col] = BOTTOM
                     else:
                         previous[row][col] = RIGHT
-                elif col == 0:
-                    # Left side of the image.
-                    downval = paths[row + 1][col]
-                    rightval = paths[row + 1][col + 1]
-                    m = min(downval, rightval)
-                    paths[row][col] = dif[row][col] + m
-                    previous[row][col] = BOTTOM if m == downval else RIGHT
                 elif col < dif.shape[1]:
-                    # Right end of image
-                    # left = paths[row + 1][col - 1]
-                    # down = paths[row + 1][col]
-                    m = min(leftval, downval)
+                    # Nearly Right end of image
+                    left_left = paths[row + 1][col - 2]
+                    left = paths[row + 1][col - 1]
+                    down = paths[row + 1][col]
+
+                    m = min(left_left, left, down)
+                    # Get a new value
                     paths[row][col] = dif[row][col] + m
-                    previous[row][col] = LEFT if m == leftval else BOTTOM
+                    # Determine which value we used
+                    if m == left_left:
+                        previous[row][col] = LEFT_LEFT
+                    elif m == left:
+                        previous[row][col] = LEFT
+                    else:
+                        previous[row][col] = BOTTOM
                 else:
-                    # Big trouble
+                    # Big logical trouble
                     assert False, f"col is: {col}"
 
         return previous, paths
 
     def _find_bool_matrix(self, previous, paths):
         """
-        Finds a bool matrix for the seam for not so sharp angles.
+        Finds a bool matrix with the seam with a better angle.
         """
         index = 0
         current_min = 0
@@ -156,13 +213,16 @@ class SeamCarving(BaseMaskingHandler):
             val = previous[current_row][index]
             if val == END:
                 finished = True
+            elif val == LEFT_LEFT:
+                # Making two steps to the left
+                index -= 2
             elif val == LEFT:
                 # Making a step to the left
                 index -= 1
             elif val == RIGHT:
-                # Making a step to the right
                 index += 1
-
+            elif val == RIGHT_RIGHT:
+                index += 2
             # Moving a step down
             current_row += 1
         return bools
