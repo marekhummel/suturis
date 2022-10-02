@@ -21,7 +21,6 @@ if __name__ == "__main__":
 
         try:
             suturis.executor.run(io, stitching)
-            log.info("Main process finished")
         except (KeyboardInterrupt, SystemExit):
             log.info("Suturis was aborted")
         except Exception:
@@ -29,6 +28,7 @@ if __name__ == "__main__":
             restart = True
         finally:
             suturis.executor.shutdown()
+            log.info("Main process finished")
 
         if restart and misc["automatic_restart"]:
             # Works on linux ?

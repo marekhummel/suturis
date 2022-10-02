@@ -7,12 +7,16 @@ from multiprocessing.synchronize import Event as EventType
 
 from suturis.processing.computation.homography import BaseHomographyHandler
 from suturis.processing.computation.masking import BaseMaskingHandler
+import suturis.processing.computation.subprocess as subprc
 from suturis.timer import track_timings
 from suturis.typing import ComputationParams, Image, Mask, WarpingInfo
 
-_computation_running: bool = False
-_shutdown_event: EventType = mp.Event()
 _local_params: ComputationParams | None = None
+_computation_running: bool = False
+_process: mp.Process | None = None
+_local_pipe: mpc.Connection | None = None
+_queue_listener: logging.handlers.QueueListener | None = None
+_shutdown_event: EventType = mp.Event()
 
 
 def get_params(
@@ -21,123 +25,83 @@ def get_params(
     homography_handler: BaseHomographyHandler,
     masking_handler: BaseMaskingHandler,
 ) -> ComputationParams | None:
-    global _computation_running, _local_params, _shutdown_event
+    global _computation_running, _process
+
+    # Create subprocess if needed
+    if _process is None:
+        _create_subprocess(homography_handler, masking_handler)
 
     # Recompute params when possible
     if not _computation_running:
         log.debug("Recompute stitching params")
-
-        # Prepare logging
-        log_queue: mp.Queue = mp.Queue()
-        local, fork = mp.Pipe(duplex=True)
-        proc = mp.Process(target=_compute_params, args=(fork, _shutdown_event, log_queue), daemon=True)
-
-        watcher = threading.Thread(
-            target=_computation_watcher,
-            args=(proc, image1, image2, homography_handler, masking_handler, local, fork, log_queue),
-            daemon=True,
-        )
-        watcher.start()
         _computation_running = True
+        watcher = threading.Thread(target=_computation_watcher, args=(image1, image2), daemon=True)
+        watcher.start()
         log.debug("Watcher started")
 
-    # Return
+    # Return params
     log.debug("Return params")
     return _local_params
 
 
 def shutdown() -> None:
-    global _shutdown_event
+    global _shutdown_event, _process, _local_pipe, _queue_listener
+    log.debug("Cleanly close subprocess")
     _shutdown_event.set()
 
+    if _process:
+        _process.join()
 
-@track_timings(name="Computation")
-def _computation_watcher(
-    process: mp.Process,
-    image1: Image,
-    image2: Image,
-    homography_handler: BaseHomographyHandler,
-    masking_handler: BaseMaskingHandler,
-    pipe_local: mpc.Connection,
-    pipe_fork: mpc.Connection,
-    log_queue: mp.Queue,
-) -> None:
-    global _computation_running, _shutdown_event, _local_params
+    if _local_pipe:
+        _local_pipe.close()
+
+    if _queue_listener:
+        _queue_listener.stop()
+
+
+def _create_subprocess(homography_handler: BaseHomographyHandler, masking_handler: BaseMaskingHandler):
+    global _process, _local_pipe, _queue_listener
+
+    # Setup logging
+    log_queue: mp.Queue = mp.Queue()
+    _queue_listener = logging.handlers.QueueListener(log_queue, *log.getLogger().handlers, respect_handler_level=True)
+    _queue_listener.start()
+
+    # Start process and pipes
+    _local_pipe, fork = mp.Pipe(duplex=True)
+    _process = mp.Process(target=subprc.main, args=(fork, _shutdown_event, log_queue), daemon=True)
+    _process.start()
+
+    # Send handlers once
+    _local_pipe.send(homography_handler)
+    _local_pipe.send(masking_handler)
+
+
+@track_timings(name="Update call")
+def _computation_watcher(image1: Image, image2: Image) -> None:
+    global _computation_running, _local_params, _shutdown_event, _local_pipe
+    assert _local_pipe is not None
 
     try:
-        # Logging
-        log.debug("Setup logging")
-        ql = logging.handlers.QueueListener(log_queue, *log.getLogger().handlers, respect_handler_level=True)
-        ql.start()
-
         # Start and send data
-        log.debug("Start process and send data")
-        process.start()
-        pipe_local.send(image1)
-        pipe_local.send(image2)
-        pipe_local.send(homography_handler)
-        pipe_local.send(masking_handler)
+        log.debug("Start watcher and send data")
+        _local_pipe.send(image1)
+        _local_pipe.send(image2)
 
         # Idle until results
         log.debug("Wait until results received")
-        warping_info: WarpingInfo = pipe_local.recv()
-        mask: Mask = pipe_local.recv()
-
-        # Let process finish
-        process.join()
-        log.debug("Connection completed, update data")
-        pipe_local.close()
-        pipe_fork.close()
-
-        # Update delegates (update has to happen in main process, not in subprocess)
-        homography_handler.cache_results(warping_info)
-        masking_handler.cache_results(mask)
+        warping_info: WarpingInfo = _local_pipe.recv()
+        mask: Mask = _local_pipe.recv()
 
         # Update local params
         if _local_params is None:
             log.info("Initial computation of params completed")
         _local_params = warping_info, mask
 
-    except EOFError:
+    except (BrokenPipeError, EOFError):
         if not _shutdown_event.is_set():
             log.error("Pipe error, update aborted")
         return
     finally:
         _computation_running = False
         log.debug("Update complete.")
-        ql.stop()
-
-
-def _compute_params(pipe_conn: mpc.Connection, shutdown_event: EventType, logging_queue: mp.Queue) -> None:
-    # Set logging
-    qh = logging.handlers.QueueHandler(logging_queue)
-    proc_logger = log.getLogger()
-    proc_logger.setLevel(logging.DEBUG)
-    proc_logger.addHandler(qh)
-    proc_logger.debug("Updating process started")
-
-    try:
-        # Get images and delegates
-        proc_logger.debug("Receive images")
-        image1: Image = pipe_conn.recv()
-        image2: Image = pipe_conn.recv()
-        homography_delegate: BaseHomographyHandler = pipe_conn.recv()
-        masking_delegate: BaseMaskingHandler = pipe_conn.recv()
-
-        # Warping
-        proc_logger.debug("Compute warping")
-        translation, target_size, homography = homography_delegate.find_homography(image1, image2)
-        img1_translated, img2_warped = homography_delegate.apply_transformations(
-            image1, image2, translation, target_size, homography
-        )
-        pipe_conn.send((translation, target_size, homography))
-
-        # Mask calculation
-        proc_logger.debug("Compute mask")
-        seam_area = homography_delegate.find_crop(image1, homography, translation)
-        mask = masking_delegate.compute_mask(img1_translated, img2_warped, target_size, translation, seam_area)
-        pipe_conn.send(mask)
-
-    except BrokenPipeError:
-        if not shutdown_event.is_set():
-            log.error("Pipe error in daemon process, computation aborted.")

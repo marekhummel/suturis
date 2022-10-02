@@ -22,9 +22,6 @@ class BaseHomographyHandler:
     def _find_homography(self, img1: Image, img2: Image) -> WarpingInfo:
         raise NotImplementedError("Abstract method needs to be overriden")
 
-    def cache_results(self, results: WarpingInfo) -> None:
-        self._cached_homography = results
-
     def find_crop(self, img1: Image, homography: Homography, translation: TranslationVector) -> tuple[Point, Point]:
         points = np.array(
             [
