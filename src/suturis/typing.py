@@ -9,4 +9,5 @@ Homography = npt.NDArray
 TranslationVector = tuple[int, int]
 Mask = npt.NDArray
 SeamMatrix = npt.NDArray
-ComputationParams = tuple[tuple[CvSize, TranslationVector, Homography], Mask]
+WarpingInfo = tuple[TranslationVector, CvSize, Homography]
+ComputationParams = tuple[WarpingInfo, Mask]

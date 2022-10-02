@@ -17,12 +17,12 @@ io:
 stitching:
   homography:
     type: OrbRansacHandler
-    continous_recomputation: True
+    continous_recomputation: False
     orb_features: 50000
     min_matches: 10
   masking:
     type: SeamFinding
-    continous_recomputation: True
+    continous_recomputation: False
 misc:
   automatic_restart: True
 logging:

@@ -5,11 +5,10 @@ import multiprocessing.connection as mpc
 import threading
 from multiprocessing.synchronize import Event as EventType
 
-import numpy as np
-from suturis.processing.computation.homography.base_homography_handler import BaseHomographyHandler
-from suturis.processing.computation.masking.base_masking_handler import BaseMaskingHandler
+from suturis.processing.computation.homography import BaseHomographyHandler
+from suturis.processing.computation.masking import BaseMaskingHandler
 from suturis.timer import track_timings
-from suturis.typing import ComputationParams, Image
+from suturis.typing import ComputationParams, Image, Mask, WarpingInfo
 
 _computation_running: bool = False
 _shutdown_event: EventType = mp.Event()
@@ -81,15 +80,20 @@ def _computation_watcher(
 
         # Idle until results
         log.debug("Wait until results received")
-        warping_info = pipe_local.recv()
-        mask = pipe_local.recv()
-        process.join()
+        warping_info: WarpingInfo = pipe_local.recv()
+        mask: Mask = pipe_local.recv()
 
-        # Update param object
+        # Let process finish
+        process.join()
         log.debug("Connection completed, update data")
         pipe_local.close()
         pipe_fork.close()
 
+        # Update delegates (update has to happen in main process, not in subprocess)
+        homography_handler.cache_results(warping_info)
+        masking_handler.cache_results(mask)
+
+        # Update local params
         if _local_params is None:
             log.info("Initial computation of params completed")
         _local_params = warping_info, mask
@@ -105,7 +109,7 @@ def _computation_watcher(
 
 
 def _compute_params(pipe_conn: mpc.Connection, shutdown_event: EventType, logging_queue: mp.Queue) -> None:
-    # ** Set logging
+    # Set logging
     qh = logging.handlers.QueueHandler(logging_queue)
     proc_logger = log.getLogger()
     proc_logger.setLevel(logging.DEBUG)
@@ -113,22 +117,22 @@ def _compute_params(pipe_conn: mpc.Connection, shutdown_event: EventType, loggin
     proc_logger.debug("Updating process started")
 
     try:
-        # ** Get images
+        # Get images and delegates
         proc_logger.debug("Receive images")
-        image1 = pipe_conn.recv()
-        image2 = pipe_conn.recv()
-        homography_delegate = pipe_conn.recv()
-        masking_delegate = pipe_conn.recv()
+        image1: Image = pipe_conn.recv()
+        image2: Image = pipe_conn.recv()
+        homography_delegate: BaseHomographyHandler = pipe_conn.recv()
+        masking_delegate: BaseMaskingHandler = pipe_conn.recv()
 
-        # ** Warping
+        # Warping
         proc_logger.debug("Compute warping")
         translation, target_size, homography = homography_delegate.find_homography(image1, image2)
         img1_translated, img2_warped = homography_delegate.apply_transformations(
-            image1, image2, target_size, translation, homography
+            image1, image2, translation, target_size, homography
         )
-        pipe_conn.send((target_size, translation, homography))
+        pipe_conn.send((translation, target_size, homography))
 
-        # ** Mask calculation
+        # Mask calculation
         proc_logger.debug("Compute mask")
         seam_area = homography_delegate.find_crop(image1, homography, translation)
         mask = masking_delegate.compute_mask(img1_translated, img2_warped, target_size, translation, seam_area)

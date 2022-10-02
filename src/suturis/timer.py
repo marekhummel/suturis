@@ -14,14 +14,14 @@ def track_timings(*, name: str) -> Callable[[Callable], Any]:
 
     def decorator(func):
         @wraps(func)
-        def _wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs):
             begin = perf_counter_ns()
             result = func(*args, **kwargs)
             end = perf_counter_ns()
             timings[name].append(end - begin)
             return result
 
-        return _wrapper
+        return wrapper
 
     return decorator
 

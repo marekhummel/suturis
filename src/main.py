@@ -13,7 +13,6 @@ if __name__ == "__main__":
     parser.add_argument("config", type=str, nargs="?", default="src/config.yaml", help="Path to yaml config file")
     args = parser.parse_args()
     io, stitching, misc = parse(args.config)
-    print(sys.executable, __file__)
 
     # Start application
     if io and stitching and misc:

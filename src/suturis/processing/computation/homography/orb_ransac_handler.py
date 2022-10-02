@@ -16,43 +16,10 @@ class OrbRansacHandler(BaseHomographyHandler):
         self.orb_features = orb_features
         self.min_matches = min_matches
 
-    def find_homography(self, img1: Image, img2: Image) -> tuple[TranslationVector, CvSize, Homography]:
+    def _find_homography(self, img1: Image, img2: Image) -> tuple[TranslationVector, CvSize, Homography]:
         homography = self._compute_homography_matrix(img1, img2)
         translation, target_size = self._compute_target_canvas(img1.shape[:2], img2.shape[:2], homography)
         return translation, target_size, homography
-
-    def find_crop(self, img1: Image, homography: Homography, translation: TranslationVector) -> tuple[Point, Point]:
-        points = np.array(
-            [
-                [0, 0, 1],
-                [img1.shape[1] - 1, 0, 1],
-                [0, img1.shape[0] - 1, 1],
-                [img1.shape[1] - 1, img1.shape[0] - 1, 1],
-            ]
-        )
-        hom_points: np.ndarray = np.array([])
-        trans_points: np.ndarray = np.array([])
-        h_translation = np.array([[1, 0, translation[0]], [0, 1, translation[1]], [0, 0, 1]])
-
-        # Apply transformations to all of those corner points
-        for pts in points:
-            # Warp the points
-            tmp = cv2.perspectiveTransform(np.array([[[pts[0], pts[1]]]], dtype=np.float32), homography)
-            # Add the translation
-            tmp = np.matmul(h_translation, np.array([tmp[0][0][0], tmp[0][0][1], 1]))
-            hom_points = np.concatenate((hom_points, tmp))
-            trans_points = np.concatenate((trans_points, np.matmul(h_translation, pts)))
-
-        # Calculating the perfect corner points
-        start = (
-            int(round(max(min(hom_points[1::3]), min(trans_points[1::3])))),
-            int(round(max(min(hom_points[0::3]), min(trans_points[0::3])))),
-        )
-        end = (
-            int(round(min(max(hom_points[1::3]), max(trans_points[1::3])))),
-            int(round(min(max(hom_points[0::3]), max(trans_points[0::3])))),
-        )
-        return start, end
 
     def _compute_homography_matrix(self, img1: Image, img2: Image):
         # Create ORB and compute
