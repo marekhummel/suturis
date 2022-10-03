@@ -4,9 +4,9 @@ from suturis.typing import Image
 
 
 class SourceImage(enum.IntEnum):
-    INPUT_ONE = 0
-    INPUT_TWO = 1
-    OUTPUT = 2
+    OUTPUT = 0
+    INPUT_ONE = 1
+    INPUT_TWO = 2
 
 
 class BaseWriter:

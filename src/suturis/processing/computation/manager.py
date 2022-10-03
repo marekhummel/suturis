@@ -49,8 +49,8 @@ def shutdown() -> None:
     log.debug("Cleanly close subprocess")
     _shutdown_event.set()
 
-    if _process:
-        _process.join()
+    # if _process:
+    #     _process.join()
 
     if _local_pipe:
         _local_pipe.close()

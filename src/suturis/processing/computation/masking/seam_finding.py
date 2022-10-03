@@ -16,9 +16,12 @@ GAUSS_SIZE = 17
 
 
 class SeamFinding(BaseMaskingHandler):
-    def __init__(self, continous_recomputation: bool):
+    preferred_seam: tuple[Point, Point] | None
+
+    def __init__(self, continous_recomputation: bool, preferred_seam: tuple[Point, Point] | None = None):
         log.debug("Init Seam Finding Masking Handler")
         super().__init__(continous_recomputation)
+        self.preferred_seam = preferred_seam
 
     def _compute_mask(
         self,
@@ -34,11 +37,17 @@ class SeamFinding(BaseMaskingHandler):
         return self._create_mask_from_seam(seam_matrix, img1, img2, start, translation, target_size)
 
     def _insert_preferred_seam(self, img1: Image, img2: Image) -> Image:
-        preferred: list[tuple[int, int]] = []  # [(x, (img1.shape[0]) // 2) for x in range(img1.shape[1])]
-
         img1_modified = img1.copy()
-        for (x, y) in preferred:
-            img1_modified[y][x] = img2[y][x]
+        if self.preferred_seam is None:
+            return img1_modified
+
+        start, end = self.preferred_seam
+        slope = (end[1] - start[1]) / (end[0] - start[0])
+        y = start[1]
+        for x in range(start[0], end[0] + 1):
+            iy = int(y)
+            img1_modified[iy][x] = img2[iy][x]
+            y += slope
 
         return img1_modified
 

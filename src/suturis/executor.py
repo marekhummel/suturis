@@ -52,7 +52,7 @@ def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter]) -> bool
 
     # ** Write output
     log.debug("Write stitched image to outputs")
-    possibles = (image1, image2, output)
+    possibles = (output, image1, image2)
     for w in writers:
         w.write_image(possibles[w.source])
 

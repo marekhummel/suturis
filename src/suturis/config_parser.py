@@ -115,8 +115,16 @@ def _define_stitching(cfg) -> StichingConfig | None:
 
 
 def _create_instances(base_class, configs: list[dict], include_index: bool) -> list | None:
+    def _find_subclasses(cls_obj):
+        all_subclasses = {}
+
+        for sc in cls_obj.__subclasses__():
+            all_subclasses[sc.__name__] = sc
+            all_subclasses.update(_find_subclasses(sc))
+        return all_subclasses
+
     instances = []
-    classes = {sc.__name__: sc for sc in base_class.__subclasses__()}
+    classes = _find_subclasses(base_class)
 
     for i, cfg in enumerate(configs):
         # Get (and remove) type

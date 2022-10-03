@@ -3,10 +3,10 @@ io:
     - type: FileReader
       path: ./data/input/lr/starboard_0120220423163949.mp4
       skip: 9.2
-      speed_up: 8
+      speed_up: 2
     - type: FileReader
       path: ./data/input/lr/port_0120220423162959.mp4
-      speed_up: 8
+      speed_up: 2
   outputs:
     - type: ScreenOutput
       title: Stitched
@@ -20,9 +20,15 @@ stitching:
     continous_recomputation: False
     orb_features: 50000
     min_matches: 10
+  # masking:
+  #   type: SeamFinding
+  #   continous_recomputation: True
+  #   preferred_seam: [[475, 400], [725, 400]]
   masking:
-    type: SeamCarvingWide
+    type: SeamCarving
     continous_recomputation: True
+    blocked_area_one: [[540, 70], [1300, 360]]
+    blocked_area_two: [[0, 420], [825, 700]]
 misc:
   automatic_restart: True
 logging:

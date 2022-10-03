@@ -19,9 +19,19 @@ GAUSS_SIZE = 17
 
 
 class SeamCarving(BaseMaskingHandler):
-    def __init__(self, continous_recomputation: bool):
+    blocked_area_one: tuple[Point, Point] | None
+    blocked_area_two: tuple[Point, Point] | None
+
+    def __init__(
+        self,
+        continous_recomputation: bool,
+        blocked_area_one: tuple[Point, Point] | None = None,
+        blocked_area_two: tuple[Point, Point] | None = None,
+    ):
         log.debug("Init Seam Carving Masking Handler")
         super().__init__(continous_recomputation)
+        self.blocked_area_one = blocked_area_one
+        self.blocked_area_two = blocked_area_two
 
     def _compute_mask(
         self,
@@ -40,16 +50,24 @@ class SeamCarving(BaseMaskingHandler):
         img1_modified = img1.copy()
         img2_modified = img2.copy()
 
-        blocked: list[tuple[int, int, bool]] = []
-        for (x, y, is_left) in blocked:
-            if is_left:
-                # Fill to the left side of images
-                img1_modified[y + start[0] : y + start[0] + 1, 0 : x + start[1]] = LOW_LAB_IN_BGR
-                img2_modified[y + start[0] : y + start[0] + 1, 0 : x + start[1]] = HIGH_LAB_IN_BGR
-            else:
-                # Fill to the right side of images
-                img1_modified[y + start[0] : y + start[0] + 1, x + start[1] :] = LOW_LAB_IN_BGR
-                img2_modified[y + start[0] : y + start[0] + 1, x + start[1] :] = HIGH_LAB_IN_BGR
+        # blocked: list[tuple[int, int, bool]] = []
+        # for (x, y, is_left) in blocked:
+        #     if is_left:
+        #         # Fill to the left side of images
+        #         img1_modified[y + start[0] : y + start[0] + 1, 0 : x + start[1]] = LOW_LAB_IN_BGR
+        #         img2_modified[y + start[0] : y + start[0] + 1, 0 : x + start[1]] = HIGH_LAB_IN_BGR
+        #     else:
+        #         # Fill to the right side of images
+        #         img1_modified[y + start[0] : y + start[0] + 1, x + start[1] :] = LOW_LAB_IN_BGR
+        #         img2_modified[y + start[0] : y + start[0] + 1, x + start[1] :] = HIGH_LAB_IN_BGR
+
+        start1, end1 = self.blocked_area_one
+        img1_modified[start1[1] : end1[1] + 1, start1[0] : end1[0] + 1] = LOW_LAB_IN_BGR
+        img2_modified[start1[1] : end1[1] + 1, start1[0] : end1[0] + 1] = HIGH_LAB_IN_BGR
+
+        start2, end2 = self.blocked_area_two
+        img1_modified[start2[1] : end2[1] + 1, start2[0] : end2[0] + 1] = HIGH_LAB_IN_BGR
+        img2_modified[start2[1] : end2[1] + 1, start2[0] : end2[0] + 1] = LOW_LAB_IN_BGR
 
         return img1_modified, img2_modified
 
