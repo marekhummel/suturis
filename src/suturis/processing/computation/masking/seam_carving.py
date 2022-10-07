@@ -3,7 +3,7 @@ import logging as log
 import cv2
 import numpy as np
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import CvSize, Image, Mask, Point, SeamMatrix, TranslationVector
+from suturis.typing import CvSize, Image, Mask, CvPoint, NpPoint, SeamMatrix, TranslationVector
 
 END = 0
 LEFT_LEFT = 1
@@ -19,47 +19,28 @@ GAUSS_SIZE = 17
 
 
 class SeamCarving(BaseMaskingHandler):
-    blocked_area_one: tuple[Point, Point] | None
-    blocked_area_two: tuple[Point, Point] | None
+    blocked_area_one: tuple[CvPoint, CvPoint] | None
+    blocked_area_two: tuple[CvPoint, CvPoint] | None
 
     def __init__(
         self,
         continous_recomputation: bool,
-        blocked_area_one: tuple[Point, Point] | None = None,
-        blocked_area_two: tuple[Point, Point] | None = None,
+        blocked_area_one: tuple[CvPoint, CvPoint] | None = None,
+        blocked_area_two: tuple[CvPoint, CvPoint] | None = None,
     ):
         log.debug("Init Seam Carving Masking Handler")
         super().__init__(continous_recomputation)
         self.blocked_area_one = blocked_area_one
         self.blocked_area_two = blocked_area_two
 
-    def _compute_mask(
-        self,
-        img1: Image,
-        img2: Image,
-        target_size: CvSize,
-        translation: TranslationVector,
-        crop_area: tuple[Point, Point],
-    ) -> Mask:
-        start, end = crop_area
-        img1_modified, img2_modified = self._insert_blocked_areas(img1, img2, start)
-        seam_matrix = self._find_seam(img1_modified, img2_modified, start, end)
-        return self._create_mask_from_seam(seam_matrix, img1, img2, start, translation, target_size)
+    def _compute_mask(self, img1: Image, img2: Image, target_size: CvSize, translation: TranslationVector) -> Mask:
+        img1_modified, img2_modified = self._insert_blocked_areas(img1, img2)
+        seam_matrix = self._find_seam(img1_modified, img2_modified)
+        return self._create_mask_from_seam(seam_matrix, img1, img2, translation, target_size)
 
-    def _insert_blocked_areas(self, img1: Image, img2: Image, start: Point) -> tuple[Image, Image]:
+    def _insert_blocked_areas(self, img1: Image, img2: Image) -> tuple[Image, Image]:
         img1_modified = img1.copy()
         img2_modified = img2.copy()
-
-        # blocked: list[tuple[int, int, bool]] = []
-        # for (x, y, is_left) in blocked:
-        #     if is_left:
-        #         # Fill to the left side of images
-        #         img1_modified[y + start[0] : y + start[0] + 1, 0 : x + start[1]] = LOW_LAB_IN_BGR
-        #         img2_modified[y + start[0] : y + start[0] + 1, 0 : x + start[1]] = HIGH_LAB_IN_BGR
-        #     else:
-        #         # Fill to the right side of images
-        #         img1_modified[y + start[0] : y + start[0] + 1, x + start[1] :] = LOW_LAB_IN_BGR
-        #         img2_modified[y + start[0] : y + start[0] + 1, x + start[1] :] = HIGH_LAB_IN_BGR
 
         start1, end1 = self.blocked_area_one
         img1_modified[start1[1] : end1[1] + 1, start1[0] : end1[0] + 1] = LOW_LAB_IN_BGR
@@ -71,9 +52,9 @@ class SeamCarving(BaseMaskingHandler):
 
         return img1_modified, img2_modified
 
-    def _find_seam(self, im1: Image, im2: Image, start: Point, end: Point) -> SeamMatrix:
-        ystart, xstart = start
-        yend, xend = end
+    def _find_seam(self, im1: Image, im2: Image) -> SeamMatrix:
+        ystart, xstart = 0, 0
+        yend, xend = im1.shape[:2]
         dif = self._get_energy(im1, im2, xstart, ystart, xend, yend)
         previous = np.zeros((yend - ystart, xend - xstart))
         paths = np.zeros_like(previous)
@@ -185,7 +166,7 @@ class SeamCarving(BaseMaskingHandler):
             current_row += 1
         return bools
 
-    def _create_mask_from_seam(self, seammat, im1, im2, start, translation, target_size):
+    def _create_mask_from_seam(self, seammat, im1, im2, translation, target_size):
         """
         Creates a mask for the merged images with values between 0 and 1. 1 is for fully filling the left image,
         0 is for fully filling the right image. Everything else is in between.
@@ -230,11 +211,10 @@ class SeamCarving(BaseMaskingHandler):
                     )
 
         # Go through seammat area and fill in zeros at the right manually
-        yoff, xoff = start
         for row in range(seammat.shape[0]):
             for col in range(seammat.shape[1]):
                 if not seammat[row][col]:
-                    mask_mat[row + yoff][col + xoff + 1] = [0.0, 0.0, 0.0]
+                    mask_mat[row][col + 1] = [0.0, 0.0, 0.0]
         # stitch.show_image('Mask', mask_mat)
 
         # Add a bit of gauss and return it

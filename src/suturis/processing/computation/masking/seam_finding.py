@@ -3,7 +3,7 @@ import logging as log
 import cv2
 import numpy as np
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import CvSize, Image, Mask, Point, SeamMatrix, TranslationVector
+from suturis.typing import CvPoint, CvSize, Image, Mask, SeamMatrix, TranslationVector
 
 END = 0
 F_BOT_LEFT = 1
@@ -16,25 +16,17 @@ GAUSS_SIZE = 17
 
 
 class SeamFinding(BaseMaskingHandler):
-    preferred_seam: tuple[Point, Point] | None
+    preferred_seam: tuple[CvPoint, CvPoint] | None
 
-    def __init__(self, continous_recomputation: bool, preferred_seam: tuple[Point, Point] | None = None):
+    def __init__(self, continous_recomputation: bool, preferred_seam: tuple[CvPoint, CvPoint] | None = None):
         log.debug("Init Seam Finding Masking Handler")
         super().__init__(continous_recomputation)
         self.preferred_seam = preferred_seam
 
-    def _compute_mask(
-        self,
-        img1: Image,
-        img2: Image,
-        target_size: CvSize,
-        translation: TranslationVector,
-        crop_area: tuple[Point, Point],
-    ) -> Mask:
-        start, end = crop_area
+    def _compute_mask(self, img1: Image, img2: Image, target_size: CvSize, translation: TranslationVector) -> Mask:
         img1_modified = self._insert_preferred_seam(img1, img2)
-        seam_matrix = self._find_seam(img1_modified, img2, start, end)
-        return self._create_mask_from_seam(seam_matrix, img1, img2, start, translation, target_size)
+        seam_matrix = self._find_seam(img1_modified, img2)
+        return self._create_mask_from_seam(seam_matrix, img1, img2, translation, target_size)
 
     def _insert_preferred_seam(self, img1: Image, img2: Image) -> Image:
         img1_modified = img1.copy()
@@ -51,24 +43,19 @@ class SeamFinding(BaseMaskingHandler):
 
         return img1_modified
 
-    def _find_seam(self, img1: Image, img2: Image, top_left: Point, bottom_right: Point) -> SeamMatrix:
+    def _find_seam(self, img1: Image, img2: Image) -> SeamMatrix:
         # Convert color into Lab space, because we would like to follow EN ISO 11664-4
         img1 = cv2.cvtColor(img1.astype(np.uint8), cv2.COLOR_BGR2Lab)
         img2 = cv2.cvtColor(img2.astype(np.uint8), cv2.COLOR_BGR2Lab)
 
         # Doing some initializations
-        y_off, x_off = top_left
-        height, width = (bottom_right[0] - top_left[0], bottom_right[1] - top_left[1])
+        height, width = img1.shape[:2]
         errors = np.zeros((height, width))
         previous = np.zeros((height, width))
 
         # Calculate distances
         for idx in range(min(errors.shape[0], errors.shape[1])):
-            dist = np.sqrt(
-                sum(
-                    abs(int(x) - int(y)) for x, y in zip(img1[idx + y_off][idx + x_off], img2[idx + y_off][idx + x_off])
-                )
-            )
+            dist = np.sqrt(sum(abs(int(x) - int(y)) for x, y in zip(img1[idx][idx], img2[idx][idx])))
 
             is_last_col, is_last_row = False, False
             # Check whether we are at an edge
@@ -130,27 +117,25 @@ class SeamFinding(BaseMaskingHandler):
 
             if is_last_col:
                 # Now we reached the end of the columns so we only need to fill that column, then we're done
-                errors, previous = self._fill_column(idx, img1, img2, errors, y_off, x_off, previous)
+                errors, previous = self._fill_column(idx, img1, img2, errors, previous)
             elif is_last_row:
                 # Now we reached the end of the rows, so we only need to fill that row before we're done
-                errors, previous = self._fill_row(idx, img1, img2, errors, y_off, x_off, previous)
+                errors, previous = self._fill_row(idx, img1, img2, errors, previous)
             else:
                 # We have to fill both rows and columns
-                errors, previous = self._fill_row(idx, img1, img2, errors, y_off, x_off, previous)
-                errors, previous = self._fill_column(idx, img1, img2, errors, y_off, x_off, previous)
+                errors, previous = self._fill_row(idx, img1, img2, errors, previous)
+                errors, previous = self._fill_column(idx, img1, img2, errors, previous)
 
         return self._find_bool_matrix(previous)
 
-    def _fill_row(self, row, im1, im2, errors, y_off, x_off, previous):
+    def _fill_row(self, row, im1, im2, errors, previous):
         """
         Iterate through one row and fill in values
         """
         assert row < errors.shape[0], f"idx is: {row}, errors.shape[0] is: {errors.shape[0]}"
         # Go through columns
         for col in range(row + 1, errors.shape[1]):
-            dist = np.sqrt(
-                sum(abs(int(x) - int(y)) for x, y in zip(im1[row + y_off][col + x_off], im2[row + y_off][col + x_off]))
-            )
+            dist = np.sqrt(sum(abs(int(x) - int(y)) for x, y in zip(im1[row][col], im2[row][col])))
 
             if row > 0:
                 is_last_one = False
@@ -182,16 +167,14 @@ class SeamFinding(BaseMaskingHandler):
                 previous[row][col] = F_LEFT
         return errors, previous
 
-    def _fill_column(self, col, im1, im2, errors, yoff, xoff, previous):
+    def _fill_column(self, col, im1, im2, errors, previous):
         """
         Iterate through one column and fill in values
         """
         assert col < errors.shape[1]
         # Go through rows
         for row in range(col + 1, errors.shape[0]):
-            dist = np.sqrt(
-                sum(abs(int(x) - int(y)) for x, y in zip(im1[row + yoff][col + xoff], im2[row + yoff][col + xoff]))
-            )
+            dist = np.sqrt(sum(abs(int(x) - int(y)) for x, y in zip(im1[row][col], im2[row][col])))
 
             if col > 0:
                 # Check to not run out of bounds
@@ -252,7 +235,7 @@ class SeamFinding(BaseMaskingHandler):
                 finished = True
         return bool_matrix
 
-    def _create_mask_from_seam(self, seammat, im1, im2, start, translation, target_size):
+    def _create_mask_from_seam(self, seammat, im1, im2, translation, target_size):
         """
         Creates a mask for the merged images with values between 0 and 1. 1 is for fully filling the left image,
         0 is for fully filling the right image. Everything else is in between.
@@ -297,11 +280,11 @@ class SeamFinding(BaseMaskingHandler):
                     )
 
         # Go through seammat area and fill in zeros at the right manually
-        yoff, xoff = start
+        yoff, xoff = 0, 0
         for row in range(seammat.shape[0]):
             for col in range(seammat.shape[1]):
                 if not seammat[row][col]:
-                    mask_mat[row + yoff][col + xoff + 1] = [0.0, 0.0, 0.0]
+                    mask_mat[row + yoff][col + xoff] = [0.0, 0.0, 0.0]
         # stitch.show_image('Mask', mask_mat)
 
         # Add a bit of gauss and return it

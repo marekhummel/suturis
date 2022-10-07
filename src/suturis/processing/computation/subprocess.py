@@ -7,7 +7,7 @@ from multiprocessing.synchronize import Event as EventType
 from suturis.processing.computation.homography import BaseHomographyHandler
 from suturis.processing.computation.masking import BaseMaskingHandler
 from suturis.timer import track_timings, finalize_timings
-from suturis.typing import ComputationParams, Image
+from suturis.typing import ComputationParams, Image, NpSize
 
 
 proc_logger = log.getLogger()
@@ -40,11 +40,12 @@ def main(pipe_conn: mpc.Connection, shutdown_event: EventType, logging_queue: mp
 
             # Compute
             proc_logger.debug("Compute params")
-            warping_info, mask = _compute_params(image1, image2)
+            warping_info, crop_area, mask = _compute_params(image1, image2)
 
             # Return
             proc_logger.debug("Return params")
             pipe_conn.send(warping_info)
+            pipe_conn.send(crop_area)
             pipe_conn.send(mask)
 
         except (BrokenPipeError, EOFError):
@@ -67,9 +68,13 @@ def _compute_params(image1: Image, image2: Image) -> ComputationParams:
         image1, image2, translation, target_size, homography
     )
 
+    # Crop
+    proc_logger.debug("Compute crop area")
+    crop_area, crop_size = homography_delegate.find_crop(image1, homography, translation)
+    img1_translated_crop, img2_warped_crop = homography_delegate.apply_crop(img1_translated, img2_warped, *crop_area)
+
     # Mask calculation
     proc_logger.debug("Compute mask")
-    seam_area = homography_delegate.find_crop(image1, homography, translation)
-    mask = masking_delegate.compute_mask(img1_translated, img2_warped, target_size, translation, seam_area)
+    mask = masking_delegate.compute_mask(img1_translated_crop, img2_warped_crop, crop_size, translation)
 
-    return ((translation, target_size, homography), mask)
+    return ((translation, target_size, homography), crop_area, mask)

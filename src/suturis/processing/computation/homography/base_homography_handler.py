@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import logging as log
-from suturis.typing import CvSize, Homography, Image, Point, TranslationVector, WarpingInfo
+from suturis.typing import CvSize, Homography, Image, NpPoint, NpSize, TranslationVector, WarpingInfo, CropArea
 
 
 class BaseHomographyHandler:
@@ -22,7 +22,7 @@ class BaseHomographyHandler:
     def _find_homography(self, img1: Image, img2: Image) -> WarpingInfo:
         raise NotImplementedError("Abstract method needs to be overriden")
 
-    def find_crop(self, img1: Image, homography: Homography, translation: TranslationVector) -> tuple[Point, Point]:
+    def find_crop(self, img1: Image, homography: Homography, translation: TranslationVector) -> tuple[CropArea, NpSize]:
         points = np.array(
             [
                 [0, 0, 1],
@@ -53,7 +53,9 @@ class BaseHomographyHandler:
             int(round(min(max(hom_points[1::3]), max(trans_points[1::3])))),
             int(round(min(max(hom_points[0::3]), max(trans_points[0::3])))),
         )
-        return start, end
+
+        crop_size = (end[0] - start[0] + 1, end[1] - start[1] + 1)
+        return (start, end), crop_size
 
     def apply_transformations(
         self,
@@ -80,3 +82,12 @@ class BaseHomographyHandler:
 
         # Return images with same sized canvas for easy overlay
         return img1_translated, img2_warped
+
+    def apply_crop(self, img1: Image, img2: Image, start: NpPoint, end: NpPoint) -> tuple[Image, Image]:
+        ystart, xstart = start
+        yend, xend = end
+
+        img1_crop = img1[ystart : yend + 1, xstart : xend + 1, :]
+        img2_crop = img2[ystart : yend + 1, xstart : xend + 1, :]
+
+        return img1_crop, img2_crop

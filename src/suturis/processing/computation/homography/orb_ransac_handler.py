@@ -3,7 +3,7 @@ import logging as log
 import cv2
 import numpy as np
 from suturis.processing.computation.homography import BaseHomographyHandler
-from suturis.typing import CvSize, Homography, Image, NpSize, Point, TranslationVector
+from suturis.typing import CvSize, Homography, Image, NpSize, TranslationVector, WarpingInfo
 
 
 class OrbRansacHandler(BaseHomographyHandler):
@@ -16,12 +16,12 @@ class OrbRansacHandler(BaseHomographyHandler):
         self.orb_features = orb_features
         self.min_matches = min_matches
 
-    def _find_homography(self, img1: Image, img2: Image) -> tuple[TranslationVector, CvSize, Homography]:
+    def _find_homography(self, img1: Image, img2: Image) -> WarpingInfo:
         homography = self._compute_homography_matrix(img1, img2)
         translation, target_size = self._compute_target_canvas(img1.shape[:2], img2.shape[:2], homography)
         return translation, target_size, homography
 
-    def _compute_homography_matrix(self, img1: Image, img2: Image):
+    def _compute_homography_matrix(self, img1: Image, img2: Image) -> Homography:
         # Create ORB and compute
         orb = cv2.ORB_create(nfeatures=self.orb_features)
         query_keypoints, query_descriptors = orb.detectAndCompute(img1, None)  # queryImage
@@ -43,7 +43,9 @@ class OrbRansacHandler(BaseHomographyHandler):
         h, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC)
         return h
 
-    def _compute_target_canvas(self, img1_dim: NpSize, img2_dim: NpSize, homography: Homography) -> tuple[Point, Point]:
+    def _compute_target_canvas(
+        self, img1_dim: NpSize, img2_dim: NpSize, homography: Homography
+    ) -> tuple[TranslationVector, CvSize]:
         # Set corners
         img1_corners = np.array(self._get_corner_pixels(img1_dim), dtype=np.float32).reshape(4, 1, 2)
         img2_corners = np.array(self._get_corner_pixels(img2_dim), dtype=np.float32).reshape(4, 1, 2)

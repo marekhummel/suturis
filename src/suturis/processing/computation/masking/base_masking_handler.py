@@ -1,5 +1,5 @@
 import numpy as np
-from suturis.typing import CvSize, Image, Mask, Point, TranslationVector
+from suturis.typing import CvSize, Image, Mask, NpSize, TranslationVector
 import logging as log
 
 
@@ -11,29 +11,17 @@ class BaseMaskingHandler:
         self.continous_recomputation = continous_recomputation
         self._cached_mask = None
 
-    def compute_mask(
-        self,
-        img1: Image,
-        img2: Image,
-        target_size: CvSize,
-        translation: TranslationVector,
-        crop_area: tuple[Point, Point],
-    ) -> Mask:
+    def compute_mask(self, img1: Image, img2: Image, output_size: NpSize, translation: TranslationVector) -> Mask:
+        assert img1.shape[:2] == img2.shape[:2] == output_size
+
         log.debug("Find mask")
         if self.continous_recomputation or self._cached_mask is None:
             log.debug("Recomputation of mask is requested")
-            self._cached_mask = self._compute_mask(img1, img2, target_size, translation, crop_area)
+            self._cached_mask = self._compute_mask(img1, img2, output_size, translation)
 
         return self._cached_mask
 
-    def _compute_mask(
-        self,
-        img1: Image,
-        img2: Image,
-        target_size: CvSize,
-        translation: TranslationVector,
-        crop_area: tuple[Point, Point],
-    ) -> Mask:
+    def _compute_mask(self, img1: Image, img2: Image, target_size: CvSize, translation: TranslationVector) -> Mask:
         raise NotImplementedError("Abstract method needs to be overriden")
 
     def apply_mask(self, img1: Image, img2: Image, mask: Mask) -> Image:
