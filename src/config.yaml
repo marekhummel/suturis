@@ -24,8 +24,13 @@ stitching:
   #   type: SeamFinding
   #   continous_recomputation: True
   #   preferred_seam: [[475, 400], [725, 400]]
+  # masking:
+  #   type: SeamCarving
+  #   continous_recomputation: True
+  #   blocked_area_one: [[540, 70], [1300, 360]]
+  #   blocked_area_two: [[0, 420], [825, 700]]
   masking:
-    type: SeamCarving
+    type: HorizontalSeamCarving
     continous_recomputation: True
     blocked_area_one: [[540, 70], [1300, 360]]
     blocked_area_two: [[0, 420], [825, 700]]
