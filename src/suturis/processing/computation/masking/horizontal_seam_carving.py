@@ -4,33 +4,32 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import CvPoint, Image, Mask, NpSize, TranslationVector
-
-GAUSS_SIZE = 17
-WINDOW_SIZE = 2
+from suturis.typing import Image, Mask, NpSize, TranslationVector
 
 
 class HorizontalSeamCarving(BaseMaskingHandler):
-    blocked_area_one: tuple[CvPoint, CvPoint] | None
-    blocked_area_two: tuple[CvPoint, CvPoint] | None
+    half_window_size: int
+    gauss_size: int
 
     def __init__(
         self,
         continous_recomputation: bool,
-        blocked_area_one: tuple[CvPoint, CvPoint] | None = None,
-        blocked_area_two: tuple[CvPoint, CvPoint] | None = None,
+        half_window_size: int = 3,
+        gauss_size: int = 17,
     ):
         log.debug("Init Seam Carving Masking Handler")
         super().__init__(continous_recomputation)
-        self.blocked_area_one = blocked_area_one
-        self.blocked_area_two = blocked_area_two
+        self.half_window_size = half_window_size
+        self.gauss_size = gauss_size
 
     def _compute_mask(self, img1: Image, img2: Image, output_size: NpSize, translation: TranslationVector) -> Mask:
         energy = self._get_energy(img1, img2)
         cost_matrix, path_matrix = self._compute_costs(output_size, energy)
         bool_mask = self._trace_back(cost_matrix, path_matrix)
         img_mask = self._bool_to_img_mask(bool_mask)
-        blurred_mask = cv2.GaussianBlur(img_mask, (GAUSS_SIZE, GAUSS_SIZE), 0, borderType=cv2.BORDER_REPLICATE)
+        blurred_mask = cv2.GaussianBlur(
+            img_mask, (self.gauss_size, self.gauss_size), 0, borderType=cv2.BORDER_REPLICATE
+        )
         return blurred_mask
 
     def _get_energy(self, img1, img2):
@@ -53,7 +52,7 @@ class HorizontalSeamCarving(BaseMaskingHandler):
 
             # Create list of windows to analyze by shifting the column up and down
             window_list = []
-            for offset in range(-WINDOW_SIZE, WINDOW_SIZE + 1):
+            for offset in range(-self.half_window_size, self.half_window_size + 1):
                 sliced_column = prev_column[max(0, offset) : min(height + offset, height)]
                 column = np.pad(sliced_column, (max(0, -offset), max(0, offset)), constant_values=np.nan)
                 window_list.append(column)
@@ -63,7 +62,7 @@ class HorizontalSeamCarving(BaseMaskingHandler):
             argmin_values = np.nanargmin(window_matrix, axis=1)
             min_values = window_matrix[np.array(range(height)), argmin_values]
             costs[:, col] = energy[:, col] + min_values
-            paths[:, col] = argmin_values - WINDOW_SIZE  # column now stores the offset to use for next column
+            paths[:, col] = argmin_values - self.half_window_size  # column now stores the offset to use for next column
 
         return costs, paths
 

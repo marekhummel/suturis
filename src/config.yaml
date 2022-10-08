@@ -34,8 +34,8 @@ stitching:
   masking:
     type: HorizontalSeamCarving
     continous_recomputation: True
-    blocked_area_one: [[540, 70], [1300, 360]]
-    blocked_area_two: [[0, 420], [825, 700]]
+    half_window_size: 3
+    gauss_size: 17
 misc:
   automatic_restart: True
 logging:
