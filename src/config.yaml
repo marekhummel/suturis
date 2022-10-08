@@ -20,6 +20,8 @@ stitching:
     continous_recomputation: False
     orb_features: 50000
     min_matches: 10
+    relevant_area_one: [[200, 200], [900, 500]]
+    relevant_area_two: [[200, 200], [900, 500]]
   # masking:
   #   type: SeamFinding
   #   continous_recomputation: True
