@@ -70,7 +70,7 @@ def _compute_params(image1: Image, image2: Image) -> ComputationParams:
 
     # Crop
     proc_logger.debug("Compute crop area")
-    crop_area, crop_size = homography_delegate.find_crop(image1, homography, translation)
+    crop_area, crop_size = homography_delegate.find_crop(image1.shape, homography, translation)
     img1_translated_crop, img2_warped_crop = homography_delegate.apply_crop(img1_translated, img2_warped, *crop_area)
 
     # Mask calculation

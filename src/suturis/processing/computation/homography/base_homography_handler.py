@@ -22,40 +22,30 @@ class BaseHomographyHandler:
     def _find_homography(self, img1: Image, img2: Image) -> WarpingInfo:
         raise NotImplementedError("Abstract method needs to be overriden")
 
-    def find_crop(self, img1: Image, homography: Homography, translation: TranslationVector) -> tuple[CropArea, NpSize]:
-        points = np.array(
-            [
-                [0, 0, 1],
-                [img1.shape[1] - 1, 0, 1],
-                [0, img1.shape[0] - 1, 1],
-                [img1.shape[1] - 1, img1.shape[0] - 1, 1],
-            ]
-        )
-        hom_points: np.ndarray = np.array([])
-        trans_points: np.ndarray = np.array([])
-        h_translation = np.array([[1, 0, translation[0]], [0, 1, translation[1]], [0, 0, 1]])
+    def find_crop(
+        self, img_shape: NpSize, homography: Homography, translation: TranslationVector
+    ) -> tuple[CropArea, NpSize]:
+        # Define corners
+        height, width = img_shape[:2]
+        corners = np.array([[[0, 0]], [[0, height - 1]], [[width - 1, height - 1]], [[width - 1, 0]]], dtype=np.float32)
 
-        # Apply transformations to all of those corner points
-        for pts in points:
-            # Warp the points
-            tmp = cv2.perspectiveTransform(np.array([[[pts[0], pts[1]]]], dtype=np.float32), homography)
-            # Add the translation
-            tmp = np.matmul(h_translation, np.array([tmp[0][0][0], tmp[0][0][1], 1]))
-            hom_points = np.concatenate((hom_points, tmp))
-            trans_points = np.concatenate((trans_points, np.matmul(h_translation, pts)))
+        # Compute corners after transformation for both img1 and img2
+        tx, ty = translation
+        translation_matrix = np.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]], dtype=np.float32)
+        img1_corners_transformed = cv2.perspectiveTransform(corners, translation_matrix).astype(np.int32)
+        img2_corners_transformed = cv2.perspectiveTransform(corners, translation_matrix @ homography).astype(np.int32)
 
-        # Calculating the perfect corner points
-        start = (
-            int(round(max(min(hom_points[1::3]), min(trans_points[1::3])))),
-            int(round(max(min(hom_points[0::3]), min(trans_points[0::3])))),
-        )
-        end = (
-            int(round(min(max(hom_points[1::3]), max(trans_points[1::3])))),
-            int(round(min(max(hom_points[0::3]), max(trans_points[0::3])))),
-        )
+        # Find min and max corner (not necessarily a corner, just min/max x and y as a point) in each image
+        img1_corners_min = np.min(img1_corners_transformed, axis=0)
+        img1_corners_max = np.max(img1_corners_transformed, axis=0)
+        img2_corners_min = np.min(img2_corners_transformed, axis=0)
+        img2_corners_max = np.max(img2_corners_transformed, axis=0)
 
-        crop_size = (end[0] - start[0] + 1, end[1] - start[1] + 1)
-        return (start, end), crop_size
+        # For left top use the max of the min, for right bot use min of max
+        x_start, y_start = np.max(np.concatenate([img1_corners_min, img2_corners_min]), axis=0)
+        x_end, y_end = np.min(np.concatenate([img1_corners_max, img2_corners_max]), axis=0)
+        crop_size = (y_end - y_start + 1, x_end - x_start + 1)
+        return ((y_start, x_start), (y_end, x_end)), crop_size
 
     def apply_transformations(
         self,
