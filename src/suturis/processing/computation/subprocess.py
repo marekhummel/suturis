@@ -15,7 +15,7 @@ homography_delegate: BaseHomographyHandler
 masking_delegate: BaseMaskingHandler
 
 
-def main(pipe_conn: mpc.Connection, shutdown_event: EventType, logging_queue: mp.Queue) -> None:
+def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue: mp.Queue) -> None:
     global proc_logger, homography_delegate, masking_delegate
     # Set logging
     qh = logging.handlers.QueueHandler(logging_queue)
