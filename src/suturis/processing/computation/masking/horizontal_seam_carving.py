@@ -16,11 +16,13 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         continous_recomputation: bool,
         half_window_size: int = 3,
         gauss_size: int = 17,
+        left_yrange: tuple[int, int] | None = None,
     ):
         log.debug("Init Seam Carving Masking Handler")
         super().__init__(continous_recomputation)
         self.half_window_size = half_window_size
         self.gauss_size = gauss_size
+        self.left_yrange = left_yrange
 
     def _compute_mask(self, img1: Image, img2: Image, output_size: NpSize) -> Mask:
         energy = self._get_energy(img1, img2)
@@ -69,7 +71,10 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         return costs, paths
 
     def _trace_back(self, cost_matrix: npt.NDArray, path_matrix: npt.NDArray) -> npt.NDArray:
-        curr = int(np.argmin(cost_matrix[:, 0]))
+        ystart_percent, yend_percent = self.left_yrange or (0, 1)
+        ystart, yend = int(ystart_percent * cost_matrix.shape[0]), int(yend_percent * cost_matrix.shape[0])
+        curr = int(np.argmin(cost_matrix[ystart:yend, 0])) + ystart
+
         bool_matrix = np.zeros_like(cost_matrix, dtype=bool)
         bool_matrix[curr:, 0] = True
         for col in range(path_matrix.shape[1]):
