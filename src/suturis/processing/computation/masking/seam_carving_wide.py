@@ -1,5 +1,7 @@
 import numpy as np
+import numpy.typing as npt
 from suturis.processing.computation.masking import SeamCarving
+from suturis.typing import SeamMatrix
 
 END = 0
 LEFT_LEFT = 1
@@ -15,7 +17,9 @@ GAUSS_SIZE = 17
 
 
 class SeamCarvingWide(SeamCarving):
-    def _fill_row(self, paths, row, dif, previous):
+    def _fill_row(
+        self, paths: npt.NDArray, row: int, dif: npt.NDArray, previous: npt.NDArray
+    ) -> tuple[npt.NDArray, npt.NDArray]:
         """
         Fill one row based on the values from the previous row.
         """
@@ -122,13 +126,13 @@ class SeamCarvingWide(SeamCarving):
 
         return previous, paths
 
-    def _find_bool_matrix(self, previous, paths):
+    def _find_bool_matrix(self, previous: npt.NDArray, paths: npt.NDArray) -> SeamMatrix:
         """
         Finds a bool matrix with the seam with a better angle.
         """
         index = 0
         current_min = 0
-        bools = np.full(previous.shape, False)
+        bools = SeamMatrix(np.full(previous.shape, False))
         current_row = 0
         for col in range(paths.shape[1]):
             # Find minimum in the top row

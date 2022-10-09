@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import logging as log
-from suturis.typing import CvSize, Homography, Image, NpPoint, NpSize, TranslationVector, WarpingInfo, CropArea
+from suturis.typing import CvSize, Homography, Image, NpPoint, NpSize, TranslationVector, WarpingInfo, CropArea, NpShape
 
 
 class BaseHomographyHandler:
@@ -23,7 +23,7 @@ class BaseHomographyHandler:
         raise NotImplementedError("Abstract method needs to be overriden")
 
     def find_crop(
-        self, img_shape: NpSize, homography: Homography, translation: TranslationVector
+        self, img_shape: NpShape, homography: Homography, translation: TranslationVector
     ) -> tuple[CropArea, NpSize]:
         # Define corners
         height, width = img_shape[:2]
@@ -44,18 +44,18 @@ class BaseHomographyHandler:
         # For left top use the max of the min, for right bot use min of max
         x_start, y_start = np.max(np.concatenate([img1_corners_min, img2_corners_min]), axis=0)
         x_end, y_end = np.min(np.concatenate([img1_corners_max, img2_corners_max]), axis=0)
-        crop_size = (y_end - y_start + 1, x_end - x_start + 1)
-        return ((y_start, x_start), (y_end, x_end)), crop_size
+        crop_size = NpSize((y_end - y_start + 1, x_end - x_start + 1))
+        return (NpPoint((y_start, x_start)), NpPoint((y_end, x_end))), crop_size
 
     def apply_transformations(
         self,
         img1: Image,
         img2: Image,
         translation: TranslationVector,
-        target_size: CvSize,
+        canvas_size: CvSize,
         homography_matrix: Homography,
     ) -> tuple[Image, Image]:
-        target_width, target_height = target_size
+        target_width, target_height = canvas_size
         tx, ty = translation
 
         # Translate image 1 (could apply warpPerspective or warpAffine as well with respective
@@ -68,10 +68,10 @@ class BaseHomographyHandler:
         # This warp is the reason for the new image size, but will create negative pixel coordinates,
         # hence the translation
         translation_matrix = np.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]], dtype=np.float32)
-        img2_warped = cv2.warpPerspective(img2, translation_matrix @ homography_matrix, target_size)
+        img2_warped = cv2.warpPerspective(img2, translation_matrix @ homography_matrix, canvas_size)
 
         # Return images with same sized canvas for easy overlay
-        return img1_translated, img2_warped
+        return Image(img1_translated), Image(img2_warped)
 
     def apply_crop(self, img1: Image, img2: Image, start: NpPoint, end: NpPoint) -> tuple[Image, Image]:
         ystart, xstart = start
@@ -80,4 +80,4 @@ class BaseHomographyHandler:
         img1_crop = img1[ystart : yend + 1, xstart : xend + 1, :]
         img2_crop = img2[ystart : yend + 1, xstart : xend + 1, :]
 
-        return img1_crop, img2_crop
+        return Image(img1_crop), Image(img2_crop)

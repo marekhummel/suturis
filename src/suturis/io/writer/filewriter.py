@@ -52,9 +52,9 @@ class FileWriter(BaseWriter):
         log.debug(f"Writing image with writer #{self.index}")
 
         # Prepare image
-        image = image.astype(np.uint8)
+        image_save = image.astype(np.uint8)
         if image.shape[1::-1] != self._dimensions:
-            image = cv2.resize(image, dsize=self._dimensions, interpolation=cv2.INTER_CUBIC)
+            image_save = cv2.resize(image_save, dsize=self._dimensions, interpolation=cv2.INTER_CUBIC)
 
         # Write last image repeatedly to match fps of input / processing
         if self._last_write_time != 0:
@@ -67,4 +67,4 @@ class FileWriter(BaseWriter):
         # Write and update refs
         self._writer.write(image)
         self._last_write_time = time()
-        self._last_frame = image
+        self._last_frame = Image(image_save)

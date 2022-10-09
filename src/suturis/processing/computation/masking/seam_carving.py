@@ -141,7 +141,7 @@ class SeamCarving(BaseMaskingHandler):
         """
         index = 0
         current_min = 0
-        bools = np.full(previous.shape, False)
+        bools = SeamMatrix(np.full(previous.shape, False))
         current_row = 0
         for col in range(paths.shape[1]):
             # Find minimum in the top row

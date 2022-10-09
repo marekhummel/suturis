@@ -2,8 +2,9 @@ import logging as log
 
 import cv2
 import numpy as np
+import numpy.typing as npt
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import CvPoint, CvSize, Image, Mask, SeamMatrix, TranslationVector
+from suturis.typing import CvPoint, NpSize, Image, Mask, SeamMatrix, TranslationVector
 
 END = 0
 F_BOT_LEFT = 1
@@ -23,10 +24,10 @@ class SeamFinding(BaseMaskingHandler):
         super().__init__(continous_recomputation)
         self.preferred_seam = preferred_seam
 
-    def _compute_mask(self, img1: Image, img2: Image, target_size: CvSize, translation: TranslationVector) -> Mask:
+    def _compute_mask(self, img1: Image, img2: Image, output_size: NpSize) -> Mask:
         img1_modified = self._insert_preferred_seam(img1, img2)
         seam_matrix = self._find_seam(img1_modified, img2)
-        return self._create_mask_from_seam(seam_matrix, img1, img2, translation, target_size)
+        return self._create_mask_from_seam(seam_matrix, img1, img2)
 
     def _insert_preferred_seam(self, img1: Image, img2: Image) -> Image:
         img1_modified = img1.copy()
@@ -35,7 +36,7 @@ class SeamFinding(BaseMaskingHandler):
 
         start, end = self.preferred_seam
         slope = (end[1] - start[1]) / (end[0] - start[0])
-        y = start[1]
+        y = float(start[1])
         for x in range(start[0], end[0] + 1):
             iy = int(y)
             img1_modified[iy][x] = img2[iy][x]
@@ -128,7 +129,9 @@ class SeamFinding(BaseMaskingHandler):
 
         return self._find_bool_matrix(previous)
 
-    def _fill_row(self, row, im1, im2, errors, previous):
+    def _fill_row(
+        self, row: int, im1: Image, im2: Image, errors: npt.NDArray, previous: npt.NDArray
+    ) -> tuple[npt.NDArray, npt.NDArray]:
         """
         Iterate through one row and fill in values
         """
@@ -167,7 +170,9 @@ class SeamFinding(BaseMaskingHandler):
                 previous[row][col] = F_LEFT
         return errors, previous
 
-    def _fill_column(self, col, im1, im2, errors, previous):
+    def _fill_column(
+        self, col: int, im1: Image, im2: Image, errors: npt.NDArray, previous: npt.NDArray
+    ) -> tuple[npt.NDArray, npt.NDArray]:
         """
         Iterate through one column and fill in values
         """
@@ -207,7 +212,7 @@ class SeamFinding(BaseMaskingHandler):
                 previous[row][col] = F_TOP
         return errors, previous
 
-    def _find_bool_matrix(self, previous):
+    def _find_bool_matrix(self, previous: npt.NDArray) -> SeamMatrix:
         """
         Does the last seam finding step by calculating the perfect seam from the found path.
         This is to be considered going back the best path.
@@ -215,7 +220,7 @@ class SeamFinding(BaseMaskingHandler):
         finished = False
         current_x = previous.shape[1] - 1
         current_y = previous.shape[0] - 1
-        bool_matrix = np.full(previous.shape, False)
+        bool_matrix = SeamMatrix(np.full(previous.shape, False))
         while not finished:
             bool_matrix[current_y][current_x] = True
             if previous[current_y][current_x] == F_BOT_LEFT:
@@ -235,21 +240,13 @@ class SeamFinding(BaseMaskingHandler):
                 finished = True
         return bool_matrix
 
-    def _create_mask_from_seam(self, seammat, im1, im2, translation, target_size):
+    def _create_mask_from_seam(self, seammat: SeamMatrix, im1: Image, im2: Image) -> Mask:
         """
         Creates a mask for the merged images with values between 0 and 1. 1 is for fully filling the left image,
         0 is for fully filling the right image. Everything else is in between.
         """
         assert im1.shape == im2.shape
-        mask_mat = np.zeros(im1.shape)
-        result_width, result_height = target_size
-        x_trans, y_trans = translation
-
-        mask_mat[y_trans : result_height + y_trans, x_trans : result_width + x_trans] = [
-            1.0,
-            1.0,
-            1.0,
-        ]
+        mask_mat = np.ones_like(im1)
 
         # Use the flood fill algorithm to fill the seam matrix
         if not seammat[seammat.shape[0] - 1][0]:
@@ -296,7 +293,9 @@ class SeamFinding(BaseMaskingHandler):
             borderType=cv2.BORDER_REPLICATE,
         )
 
-    def _flood_fill(self, seammat, xmax, ymax, x, y, previous_val, new_val):
+    def _flood_fill(
+        self, seammat: SeamMatrix, xmax: int, ymax: int, x: int, y: int, previous_val: bool, new_val: bool
+    ) -> None:
         """
         Implementation of floodfill with a queue (Q) instead of a recursion because the stack is
         usually limited. We have to respect that. Still very sad, that the recursion didn't work.
@@ -342,7 +341,9 @@ class SeamFinding(BaseMaskingHandler):
                 seammat[posX][posY - 1] = new_val
                 queue.append([posX, posY - 1])
 
-    def _is_valid(self, seammat, xmax, ymax, x, y, previous_val, new_val):
+    def _is_valid(
+        self, seammat: SeamMatrix, xmax: int, ymax: int, x: int, y: int, previous_val: bool, new_val: bool
+    ) -> bool:
         """
         Helping function for the floodfill that checks, whether a given pixel can be overridden.
         """

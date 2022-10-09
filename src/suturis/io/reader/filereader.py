@@ -29,7 +29,7 @@ class FileReader(BaseReader):
             self._capture.read()
 
         self._last_read = None
-        self._single_frame = self._capture.read()[1] if single_frame else None
+        self._single_frame = Image(self._capture.read()[1]) if single_frame else None
 
     def read_image(self) -> _ReadImageType:
         log.debug(f"Reading image from reader #{self.index}")
@@ -53,4 +53,4 @@ class FileReader(BaseReader):
 
         log.debug(f"Reading image from reader #{self.index} successful")
         self._last_read = time.perf_counter()
-        return True, frame
+        return True, Image(frame)

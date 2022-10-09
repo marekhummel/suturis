@@ -7,7 +7,7 @@ from multiprocessing.synchronize import Event as EventType
 from suturis.processing.computation.homography import BaseHomographyHandler
 from suturis.processing.computation.masking import BaseMaskingHandler
 from suturis.timer import track_timings, finalize_timings
-from suturis.typing import ComputationParams, Image, NpSize
+from suturis.typing import ComputationParams, Image
 
 
 proc_logger = log.getLogger()
@@ -19,7 +19,7 @@ def main(pipe_conn: mpc.Connection, shutdown_event: EventType, logging_queue: mp
     global proc_logger, homography_delegate, masking_delegate
     # Set logging
     qh = logging.handlers.QueueHandler(logging_queue)
-    proc_logger.setLevel(logging.DEBUG)
+    proc_logger.setLevel(log.DEBUG)
     proc_logger.addHandler(qh)
     proc_logger.debug("Subprocess started")
 
@@ -63,9 +63,9 @@ def _compute_params(image1: Image, image2: Image) -> ComputationParams:
 
     # Warping
     proc_logger.debug("Compute warping")
-    translation, target_size, homography = homography_delegate.find_homography(image1, image2)
+    translation, canvas_size, homography = homography_delegate.find_homography(image1, image2)
     img1_translated, img2_warped = homography_delegate.apply_transformations(
-        image1, image2, translation, target_size, homography
+        image1, image2, translation, canvas_size, homography
     )
 
     # Crop
@@ -75,6 +75,6 @@ def _compute_params(image1: Image, image2: Image) -> ComputationParams:
 
     # Mask calculation
     proc_logger.debug("Compute mask")
-    mask = masking_delegate.compute_mask(img1_translated_crop, img2_warped_crop, crop_size, translation)
+    mask = masking_delegate.compute_mask(img1_translated_crop, img2_warped_crop, crop_size)
 
-    return ((translation, target_size, homography), crop_area, mask)
+    return ((translation, canvas_size, homography), crop_area, mask)

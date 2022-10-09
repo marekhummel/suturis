@@ -2,6 +2,7 @@ import logging as log
 
 import cv2
 from suturis.io.reader.basereader import BaseReader, _ReadImageType
+from suturis.typing import Image
 
 
 class RtspReader(BaseReader):
@@ -24,4 +25,4 @@ class RtspReader(BaseReader):
             return False, None
 
         log.debug("Reading image successful")
-        return True, frame
+        return True, Image(frame)

@@ -1,15 +1,17 @@
 import numpy.typing as npt
+from typing import NewType
 
-Image = npt.NDArray
-NpPoint = tuple[int, int]
-CvPoint = tuple[int, int]
-NpSize = tuple[int, int]
-CvSize = tuple[int, int]
+NpShape = tuple[int, ...]
+NpPoint = NewType("NpPoint", tuple[int, int])
+NpSize = NewType("NpSize", tuple[int, int])
+CvPoint = NewType("CvPoint", tuple[int, int])
+CvSize = NewType("CvSize", tuple[int, int])
 
-Homography = npt.NDArray
-TranslationVector = tuple[int, int]
-Mask = npt.NDArray
-SeamMatrix = npt.NDArray
+Image = NewType("Image", npt.NDArray)
+Homography = NewType("Homography", npt.NDArray)
+TranslationVector = NewType("TranslationVector", tuple[int, int])
+Mask = NewType("Mask", npt.NDArray)
+SeamMatrix = NewType("SeamMatrix", npt.NDArray)
 
 WarpingInfo = tuple[TranslationVector, CvSize, Homography]
 CropArea = tuple[NpPoint, NpPoint]
