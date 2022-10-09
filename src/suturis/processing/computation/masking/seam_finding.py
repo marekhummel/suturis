@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import CvPoint, NpSize, Image, Mask, SeamMatrix, TranslationVector
+from suturis.typing import CvPoint, NpSize, Image, Mask, SeamMatrix
 
 END = 0
 F_BOT_LEFT = 1

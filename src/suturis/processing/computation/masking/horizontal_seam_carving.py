@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import Image, Mask, NpSize, TranslationVector
+from suturis.typing import Image, Mask, NpSize
 
 
 class HorizontalSeamCarving(BaseMaskingHandler):
