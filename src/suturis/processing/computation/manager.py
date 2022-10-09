@@ -52,6 +52,9 @@ def shutdown() -> None:
     if _local_pipe:
         _local_pipe.close()
 
+    if _process:
+        _process.join()
+
     if _queue_listener:
         _queue_listener.stop()
 

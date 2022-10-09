@@ -6,9 +6,8 @@ from multiprocessing.synchronize import Event as EventType
 
 from suturis.processing.computation.homography import BaseHomographyHandler
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.timer import track_timings, finalize_timings
+from suturis.timer import finalize_timings, track_timings
 from suturis.typing import ComputationParams, Image
-
 
 proc_logger = log.getLogger()
 homography_delegate: BaseHomographyHandler
@@ -54,7 +53,7 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
                 continue
             break
 
-    finalize_timings()
+    finalize_timings(proc_logger)
 
 
 @track_timings(name="Raw computation")

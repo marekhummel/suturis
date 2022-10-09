@@ -27,10 +27,12 @@ def track_timings(*, name: str) -> Callable[[Callable], Any]:
     return decorator
 
 
-def finalize_timings() -> None:
+def finalize_timings(logger: log.Logger | None = None) -> None:
     global timings
+
+    logger = logger or log.getLogger()
     for name, times in timings.items():
         if len(times) > 0:
             avg_time = np.mean(times) / 1e9
             std_time = np.std(times) / 1e9
-            log.info(f"Timings of '{name}' (mean ± std): {avg_time:.5f} ± {std_time:.5f} secs")
+            logger.info(f"Timings of '{name}' (mean ± std): {avg_time:.5f} ± {std_time:.5f} secs")

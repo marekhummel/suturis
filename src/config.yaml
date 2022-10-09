@@ -31,16 +31,17 @@ stitching:
   #   continous_recomputation: True
   #   blocked_area_one: [[540, 70], [1300, 360]]
   #   blocked_area_two: [[0, 420], [825, 700]]
-  masking:
-    type: SeamCarvingWide
-    continous_recomputation: True
-    blocked_area_one: [[540, 70], [1300, 360]]
-    blocked_area_two: [[0, 420], [825, 700]]
   # masking:
-  #   type: HorizontalSeamCarving
+  #   type: SeamCarvingWide
   #   continous_recomputation: True
-  #   half_window_size: 3
-  #   gauss_size: 17
+  #   blocked_area_one: [[540, 70], [1300, 360]]
+  #   blocked_area_two: [[0, 420], [825, 700]]
+  masking:
+    type: HorizontalSeamCarving
+    continous_recomputation: True
+    half_window_size: 3
+    gauss_size: 17
+    left_yrange: [0.3, 0.7]
 misc:
   automatic_restart: True
 logging:
@@ -63,6 +64,7 @@ logging:
       level: DEBUG
       formatter: precise
       filename: log/suturis.log
+      encoding: utf-8
       when: MIDNIGHT
       backupCount: 14
   root:
