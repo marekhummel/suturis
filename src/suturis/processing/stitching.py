@@ -10,7 +10,7 @@ from suturis.typing import Image
 
 _homography_delegate: BaseHomographyHandler | None = None
 _masking_delegate: BaseMaskingHandler | None = None
-_default_image: Image = Image(np.zeros(shape=(720, 1280, 3)))
+_default_image: Image = Image(np.zeros(shape=(720, 1280, 3), dtype=np.uint8))
 
 
 @track_timings(name="Stitching")

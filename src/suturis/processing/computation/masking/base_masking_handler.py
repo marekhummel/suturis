@@ -28,4 +28,5 @@ class BaseMaskingHandler:
     def apply_mask(self, img1: Image, img2: Image, mask: Mask) -> Image:
         img1_masked = img1.astype(np.float64) * mask
         img2_masked = img2.astype(np.float64) * (1 - mask)
-        return Image(img1_masked + img2_masked)
+        final = (img1_masked + img2_masked).astype(np.uint8)
+        return Image(final)

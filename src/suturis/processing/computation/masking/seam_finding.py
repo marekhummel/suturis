@@ -220,7 +220,7 @@ class SeamFinding(BaseMaskingHandler):
         finished = False
         current_x = previous.shape[1] - 1
         current_y = previous.shape[0] - 1
-        bool_matrix = SeamMatrix(np.full(previous.shape, False))
+        bool_matrix = SeamMatrix(np.full_like(previous, False))
         while not finished:
             bool_matrix[current_y][current_x] = True
             if previous[current_y][current_x] == F_BOT_LEFT:

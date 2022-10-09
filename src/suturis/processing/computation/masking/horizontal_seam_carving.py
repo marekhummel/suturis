@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import Image, Mask, NpSize
+from suturis.typing import Image, Mask, NpSize, SeamMatrix
 
 
 class HorizontalSeamCarving(BaseMaskingHandler):
@@ -70,12 +70,12 @@ class HorizontalSeamCarving(BaseMaskingHandler):
 
         return costs, paths
 
-    def _trace_back(self, cost_matrix: npt.NDArray, path_matrix: npt.NDArray) -> npt.NDArray:
+    def _trace_back(self, cost_matrix: npt.NDArray, path_matrix: npt.NDArray) -> SeamMatrix:
         ystart_percent, yend_percent = self.left_yrange or (0, 1)
         ystart, yend = int(ystart_percent * cost_matrix.shape[0]), int(yend_percent * cost_matrix.shape[0])
         curr = int(np.argmin(cost_matrix[ystart:yend, 0])) + ystart
 
-        bool_matrix = np.zeros_like(cost_matrix, dtype=bool)
+        bool_matrix = SeamMatrix(np.zeros_like(cost_matrix, dtype=bool))
         bool_matrix[curr:, 0] = True
         for col in range(path_matrix.shape[1]):
             offset = path_matrix[curr, col]
@@ -84,7 +84,7 @@ class HorizontalSeamCarving(BaseMaskingHandler):
 
         return bool_matrix
 
-    def _bool_to_img_mask(self, bool_mask: npt.NDArray) -> npt.NDArray:
+    def _bool_to_img_mask(self, bool_mask: SeamMatrix) -> Mask:
         # Given a bool matrix for each pixel, turns into mask (adding third dimension for 3 color channels)
         stacked = np.stack([bool_mask for _ in range(3)], axis=-1)
-        return stacked.astype(np.float64)
+        return Mask(stacked.astype(np.float64))

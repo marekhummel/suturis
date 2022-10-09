@@ -61,7 +61,7 @@ class BaseHomographyHandler:
         # Translate image 1 (could apply warpPerspective or warpAffine as well with respective
         # translation matrices but this is faster)
         img1_height, img1_width = img1.shape[:2]
-        img1_translated = np.zeros(shape=(target_height, target_width, 3))
+        img1_translated = np.zeros(shape=(target_height, target_width, 3), dtype=np.uint8)
         img1_translated[ty : img1_height + ty, tx : img1_width + tx] = img1
 
         # Perspective transform on image 2

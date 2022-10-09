@@ -17,4 +17,4 @@ class ScreenOutput(BaseWriter):
     def write_image(self, image: Image) -> None:
         log.debug("Display image in window '%s'", self.title)
         cv2.namedWindow(self.title)
-        cv2.imshow(self.title, image.astype(np.uint8))
+        cv2.imshow(self.title, image)

@@ -75,5 +75,4 @@ def _compute_params(image1: Image, image2: Image) -> ComputationParams:
     # Mask calculation
     proc_logger.debug("Compute mask")
     mask = masking_delegate.compute_mask(img1_translated_crop, img2_warped_crop, crop_size)
-
     return ((translation, canvas_size, homography), crop_area, mask)

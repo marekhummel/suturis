@@ -52,7 +52,7 @@ class FileWriter(BaseWriter):
         log.debug(f"Writing image with writer #{self.index}")
 
         # Prepare image
-        image_save = image.astype(np.uint8)
+        image_save = image
         if image.shape[1::-1] != self._dimensions:
             image_save = cv2.resize(image_save, dsize=self._dimensions, interpolation=cv2.INTER_CUBIC)
 

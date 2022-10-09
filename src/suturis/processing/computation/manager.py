@@ -52,6 +52,7 @@ def shutdown() -> None:
     if _local_pipe:
         _local_pipe.close()
 
+    # This might take some time if a new computation just started
     if _process:
         _process.join()
 
