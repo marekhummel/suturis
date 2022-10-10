@@ -2,7 +2,7 @@ import logging as log
 
 import cv2
 import numpy as np
-from suturis.typing import CanvasInfo, CanvasSize, CropArea, Homography, Image, NpPoint, NpShape, TranslationVector
+from suturis.typing import CanvasInfo, CanvasSize, Homography, Image, NpPoint, NpShape, TranslationVector
 
 
 class BaseHomographyHandler:

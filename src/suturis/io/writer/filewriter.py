@@ -5,7 +5,6 @@ from os.path import isdir, join
 from time import time
 
 import cv2
-import numpy as np
 from suturis.io.writer.basewriter import BaseWriter, SourceImage
 from suturis.typing import CvSize, Image
 

@@ -1,7 +1,7 @@
 import logging as log
 
 import numpy as np
-from suturis.typing import Image, Mask, NpSize
+from suturis.typing import Image, Mask
 
 
 class BaseMaskingHandler:
