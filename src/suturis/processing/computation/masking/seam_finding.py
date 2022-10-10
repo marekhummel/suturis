@@ -24,7 +24,7 @@ class SeamFinding(BaseMaskingHandler):
         super().__init__(continous_recomputation)
         self.preferred_seam = preferred_seam
 
-    def _compute_mask(self, img1: Image, img2: Image, output_size: NpSize) -> Mask:
+    def _compute_mask(self, img1: Image, img2: Image) -> Mask:
         img1_modified = self._insert_preferred_seam(img1, img2)
         seam_matrix = self._find_seam(img1_modified, img2)
         return self._create_mask_from_seam(seam_matrix, img1, img2)

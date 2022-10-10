@@ -2,17 +2,7 @@ import logging as log
 
 import cv2
 import numpy as np
-from suturis.typing import (
-    CanvasInfo,
-    CanvasSize,
-    CropArea,
-    CropSize,
-    Homography,
-    Image,
-    NpPoint,
-    NpShape,
-    TranslationVector,
-)
+from suturis.typing import CanvasInfo, CanvasSize, CropArea, Homography, Image, NpPoint, NpShape, TranslationVector
 
 
 class BaseHomographyHandler:
@@ -66,13 +56,10 @@ class BaseHomographyHandler:
         max_corners = np.concatenate([img1_corners_max, img2_corners_max])
         x_start, y_start = np.floor(np.max(min_corners, axis=0)).astype(np.int32)
         x_end, y_end = np.ceil(np.min(max_corners, axis=0)).astype(np.int32)
-
-        # Create crop info
-        crop_area = CropArea((NpPoint((y_start, x_start)), NpPoint((y_end, x_end))))
-        crop_size = CropSize((y_end - y_start + 1, x_end - x_start + 1))
+        crop_area = NpPoint((y_start, x_start)), NpPoint((y_end, x_end))
 
         # Return
-        return canvas_size, translation, crop_area, crop_size
+        return canvas_size, translation, crop_area
 
     def apply_transformations(
         self,

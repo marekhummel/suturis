@@ -19,8 +19,7 @@ SeamMatrix = NewType("SeamMatrix", npt.NDArray[np.bool_])
 
 
 CropArea = NpRect
-CropSize = NpSize
 CanvasSize = CvSize
 TransformationInfo = tuple[CanvasSize, TranslationVector, Homography]
-CanvasInfo = tuple[CanvasSize, TranslationVector, CropArea, CropSize]
+CanvasInfo = tuple[CanvasSize, TranslationVector, CropArea]
 ComputationParams = tuple[TransformationInfo, CropArea, Mask]

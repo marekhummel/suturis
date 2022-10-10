@@ -32,7 +32,7 @@ class SeamCarving(BaseMaskingHandler):
         self.blocked_area_one = blocked_area_one
         self.blocked_area_two = blocked_area_two
 
-    def _compute_mask(self, img1: Image, img2: Image, output_size: NpSize) -> Mask:
+    def _compute_mask(self, img1: Image, img2: Image) -> Mask:
         img1_modified, img2_modified = self._insert_blocked_areas(img1, img2)
         seam_matrix = self._find_seam(img1_modified, img2_modified)
         return self._create_mask_from_seam(seam_matrix, img1, img2)

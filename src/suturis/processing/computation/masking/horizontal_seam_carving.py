@@ -24,7 +24,8 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         self.gauss_size = gauss_size
         self.left_yrange = left_yrange
 
-    def _compute_mask(self, img1: Image, img2: Image, output_size: NpSize) -> Mask:
+    def _compute_mask(self, img1: Image, img2: Image) -> Mask:
+        output_size = NpSize((img1.shape[0], img1.shape[1]))
         energy = self._get_energy(img1, img2)
         cost_matrix, path_matrix = self._compute_costs(output_size, energy)
         bool_mask = self._trace_back(cost_matrix, path_matrix)

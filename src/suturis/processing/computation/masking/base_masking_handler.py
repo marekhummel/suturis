@@ -12,17 +12,17 @@ class BaseMaskingHandler:
         self.continous_recomputation = continous_recomputation
         self._cached_mask = None
 
-    def compute_mask(self, img1: Image, img2: Image, output_size: NpSize) -> Mask:
-        assert img1.shape[:2] == img2.shape[:2] == output_size
+    def compute_mask(self, img1: Image, img2: Image) -> Mask:
+        assert img1.shape[:2] == img2.shape[:2]
 
         log.debug("Find mask")
         if self.continous_recomputation or self._cached_mask is None:
             log.debug("Recomputation of mask is requested")
-            self._cached_mask = self._compute_mask(img1, img2, output_size)
+            self._cached_mask = self._compute_mask(img1, img2)
 
         return self._cached_mask
 
-    def _compute_mask(self, img1: Image, img2: Image, output_size: NpSize) -> Mask:
+    def _compute_mask(self, img1: Image, img2: Image) -> Mask:
         raise NotImplementedError("Abstract method needs to be overriden")
 
     def apply_mask(self, img1: Image, img2: Image, mask: Mask) -> Image:
