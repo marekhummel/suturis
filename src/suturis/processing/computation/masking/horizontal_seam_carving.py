@@ -6,23 +6,28 @@ import numpy.typing as npt
 from suturis.processing.computation.masking import BaseMaskingHandler
 from suturis.typing import Image, Mask, NpSize, SeamMatrix
 
+# Max value in energy map. Lab in float32 has ranges in L from 0 to 100, and a/b from -127 to 127.
+# L2 distance between min and max gives around 373
+MAX_ENERGY_VALUE = np.sqrt(np.sum(np.square(np.array([0, -127, -127]) - np.array([100, 127, 127]))))
+
 
 class HorizontalSeamCarving(BaseMaskingHandler):
     half_window_size: int
     gauss_size: int
+    yrange: tuple[float, float]
 
     def __init__(
         self,
         continous_recomputation: bool,
         half_window_size: int = 3,
         gauss_size: int = 17,
-        left_yrange: tuple[int, int] | None = None,
+        yrange: tuple[float, float] | None = None,
     ):
         log.debug("Init Seam Carving Masking Handler")
         super().__init__(continous_recomputation)
         self.half_window_size = half_window_size
         self.gauss_size = gauss_size
-        self.left_yrange = left_yrange
+        self.yrange = yrange
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
         output_size = NpSize((img1.shape[0], img1.shape[1]))
@@ -35,13 +40,21 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         )
         return Mask(blurred_mask)
 
-    def _get_energy(self, img1: Image, img2: Image) -> npt.NDArray:
-        # Convert to Lab color space (and to int32 to avoid over/underflow)
-        img1_lab = cv2.cvtColor(img1.astype(np.uint8), cv2.COLOR_BGR2Lab).astype(np.int32)
-        img2_lab = cv2.cvtColor(img2.astype(np.uint8), cv2.COLOR_BGR2Lab).astype(np.int32)
+    def _get_energy(self, img1: Image, img2: Image) -> npt.NDArray[np.float64]:
+        # Convert to Lab color space (and to float32 for better accuracy)
+        img1_lab = cv2.cvtColor(img1, cv2.COLOR_BGR2Lab).astype(np.float32)
+        img2_lab = cv2.cvtColor(img2, cv2.COLOR_BGR2Lab).astype(np.float32)
 
-        # Compute L2 distance of both pixel in each image
-        diff = np.sqrt(np.sum(np.abs(img1_lab - img2_lab), axis=2))
+        # Compute L2 distance of both pixels in each image
+        diff = np.sqrt(np.sum(np.square(img1_lab - img2_lab), axis=2))
+
+        # Block off some values to restrict the path by setting them to the max possible value
+        if self.yrange is not None:
+            ystart, yend = np.array(self.yrange) * diff.shape[0]
+            diff[: int(ystart), :] = MAX_ENERGY_VALUE
+            diff[int(yend + 1) :, :] = MAX_ENERGY_VALUE
+
+        # Return
         return diff
 
     def _compute_costs(self, output_size: NpSize, energy: npt.NDArray) -> tuple[npt.NDArray, npt.NDArray]:
@@ -72,17 +85,15 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         return costs, paths
 
     def _trace_back(self, cost_matrix: npt.NDArray, path_matrix: npt.NDArray) -> SeamMatrix:
-        ystart_percent, yend_percent = self.left_yrange or (0, 1)
-        ystart, yend = int(ystart_percent * cost_matrix.shape[0]), int(yend_percent * cost_matrix.shape[0])
-        curr = int(np.argmin(cost_matrix[ystart:yend, 0])) + ystart
-
+        curr = int(np.argmin(cost_matrix[:, 0]))
         bool_matrix = SeamMatrix(np.zeros_like(cost_matrix, dtype=bool))
         bool_matrix[curr:, 0] = True
+        path = [curr]
         for col in range(path_matrix.shape[1]):
             offset = path_matrix[curr, col]
             curr = curr + offset
+            path.append(curr)
             bool_matrix[curr:, col + 1] = True
-
         return bool_matrix
 
     def _bool_to_img_mask(self, bool_mask: SeamMatrix) -> Mask:

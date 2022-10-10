@@ -47,7 +47,7 @@ stitching:
     continous_recomputation: True
     half_window_size: 3
     gauss_size: 17
-    left_yrange: [0.3, 0.7]
+    yrange: [0.3, 0.7]
 misc:
   automatic_restart: True
 logging:

@@ -17,6 +17,9 @@ GAUSS_SIZE = 17
 
 def _compute_costs(energy):
     height, width = energy.shape
+    energy = energy.astype(np.float64)
+    energy[:3] = 5000
+    energy[-3:] = 5000
     costs = np.empty(shape=energy.shape)
     paths = np.empty(shape=(energy.shape[0], energy.shape[1] - 1), dtype=np.int32)
     costs[:, -1] = energy[:, -1]  # start of with given energy in last col
@@ -152,8 +155,8 @@ def _find_bool_matrix(previous, paths):
     return bools
 
 
-energy = np.array([[1, 2, 3, 4, 5], [2, 3, 4, 5, 6], [5, 3, 1, 5, 6], [6, 1, 2, 4, 5], [12, 4, 3, 1, 2]])
-# energy = np.random.rand(5, 5)
+# energy = np.array([[1, 2, 3, 4, 5], [2, 3, 4, 5, 6], [5, 3, 1, 5, 6], [6, 1, 2, 4, 5], [12, 4, 3, 1, 2]])
+energy = np.random.rand(8, 8)
 # energy = np.array(
 #     [
 #         [0.62577254, 0.70949754, 0.30096836, 0.58417793, 0.64873411],
@@ -175,16 +178,16 @@ print(path)
 print(perf_counter() - start)
 
 
-print()
-print()
-print()
+# print()
+# print()
+# print()
 
-energy_t = np.transpose(energy)
-print(energy_t)
-start = perf_counter()
-seam = _find_seam(energy_t)
-print(np.transpose(seam))
-print(perf_counter() - start)
+# energy_t = np.transpose(energy)
+# print(energy_t)
+# start = perf_counter()
+# seam = _find_seam(energy_t)
+# print(np.transpose(seam))
+# print(perf_counter() - start)
 
 # [6, 6, 5, 2, nan]
 # [5, 6, 6, 5, 2]
