@@ -3,10 +3,10 @@ io:
     - type: FileReader
       path: ./data/input/lr/starboard_0120220423163949.mp4
       skip: 9.2
-      speed_up: 2
+      speed_up: 4
     - type: FileReader
       path: ./data/input/lr/port_0120220423162959.mp4
-      speed_up: 2
+      speed_up: 4
   outputs:
     - type: ScreenOutput
       title: Stitched
@@ -15,6 +15,9 @@ io:
     #   source: OUTPUT
     #   filename: "{date}_stitching.mp4"
 stitching:
+  # homography:
+  #   type: NoWarpingHandler
+  #   continous_recomputation: False
   homography:
     type: OrbRansacHandler
     continous_recomputation: False
@@ -22,6 +25,9 @@ stitching:
     min_matches: 10
     relevant_area_one: [[200, 200], [900, 500]]
     relevant_area_two: [[200, 200], [900, 500]]
+  # masking:
+  #   type: NaiveFading
+  #   continous_recomputation: False
   # masking:
   #   type: SeamFinding
   #   continous_recomputation: True

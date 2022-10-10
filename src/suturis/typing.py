@@ -17,7 +17,6 @@ TranslationVector = NewType("TranslationVector", tuple[int, int])
 Mask = NewType("Mask", npt.NDArray[np.float64])
 SeamMatrix = NewType("SeamMatrix", npt.NDArray[np.bool_])
 
-
 CropArea = NpRect
 CanvasSize = CvSize
 TransformationInfo = tuple[CanvasSize, TranslationVector, Homography]

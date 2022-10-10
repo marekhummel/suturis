@@ -3,11 +3,11 @@ import logging as log
 import cv2
 import numpy as np
 import numpy.typing as npt
-from suturis.processing.computation.homography import BaseHomographyHandler
+from suturis.processing.computation.homography import NoWarpingHandler
 from suturis.typing import CvRect, Homography, Image
 
 
-class OrbRansacHandler(BaseHomographyHandler):
+class OrbRansacHandler(NoWarpingHandler):
     orb_features: int
     min_matches: int
     relevant_area_one: CvRect | None
@@ -53,7 +53,7 @@ class OrbRansacHandler(BaseHomographyHandler):
         bfm = cv2.BFMatcher_create(cv2.NORM_HAMMING)
         matches = bfm.match(descs_img1, descs_img2)
         if len(matches) <= self.min_matches:
-            return Homography(np.zeros((3, 3), dtype=np.float64))
+            return super()._find_homography(img1, img2)
 
         # Convert keypoints to an argument for findHomography
         dst_pts = np.array([kpts_img1[m.queryIdx].pt for m in matches], dtype=np.float32).reshape(-1, 1, 2)
