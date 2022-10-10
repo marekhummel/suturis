@@ -39,7 +39,7 @@ class BaseHomographyHandler:
 
         # Compute translation and canvas size
         translation = TranslationVector((-x_min, -y_min))
-        canvas_size = CanvasSize((x_max - x_min, y_max - y_min))
+        canvas_size = CanvasSize((x_max - x_min + 1, y_max - y_min + 1))
 
         # Apply transformation to find crop
         img1_corners_transformed = corners + np.array(translation)
