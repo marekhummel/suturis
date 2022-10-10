@@ -8,6 +8,8 @@ NpPoint = NewType("NpPoint", tuple[int, int])
 NpSize = NewType("NpSize", tuple[int, int])
 CvPoint = NewType("CvPoint", tuple[int, int])
 CvSize = NewType("CvSize", tuple[int, int])
+NpRect = tuple[NpPoint, NpPoint]
+CvRect = tuple[CvPoint, CvPoint]
 
 Image = NewType("Image", npt.NDArray[np.uint8])
 Homography = NewType("Homography", npt.NDArray[np.float64])
@@ -15,6 +17,10 @@ TranslationVector = NewType("TranslationVector", tuple[int, int])
 Mask = NewType("Mask", npt.NDArray[np.float64])
 SeamMatrix = NewType("SeamMatrix", npt.NDArray[np.bool_])
 
-WarpingInfo = tuple[TranslationVector, CvSize, Homography]
-CropArea = tuple[NpPoint, NpPoint]
-ComputationParams = tuple[WarpingInfo, CropArea, Mask]
+
+CropArea = NpRect
+CropSize = NpSize
+CanvasSize = CvSize
+TransformationInfo = tuple[CanvasSize, TranslationVector, Homography]
+CanvasInfo = tuple[CanvasSize, TranslationVector, CropArea, CropSize]
+ComputationParams = tuple[TransformationInfo, CropArea, Mask]

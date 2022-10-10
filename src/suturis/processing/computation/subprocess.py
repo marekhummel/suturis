@@ -59,20 +59,23 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
 @track_timings(name="Raw computation")
 def _compute_params(image1: Image, image2: Image) -> ComputationParams:
     global proc_logger, homography_delegate, masking_delegate
+    assert image1.shape == image2.shape
 
-    # Warping
-    proc_logger.debug("Compute warping")
-    translation, canvas_size, homography = homography_delegate.find_homography(image1, image2)
-    img1_translated, img2_warped = homography_delegate.apply_transformations(
-        image1, image2, translation, canvas_size, homography
+    # Compute transformation and canvas params
+    proc_logger.debug("Compute warping and target canvas")
+    homography = homography_delegate.find_homography(image1, image2)
+    canvas_size, translation, crop_area, crop_size = homography_delegate.analyze_transformed_canvas(
+        image1.shape, homography
     )
 
-    # Crop
-    proc_logger.debug("Compute crop area")
-    crop_area, crop_size = homography_delegate.find_crop(image1.shape, homography, translation)
+    # Apply transformation
+    proc_logger.debug("Warp to target space")
+    img1_translated, img2_warped = homography_delegate.apply_transformations(
+        image1, image2, canvas_size, translation, homography
+    )
     img1_translated_crop, img2_warped_crop = homography_delegate.apply_crop(img1_translated, img2_warped, *crop_area)
 
     # Mask calculation
     proc_logger.debug("Compute mask")
     mask = masking_delegate.compute_mask(img1_translated_crop, img2_warped_crop, crop_size)
-    return ((translation, canvas_size, homography), crop_area, mask)
+    return ((canvas_size, translation, homography), crop_area, mask)

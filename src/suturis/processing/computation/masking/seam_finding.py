@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import CvPoint, NpSize, Image, Mask, SeamMatrix
+from suturis.typing import CvRect, NpSize, Image, Mask, SeamMatrix
 
 END = 0
 F_BOT_LEFT = 1
@@ -17,9 +17,9 @@ GAUSS_SIZE = 17
 
 
 class SeamFinding(BaseMaskingHandler):
-    preferred_seam: tuple[CvPoint, CvPoint] | None
+    preferred_seam: CvRect | None
 
-    def __init__(self, continous_recomputation: bool, preferred_seam: tuple[CvPoint, CvPoint] | None = None):
+    def __init__(self, continous_recomputation: bool, preferred_seam: CvRect | None = None):
         log.debug("Init Seam Finding Masking Handler")
         super().__init__(continous_recomputation)
         self.preferred_seam = preferred_seam

@@ -1,58 +1,85 @@
+import logging as log
+
 import cv2
 import numpy as np
-import logging as log
-from suturis.typing import CvSize, Homography, Image, NpPoint, NpSize, TranslationVector, WarpingInfo, CropArea, NpShape
+from suturis.typing import (
+    CanvasInfo,
+    CanvasSize,
+    CropArea,
+    CropSize,
+    Homography,
+    Image,
+    NpPoint,
+    NpShape,
+    TranslationVector,
+)
 
 
 class BaseHomographyHandler:
     continous_recomputation: bool
-    _cached_homography: WarpingInfo | None
+    _cached_homography: Homography | None
 
     def __init__(self, continous_recomputation: bool):
         self.continous_recomputation = continous_recomputation
         self._cached_homography = None
 
-    def find_homography(self, img1: Image, img2: Image) -> WarpingInfo:
+    def find_homography(self, img1: Image, img2: Image) -> Homography:
         log.debug("Find homography")
         if self.continous_recomputation or self._cached_homography is None:
             log.debug("Recomputation of homography is requested")
             self._cached_homography = self._find_homography(img1, img2)
         return self._cached_homography
 
-    def _find_homography(self, img1: Image, img2: Image) -> WarpingInfo:
+    def _find_homography(self, img1: Image, img2: Image) -> Homography:
         raise NotImplementedError("Abstract method needs to be overriden")
 
-    def find_crop(
-        self, img_shape: NpShape, homography: Homography, translation: TranslationVector
-    ) -> tuple[CropArea, NpSize]:
-        # Define corners
+    def analyze_transformed_canvas(self, img_shape: NpShape, homography: Homography) -> CanvasInfo:
+        # Set corners
         height, width = img_shape[:2]
-        corners = np.array([[[0, 0]], [[0, height - 1]], [[width - 1, height - 1]], [[width - 1, 0]]], dtype=np.float32)
+        corners_basic = [[0, 0], [0, height - 1], [width - 1, height - 1], [width - 1, 0]]
+        corners = np.array(corners_basic, dtype=np.float32).reshape(4, 1, 2)
 
-        # Compute corners after transformation for both img1 and img2
-        tx, ty = translation
-        translation_matrix = np.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]], dtype=np.float32)
-        img1_corners_transformed = cv2.perspectiveTransform(corners, translation_matrix).astype(np.int32)
-        img2_corners_transformed = cv2.perspectiveTransform(corners, translation_matrix @ homography).astype(np.int32)
+        # Transform second image corners with homography
+        corners_homography = cv2.perspectiveTransform(corners, homography)
 
-        # Find min and max corner (not necessarily a corner, just min/max x and y as a point) in each image
+        # Find min and max of all corners
+        all_corners = np.concatenate((corners, corners_homography), axis=0)
+        x_min, y_min = np.around(all_corners.min(axis=0).ravel()).astype(np.int32)
+        x_max, y_max = np.around(all_corners.max(axis=0).ravel()).astype(np.int32)
+
+        # Compute translation and canvas size
+        translation = TranslationVector((-x_min, -y_min))
+        canvas_size = CanvasSize((x_max - x_min, y_max - y_min))
+
+        # Apply transformation to find crop
+        img1_corners_transformed = corners + np.array(translation)
+        img2_corners_transformed = corners_homography + np.array(translation)
+
+        # Find min and max corner (not necessarily a corner, just min/max x/y as a point) in each image
         img1_corners_min = np.min(img1_corners_transformed, axis=0)
         img1_corners_max = np.max(img1_corners_transformed, axis=0)
         img2_corners_min = np.min(img2_corners_transformed, axis=0)
         img2_corners_max = np.max(img2_corners_transformed, axis=0)
 
         # For left top use the max of the min, for right bot use min of max
-        x_start, y_start = np.max(np.concatenate([img1_corners_min, img2_corners_min]), axis=0)
-        x_end, y_end = np.min(np.concatenate([img1_corners_max, img2_corners_max]), axis=0)
-        crop_size = NpSize((y_end - y_start + 1, x_end - x_start + 1))
-        return (NpPoint((y_start, x_start)), NpPoint((y_end, x_end))), crop_size
+        min_corners = np.concatenate([img1_corners_min, img2_corners_min])
+        max_corners = np.concatenate([img1_corners_max, img2_corners_max])
+        x_start, y_start = np.floor(np.max(min_corners, axis=0)).astype(np.int32)
+        x_end, y_end = np.ceil(np.min(max_corners, axis=0)).astype(np.int32)
+
+        # Create crop info
+        crop_area = CropArea((NpPoint((y_start, x_start)), NpPoint((y_end, x_end))))
+        crop_size = CropSize((y_end - y_start + 1, x_end - x_start + 1))
+
+        # Return
+        return canvas_size, translation, crop_area, crop_size
 
     def apply_transformations(
         self,
         img1: Image,
         img2: Image,
+        canvas_size: CanvasSize,
         translation: TranslationVector,
-        canvas_size: CvSize,
         homography_matrix: Homography,
     ) -> tuple[Image, Image]:
         target_width, target_height = canvas_size

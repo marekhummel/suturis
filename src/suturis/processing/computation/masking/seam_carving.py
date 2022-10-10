@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import NpSize, Image, Mask, CvPoint, SeamMatrix
+from suturis.typing import CvRect, NpSize, Image, Mask, CvPoint, SeamMatrix
 
 END = 0
 LEFT = 2
@@ -18,14 +18,14 @@ GAUSS_SIZE = 17
 
 
 class SeamCarving(BaseMaskingHandler):
-    blocked_area_one: tuple[CvPoint, CvPoint] | None
-    blocked_area_two: tuple[CvPoint, CvPoint] | None
+    blocked_area_one: CvRect | None
+    blocked_area_two: CvRect | None
 
     def __init__(
         self,
         continous_recomputation: bool,
-        blocked_area_one: tuple[CvPoint, CvPoint] | None = None,
-        blocked_area_two: tuple[CvPoint, CvPoint] | None = None,
+        blocked_area_one: CvRect | None = None,
+        blocked_area_two: CvRect | None = None,
     ):
         log.debug("Init Seam Carving Masking Handler")
         super().__init__(continous_recomputation)
