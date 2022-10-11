@@ -7,17 +7,25 @@ from suturis.typing import CanvasInfo, CanvasSize, Homography, Image, NpPoint, N
 
 class BaseHomographyHandler:
     continous_recomputation: bool
+    save_to_file: bool
     _cached_homography: Homography | None
 
-    def __init__(self, continous_recomputation: bool):
+    def __init__(self, continous_recomputation: bool, save_to_file: bool):
         self.continous_recomputation = continous_recomputation
+        self.save_to_file = save_to_file
         self._cached_homography = None
 
     def find_homography(self, img1: Image, img2: Image) -> Homography:
         log.debug("Find homography")
+
         if self.continous_recomputation or self._cached_homography is None:
             log.debug("Recomputation of homography is requested")
             self._cached_homography = self._find_homography(img1, img2)
+
+            if self.save_to_file:
+                log.debug("Save computed mask to file")
+                np.save("data/out/homography.npy", self._cached_homography, allow_pickle=False)
+
         return self._cached_homography
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:

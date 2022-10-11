@@ -6,10 +6,12 @@ from suturis.typing import Image, Mask
 
 class BaseMaskingHandler:
     continous_recomputation: bool
+    save_to_file: bool
     _cached_mask: Mask | None
 
-    def __init__(self, continous_recomputation: bool):
+    def __init__(self, continous_recomputation: bool, save_to_file: bool):
         self.continous_recomputation = continous_recomputation
+        self.save_to_file = save_to_file
         self._cached_mask = None
 
     def compute_mask(self, img1: Image, img2: Image) -> Mask:
@@ -19,6 +21,10 @@ class BaseMaskingHandler:
         if self.continous_recomputation or self._cached_mask is None:
             log.debug("Recomputation of mask is requested")
             self._cached_mask = self._compute_mask(img1, img2)
+
+            if self.save_to_file:
+                log.debug("Save computed mask to file")
+                np.save("data/out/mask.npy", self._cached_mask, allow_pickle=False)
 
         return self._cached_mask
 

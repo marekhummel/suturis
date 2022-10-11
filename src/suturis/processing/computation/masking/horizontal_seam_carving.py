@@ -19,12 +19,13 @@ class HorizontalSeamCarving(BaseMaskingHandler):
     def __init__(
         self,
         continous_recomputation: bool,
+        save_to_file: bool = False,
         half_window_size: int = 3,
         gauss_size: int = 17,
         yrange: tuple[float, float] | None = None,
     ):
         log.debug("Init Seam Carving Masking Handler")
-        super().__init__(continous_recomputation)
+        super().__init__(continous_recomputation, save_to_file)
         self.half_window_size = half_window_size
         self.gauss_size = gauss_size
         self.yrange = yrange

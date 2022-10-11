@@ -18,13 +18,14 @@ class OrbRansacHandler(NoWarpingHandler):
     def __init__(
         self,
         continous_recomputation: bool,
+        save_to_file: bool = False,
         orb_features: int = 50000,
         min_matches: int = 10,
         relevant_area_one: CvRect | None = None,
         relevant_area_two: CvRect | None = None,
     ):
         log.debug("Init Orb Ransac Homography Handler")
-        super().__init__(continous_recomputation)
+        super().__init__(continous_recomputation, save_to_file)
         self.orb_features = orb_features
         self.min_matches = min_matches
         self.relevant_area_one = relevant_area_one

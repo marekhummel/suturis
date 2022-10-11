@@ -17,37 +17,48 @@ io:
 stitching:
   # homography:
   #   type: NoWarpingHandler
+  #   save_to_file: True
   #   continous_recomputation: False
   homography:
-    type: OrbRansacHandler
-    continous_recomputation: False
-    orb_features: 50000
-    min_matches: 10
-    relevant_area_one: [[200, 200], [900, 500]]
-    relevant_area_two: [[200, 200], [900, 500]]
+    type: FileLoadHandler
+  # homography:
+  #   type: OrbRansacHandler
+  #   continous_recomputation: False
+  #   save_to_file: True
+  #   orb_features: 50000
+  #   min_matches: 10
+  #   relevant_area_one: [[200, 200], [900, 500]]
+  #   relevant_area_two: [[200, 200], [900, 500]]
   # masking:
   #   type: NaiveFading
   #   continous_recomputation: False
+  #   save_to_file: True
+  masking:
+    type: FileLoadHandler
   # masking:
   #   type: SeamFinding
   #   continous_recomputation: True
+  #   save_to_file: True
   #   preferred_seam: [[475, 400], [725, 400]]
   # masking:
   #   type: SeamCarving
   #   continous_recomputation: True
+  #   save_to_file: True
   #   blocked_area_one: [[540, 70], [1300, 360]]
   #   blocked_area_two: [[0, 420], [825, 700]]
   # masking:
   #   type: SeamCarvingWide
   #   continous_recomputation: True
+  #   save_to_file: True
   #   blocked_area_one: [[540, 70], [1300, 360]]
   #   blocked_area_two: [[0, 420], [825, 700]]
-  masking:
-    type: HorizontalSeamCarving
-    continous_recomputation: True
-    half_window_size: 3
-    gauss_size: 17
-    yrange: [0.3, 0.7]
+  # masking:
+  #   type: HorizontalSeamCarving
+  #   continous_recomputation: True
+  #   save_to_file: True
+  #   half_window_size: 3
+  #   gauss_size: 17
+  #   yrange: [0.3, 0.7]
 misc:
   automatic_restart: True
 logging:

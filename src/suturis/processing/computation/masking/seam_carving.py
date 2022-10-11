@@ -24,11 +24,12 @@ class SeamCarving(BaseMaskingHandler):
     def __init__(
         self,
         continous_recomputation: bool,
+        save_to_file: bool = False,
         blocked_area_one: CvRect | None = None,
         blocked_area_two: CvRect | None = None,
     ):
         log.debug("Init Seam Carving Masking Handler")
-        super().__init__(continous_recomputation)
+        super().__init__(continous_recomputation, save_to_file)
         self.blocked_area_one = blocked_area_one
         self.blocked_area_two = blocked_area_two
 
