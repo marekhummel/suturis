@@ -3,15 +3,15 @@ import logging as log
 import cv2
 import numpy as np
 import numpy.typing as npt
-from suturis.processing.computation.homography import NoWarpingHandler
+from suturis.processing.computation.homography import BaseHomographyHandler
 from suturis.typing import CvRect, Homography, Image
 
 
-class OrbRansacHandler(NoWarpingHandler):
-    orb_features: int
+class OptimizedSiftHandler(BaseHomographyHandler):
+    sift_features: int
     min_matches: int
-    relevant_area_one: CvRect | None
-    relevant_area_two: CvRect | None
+    relevant_areas_one: list[CvRect]
+    relevant_areas_two: list[CvRect]
     _mask_img1: npt.NDArray | None
     _mask_img2: npt.NDArray | None
 
@@ -19,44 +19,44 @@ class OrbRansacHandler(NoWarpingHandler):
         self,
         continous_recomputation: bool,
         save_to_file: bool = False,
-        orb_features: int = 50000,
+        sift_features: int = 50000,
         min_matches: int = 10,
-        relevant_area_one: CvRect | None = None,
-        relevant_area_two: CvRect | None = None,
+        relevant_areas_one: list[CvRect] = [],
+        relevant_areas_two: list[CvRect] = [],
     ):
         log.debug("Init Orb Ransac Homography Handler")
         super().__init__(continous_recomputation, save_to_file)
-        self.orb_features = orb_features
+        self.sift_features = sift_features
         self.min_matches = min_matches
-        self.relevant_area_one = relevant_area_one
-        self.relevant_area_two = relevant_area_two
+        self.relevant_areas_one = relevant_areas_one
+        self.relevant_areas_two = relevant_areas_two
         self._mask_img1 = None
         self._mask_img2 = None
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
         # Create masks if needed to restrict detection to relevant areas
-        if self.relevant_area_one is not None and self._mask_img1 is None:
-            (xs, ys), (xe, ye) = self.relevant_area_one
+        if len(self.relevant_areas_one) > 0 and self._mask_img1 is None:
             self._mask_img1 = np.zeros(shape=img1.shape[:2], dtype=np.uint8)
-            self._mask_img1[ys : ye + 1, xs : xe + 1] = 255
+            for (xs, ys), (xe, ye) in self.relevant_areas_one:
+                self._mask_img1[ys : ye + 1, xs : xe + 1] = 255
 
-        if self.relevant_area_two is not None and self._mask_img2 is None:
-            (xs, ys), (xe, ye) = self.relevant_area_two
+        if len(self.relevant_areas_two) > 0 and self._mask_img2 is None:
             self._mask_img2 = np.zeros(shape=img2.shape[:2], dtype=np.uint8)
-            self._mask_img2[ys : ye + 1, xs : xe + 1] = 255
+            for (xs, ys), (xe, ye) in self.relevant_areas_two:
+                self._mask_img2[ys : ye + 1, xs : xe + 1] = 255
 
-        # Create ORB and compute
-        orb = cv2.ORB_create(nfeatures=self.orb_features)
-        kpts_img1, descs_img1 = orb.detectAndCompute(img1, mask=self._mask_img1)  # queryImage
-        kpts_img2, descs_img2 = orb.detectAndCompute(img2, mask=self._mask_img2)  # trainImage
+        # Create SIFT and compute
+        sift = cv2.SIFT_create(nfeatures=self.sift_features)
+        kpts_img1, descs_img1 = sift.detectAndCompute(img1, mask=self._mask_img1)  # queryImage
+        kpts_img2, descs_img2 = sift.detectAndCompute(img2, mask=self._mask_img2)  # trainImage
 
         # Match and return default if not enough matches
-        bfm = cv2.BFMatcher_create(cv2.NORM_HAMMING)
+        bfm = cv2.BFMatcher_create(cv2.NORM_L2)
         matches = bfm.match(descs_img1, descs_img2)
         good_matches = self._filter_good_matches(matches, kpts_img1, kpts_img2)
 
-        if len(good_matches) <= self.min_matches:
-            return super()._find_homography(img1, img2)
+        if len(good_matches) < self.min_matches:
+            return Homography(np.identity(3, dtype=np.float64))
 
         # Convert keypoints to an argument for findHomography
         dst_pts = np.array([kpts_img1[m.queryIdx].pt for m in good_matches], dtype=np.float32).reshape(-1, 1, 2)

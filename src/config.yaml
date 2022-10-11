@@ -27,18 +27,26 @@ stitching:
   #   continous_recomputation: False
   # homography:
   #   type: FileLoadHandler
-  homography:
-    type: OrbRansacHandler
-    continous_recomputation: False
-    save_to_file: False
-    orb_features: 50000
-    min_matches: 10
-    relevant_area_one: [[200, 200], [900, 500]]
-    relevant_area_two: [[200, 200], [900, 500]]
-  # masking:
-  #   type: NaiveFading
+  # homography:
+  #   type: BasicOrbHandler
   #   continous_recomputation: False
   #   save_to_file: False
+  #   orb_features: 10000
+  #   min_matches: 10
+  homography:
+    type: OptimizedSiftHandler
+    continous_recomputation: False
+    save_to_file: False
+    sift_features: 10000
+    min_matches: 10
+    relevant_areas_one:
+      - [[200, 200], [900, 500]]
+    relevant_areas_two:
+      - [[200, 200], [900, 500]]
+  masking:
+    type: NaiveFading
+    continous_recomputation: False
+    save_to_file: False
   # masking:
   #   type: FileLoadHandler
   # masking:
@@ -58,13 +66,13 @@ stitching:
   #   save_to_file: False
   #   blocked_area_one: [[540, 70], [1300, 360]]
   #   blocked_area_two: [[0, 420], [825, 700]]
-  masking:
-    type: HorizontalSeamCarving
-    continous_recomputation: True
-    save_to_file: False
-    half_window_size: 3
-    gauss_size: 27
-    yrange: [0.4, 0.6]
+  # masking:
+  #   type: HorizontalSeamCarving
+  #   continous_recomputation: True
+  #   save_to_file: False
+  #   half_window_size: 3
+  #   gauss_size: 27
+  #   yrange: [0.4, 0.6]
 misc:
   automatic_restart: True
 logging:
