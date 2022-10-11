@@ -14,7 +14,7 @@ MAX_ENERGY_VALUE = np.sqrt(np.sum(np.square(np.array([0, -127, -127]) - np.array
 class HorizontalSeamCarving(BaseMaskingHandler):
     half_window_size: int
     gauss_size: int
-    yrange: tuple[float, float]
+    yrange: tuple[float, float] | None
 
     def __init__(
         self,

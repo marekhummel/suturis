@@ -53,19 +53,34 @@ class OrbRansacHandler(NoWarpingHandler):
         # Match and return default if not enough matches
         bfm = cv2.BFMatcher_create(cv2.NORM_HAMMING)
         matches = bfm.match(descs_img1, descs_img2)
-        if len(matches) <= self.min_matches:
+        good_matches = self._filter_good_matches(matches, kpts_img1, kpts_img2)
+
+        if len(good_matches) <= self.min_matches:
             return super()._find_homography(img1, img2)
 
         # Convert keypoints to an argument for findHomography
-        dst_pts = np.array([kpts_img1[m.queryIdx].pt for m in matches], dtype=np.float32).reshape(-1, 1, 2)
-        src_pts = np.array([kpts_img2[m.trainIdx].pt for m in matches], dtype=np.float32).reshape(-1, 1, 2)
+        dst_pts = np.array([kpts_img1[m.queryIdx].pt for m in good_matches], dtype=np.float32).reshape(-1, 1, 2)
+        src_pts = np.array([kpts_img2[m.trainIdx].pt for m in good_matches], dtype=np.float32).reshape(-1, 1, 2)
 
-        matches = sorted(matches, key=lambda m: m.distance, reverse=True)[:40]
         matches_img = cv2.drawMatches(
-            img1, kpts_img1, img2, kpts_img2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
+            img1, kpts_img1, img2, kpts_img2, good_matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
         )
         cv2.imwrite("data/out/matches_img.jpg", matches_img)
 
         # Establish a homography
         h, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC)
         return Homography(h)
+
+    def _filter_good_matches(self, matches, kpts_img1, kpts_img2):
+        def loc_distance(m):
+            pt1 = kpts_img1[m.queryIdx].pt
+            pt2 = kpts_img2[m.trainIdx].pt
+            return (pt1[0] - pt2[0]) ** 2 + (pt1[1] - pt2[1]) ** 2
+
+        max_loc_distance = max(loc_distance(m) for m in matches)
+        max_desc_distance = max(m.distance for m in matches)
+
+        def comb_distance(m):
+            return (2 * m.distance / max_desc_distance + loc_distance(m) / max_loc_distance) / 3
+
+        return [m for m in matches if comb_distance(m) < 0.25]

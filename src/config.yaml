@@ -1,12 +1,18 @@
 io:
   inputs:
     - type: FileReader
-      path: ./data/input/lr/starboard_0120220423163949.mp4
-      skip: 9.2
+      path: ./data/input/lr/2022-04-23/starboard_0120220423163949.mp4
+      skip: 7.8
       speed_up: 4
     - type: FileReader
-      path: ./data/input/lr/port_0120220423162959.mp4
+      path: ./data/input/lr/2022-04-23/port_0120220423162959.mp4
       speed_up: 4
+    # - type: FileReader
+    #   path: ./data/input/lr/2022-06-22/starboard_0120220622103404.mp4
+    #   speed_up: 4
+    # - type: FileReader
+    #   path: ./data/input/lr/2022-06-22/port_0120220622102317.mp4
+    #   speed_up: 4
   outputs:
     - type: ScreenOutput
       title: Stitched
@@ -17,48 +23,48 @@ io:
 stitching:
   # homography:
   #   type: NoWarpingHandler
-  #   save_to_file: True
+  #   save_to_file: False
   #   continous_recomputation: False
-  homography:
-    type: FileLoadHandler
   # homography:
-  #   type: OrbRansacHandler
-  #   continous_recomputation: False
-  #   save_to_file: True
-  #   orb_features: 50000
-  #   min_matches: 10
-  #   relevant_area_one: [[200, 200], [900, 500]]
-  #   relevant_area_two: [[200, 200], [900, 500]]
+  #   type: FileLoadHandler
+  homography:
+    type: OrbRansacHandler
+    continous_recomputation: False
+    save_to_file: False
+    orb_features: 50000
+    min_matches: 10
+    relevant_area_one: [[200, 200], [900, 500]]
+    relevant_area_two: [[200, 200], [900, 500]]
   # masking:
   #   type: NaiveFading
   #   continous_recomputation: False
-  #   save_to_file: True
-  masking:
-    type: FileLoadHandler
+  #   save_to_file: False
+  # masking:
+  #   type: FileLoadHandler
   # masking:
   #   type: SeamFinding
   #   continous_recomputation: True
-  #   save_to_file: True
+  #   save_to_file: False
   #   preferred_seam: [[475, 400], [725, 400]]
   # masking:
   #   type: SeamCarving
   #   continous_recomputation: True
-  #   save_to_file: True
+  #   save_to_file: False
   #   blocked_area_one: [[540, 70], [1300, 360]]
   #   blocked_area_two: [[0, 420], [825, 700]]
   # masking:
   #   type: SeamCarvingWide
   #   continous_recomputation: True
-  #   save_to_file: True
+  #   save_to_file: False
   #   blocked_area_one: [[540, 70], [1300, 360]]
   #   blocked_area_two: [[0, 420], [825, 700]]
-  # masking:
-  #   type: HorizontalSeamCarving
-  #   continous_recomputation: True
-  #   save_to_file: True
-  #   half_window_size: 3
-  #   gauss_size: 17
-  #   yrange: [0.3, 0.7]
+  masking:
+    type: HorizontalSeamCarving
+    continous_recomputation: True
+    save_to_file: False
+    half_window_size: 3
+    gauss_size: 27
+    yrange: [0.4, 0.6]
 misc:
   automatic_restart: True
 logging:
