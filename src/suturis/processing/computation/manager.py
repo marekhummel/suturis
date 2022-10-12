@@ -9,7 +9,7 @@ import suturis.processing.computation.subprocess as subprc
 from suturis.processing.computation.homography import BaseHomographyHandler
 from suturis.processing.computation.masking import BaseMaskingHandler
 from suturis.processing.computation.preprocessing import BasePreprocessor
-from suturis.timer import track_timings
+from suturis.timer import track_timings, update_timings
 from suturis.typing import ComputationParams, CropArea, Image, Mask, TransformationInfo
 
 _local_params: ComputationParams | None = None
@@ -47,16 +47,21 @@ def get_params(
 
 
 def shutdown() -> None:
-    global _shutdown_event, _process, _local_pipe, _queue_listener
+    global _shutdown_event, _computation_running, _process, _local_pipe, _queue_listener
     log.debug("Cleanly close subprocess")
     _shutdown_event.set()
 
-    if _local_pipe:
-        _local_pipe.close()
-
     # This might take some time if a new computation just started
     if _process:
+        log.debug("Requested termination of subprocess")
+        while _computation_running:
+            pass
+        subproc_timings = _local_pipe.recv()
+        update_timings(subproc_timings)
         _process.join()
+
+    if _local_pipe:
+        _local_pipe.close()
 
     if _queue_listener:
         _queue_listener.stop()

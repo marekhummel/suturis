@@ -27,12 +27,28 @@ def track_timings(*, name: str) -> Callable[[Callable], Any]:
     return decorator
 
 
-def finalize_timings(logger: log.Logger | None = None) -> None:
+def update_timings(other_timings: dict):
+    global timings
+    for name, times in other_timings.items():
+        timings[name].extend(times)
+
+
+def finalize_timings() -> None:
     global timings
 
-    logger = logger or log.getLogger()
+    timing_results = []
+    timing_missing = []
     for name, times in timings.items():
         if len(times) > 0:
             avg_time = np.mean(times) / 1e9
             std_time = np.std(times) / 1e9
-            logger.info(f"Timings of '{name}' (mean ± std): {avg_time:.5f} ± {std_time:.5f} secs")
+            timing_results.append((name, avg_time, std_time))
+        else:
+            timing_missing.append(name)
+
+    timing_results.sort(key=lambda tpl: tpl[1], reverse=True)
+    for name, avg, std in timing_results:
+        log.info(f"Timings of '{name}' (mean ± std): {avg:.5f} ± {std:.5f} secs")
+
+    for name in sorted(timing_missing):
+        log.info(f"Timings of '{name}' unknown, method has not finished once")
