@@ -5,11 +5,12 @@ import multiprocessing.connection as mpc
 import threading
 from multiprocessing.synchronize import Event as EventType
 
+import suturis.processing.computation.subprocess as subprc
 from suturis.processing.computation.homography import BaseHomographyHandler
 from suturis.processing.computation.masking import BaseMaskingHandler
-import suturis.processing.computation.subprocess as subprc
+from suturis.processing.computation.preprocessing import BasePreprocessor
 from suturis.timer import track_timings
-from suturis.typing import ComputationParams, Image, Mask, TransformationInfo, CropArea
+from suturis.typing import ComputationParams, CropArea, Image, Mask, TransformationInfo
 
 _local_params: ComputationParams | None = None
 _computation_running: bool = False
@@ -22,6 +23,7 @@ _shutdown_event: EventType = mp.Event()
 def get_params(
     image1: Image,
     image2: Image,
+    preprocessing_handlers: list[BasePreprocessor],
     homography_handler: BaseHomographyHandler,
     masking_handler: BaseMaskingHandler,
 ) -> ComputationParams | None:
@@ -29,7 +31,7 @@ def get_params(
 
     # Create subprocess if needed
     if _process is None:
-        _create_subprocess(homography_handler, masking_handler)
+        _create_subprocess(preprocessing_handlers, homography_handler, masking_handler)
 
     # Recompute params when possible
     if not _computation_running:
@@ -60,7 +62,11 @@ def shutdown() -> None:
         _queue_listener.stop()
 
 
-def _create_subprocess(homography_handler: BaseHomographyHandler, masking_handler: BaseMaskingHandler):
+def _create_subprocess(
+    preprocessing_handlers: list[BasePreprocessor],
+    homography_handler: BaseHomographyHandler,
+    masking_handler: BaseMaskingHandler,
+):
     global _process, _local_pipe, _queue_listener
 
     # Setup logging
@@ -74,6 +80,7 @@ def _create_subprocess(homography_handler: BaseHomographyHandler, masking_handle
     _process.start()
 
     # Send handlers once
+    _local_pipe.send(preprocessing_handlers)
     _local_pipe.send(homography_handler)
     _local_pipe.send(masking_handler)
 

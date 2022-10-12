@@ -1,13 +1,14 @@
 import logging as log
 
 import numpy as np
-from suturis.processing.computation.homography.base_homography_handler import BaseHomographyHandler
 import suturis.processing.computation.manager as mgr
-from suturis.processing.computation.masking.base_masking_handler import BaseMaskingHandler
+from suturis.processing.computation.homography import BaseHomographyHandler
+from suturis.processing.computation.masking import BaseMaskingHandler
+from suturis.processing.computation.preprocessing import BasePreprocessor
 from suturis.timer import track_timings
 from suturis.typing import Image
 
-
+_preprocessor_delegates: list[BasePreprocessor] | None = None
 _homography_delegate: BaseHomographyHandler | None = None
 _masking_delegate: BaseMaskingHandler | None = None
 _default_image: Image = Image(np.zeros(shape=(720, 1280, 3), dtype=np.uint8))
@@ -15,13 +16,13 @@ _default_image: Image = Image(np.zeros(shape=(720, 1280, 3), dtype=np.uint8))
 
 @track_timings(name="Stitching")
 def compute(*images: Image) -> Image:
-    assert _homography_delegate and _masking_delegate
+    assert _preprocessor_delegates is not None and _homography_delegate and _masking_delegate
     assert len(images) == 2
     image1, image2 = images
 
     # ** Get data
     log.debug("Fetch current stitching params")
-    params = mgr.get_params(image1, image2, _homography_delegate, _masking_delegate)
+    params = mgr.get_params(image1, image2, _preprocessor_delegates, _homography_delegate, _masking_delegate)
 
     if params is None:
         log.debug("Initial computation hasn't finished yet, return black image")
@@ -30,6 +31,10 @@ def compute(*images: Image) -> Image:
     # ** Stitch
     log.debug("Stitch images")
     transformation, crop, mask = params
+
+    for preprocessor in _preprocessor_delegates:
+        image1, image2 = preprocessor.process(image1, image2)
+
     img1_tf, img2_tf = _homography_delegate.apply_transformations(image1, image2, *transformation)
     img1_tf_crop, img2_tf_crop = _homography_delegate.apply_crop(img1_tf, img2_tf, *crop)
     masked_img = _masking_delegate.apply_mask(img1_tf_crop, img2_tf_crop, mask)
@@ -37,7 +42,10 @@ def compute(*images: Image) -> Image:
     return masked_img
 
 
-def set_delegates(homography: BaseHomographyHandler, masking: BaseMaskingHandler):
-    global _homography_delegate, _masking_delegate
+def set_delegates(
+    preprocessors: list[BasePreprocessor], homography: BaseHomographyHandler, masking: BaseMaskingHandler
+):
+    global _preprocessor_delegates, _homography_delegate, _masking_delegate
+    _preprocessor_delegates = preprocessors
     _homography_delegate = homography
     _masking_delegate = masking

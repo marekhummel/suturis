@@ -11,10 +11,11 @@ from suturis.io.reader import BaseReader
 from suturis.io.writer import BaseWriter
 from suturis.processing.computation.homography import BaseHomographyHandler
 from suturis.processing.computation.masking import BaseMaskingHandler
+from suturis.processing.computation.preprocessing.base_preprocessor import BasePreprocessor
 
 
 IOConfig = tuple[list[BaseReader], list[BaseWriter]]
-StichingConfig = tuple[BaseHomographyHandler, BaseMaskingHandler]
+StichingConfig = tuple[list[BasePreprocessor], BaseHomographyHandler, BaseMaskingHandler]
 MiscConfig = dict
 
 
@@ -98,18 +99,20 @@ def _define_stitching(cfg) -> StichingConfig | None:
     logging.debug("Define stitching classes")
 
     # Check input output fields
+    preprocessors = cfg.get("preprocessing")
     homography = cfg.get("homography")
     masking = cfg.get("masking")
     if homography is None or masking is None:
         logging.error("Malformed config: Homography or Masking missing for Stitching")
         return None
 
-    # Create readers and writers
+    # Create handlers
+    preprocessing_handlers = _create_instances(BasePreprocessor, preprocessors or [], True)
     homography_handler = _create_instances(BaseHomographyHandler, [homography], False)
     masking_handler = _create_instances(BaseMaskingHandler, [masking], False)
     return (
-        (homography_handler[0], masking_handler[0])
-        if homography_handler is not None and masking_handler is not None
+        (preprocessing_handlers, homography_handler[0], masking_handler[0])
+        if preprocessing_handlers is not None and homography_handler is not None and masking_handler is not None
         else None
     )
 

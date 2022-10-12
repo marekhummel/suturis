@@ -4,18 +4,21 @@ import multiprocessing as mp
 import multiprocessing.connection as mpc
 from multiprocessing.synchronize import Event as EventType
 
+
 from suturis.processing.computation.homography import BaseHomographyHandler
 from suturis.processing.computation.masking import BaseMaskingHandler
+from suturis.processing.computation.preprocessing import BasePreprocessor
 from suturis.timer import finalize_timings, track_timings
 from suturis.typing import ComputationParams, Image
 
 proc_logger = log.getLogger()
+preprocessors: list[BasePreprocessor]
 homography_delegate: BaseHomographyHandler
 masking_delegate: BaseMaskingHandler
 
 
 def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue: mp.Queue) -> None:
-    global proc_logger, homography_delegate, masking_delegate
+    global proc_logger, preprocessors, homography_delegate, masking_delegate
     # Set logging
     qh = logging.handlers.QueueHandler(logging_queue)
     proc_logger.setLevel(log.DEBUG)
@@ -23,6 +26,7 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
     proc_logger.debug("Subprocess started")
 
     # Receive delegate classes
+    preprocessors = pipe_conn.recv()
     homography_delegate = pipe_conn.recv()
     masking_delegate = pipe_conn.recv()
 
@@ -36,6 +40,11 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
             proc_logger.debug("Receive images")
             image1: Image = pipe_conn.recv()
             image2: Image = pipe_conn.recv()
+
+            # Preprocessing
+            for preprocessor in preprocessors:
+                if preprocessor.needed_for_computation:
+                    image1, image2 = preprocessor.process(image1, image2)
 
             # Compute
             proc_logger.debug("Compute params")
