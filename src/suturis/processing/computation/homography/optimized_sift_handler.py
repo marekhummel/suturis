@@ -22,16 +22,16 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         save_to_file: bool = False,
         sift_features: int = 50000,
         min_matches: int = 10,
-        relevant_areas_one: list[CvRect] = [],
-        relevant_areas_two: list[CvRect] = [],
+        relevant_areas_one: list[CvRect] | None = None,
+        relevant_areas_two: list[CvRect] | None = None,
         enable_debug_output: bool = False,
     ):
         log.debug("Init Orb Ransac Homography Handler")
         super().__init__(continous_recomputation, save_to_file)
         self.sift_features = sift_features
         self.min_matches = min_matches
-        self.relevant_areas_one = relevant_areas_one
-        self.relevant_areas_two = relevant_areas_two
+        self.relevant_areas_one = relevant_areas_one or []
+        self.relevant_areas_two = relevant_areas_two or []
         self._mask_img1 = None
         self._mask_img2 = None
         self.enable_debug_output = enable_debug_output
