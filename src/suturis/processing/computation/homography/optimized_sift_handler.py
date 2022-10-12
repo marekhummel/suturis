@@ -12,6 +12,7 @@ class OptimizedSiftHandler(BaseHomographyHandler):
     min_matches: int
     relevant_areas_one: list[CvRect]
     relevant_areas_two: list[CvRect]
+    enable_debug_output: bool
     _mask_img1: npt.NDArray | None
     _mask_img2: npt.NDArray | None
 
@@ -23,6 +24,7 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         min_matches: int = 10,
         relevant_areas_one: list[CvRect] = [],
         relevant_areas_two: list[CvRect] = [],
+        enable_debug_output: bool = False,
     ):
         log.debug("Init Orb Ransac Homography Handler")
         super().__init__(continous_recomputation, save_to_file)
@@ -32,6 +34,7 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         self.relevant_areas_two = relevant_areas_two
         self._mask_img1 = None
         self._mask_img2 = None
+        self.enable_debug_output = enable_debug_output
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
         # Create masks if needed to restrict detection to relevant areas
@@ -55,17 +58,15 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         matches = bfm.match(descs_img1, descs_img2)
         good_matches = self._filter_good_matches(matches, kpts_img1, kpts_img2)
 
+        if self.enable_debug_output:
+            self._output_debug_images(img1, img2, kpts_img1, kpts_img2, good_matches)
+
         if len(good_matches) < self.min_matches:
             return Homography(np.identity(3, dtype=np.float64))
 
         # Convert keypoints to an argument for findHomography
         dst_pts = np.array([kpts_img1[m.queryIdx].pt for m in good_matches], dtype=np.float32).reshape(-1, 1, 2)
         src_pts = np.array([kpts_img2[m.trainIdx].pt for m in good_matches], dtype=np.float32).reshape(-1, 1, 2)
-
-        matches_img = cv2.drawMatches(
-            img1, kpts_img1, img2, kpts_img2, good_matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
-        )
-        cv2.imwrite("data/out/matches_img.jpg", matches_img)
 
         # Establish a homography
         h, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC)
@@ -84,3 +85,15 @@ class OptimizedSiftHandler(BaseHomographyHandler):
             return (2 * m.distance / max_desc_distance + loc_distance(m) / max_loc_distance) / 3
 
         return [m for m in matches if comb_distance(m) < 0.25]
+
+    def _output_debug_images(self, img1: Image, img2: Image, kpts_img1: list, kpts_img2: list, matches: list) -> None:
+        matches_img = cv2.drawMatches(
+            img1, kpts_img1, img2, kpts_img2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
+        )
+        cv2.imwrite("data/out/osift_matches.jpg", matches_img)
+
+        kpts1_img = cv2.drawKeypoints(img1, kpts_img1, None, color=(72, 144, 233))
+        cv2.imwrite("data/out/osift_keypoints1.jpg", kpts1_img)
+
+        kpts2_img = cv2.drawKeypoints(img2, kpts_img2, None, color=(72, 144, 233))
+        cv2.imwrite("data/out/osift_keypoints2.jpg", kpts2_img)

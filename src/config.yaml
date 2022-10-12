@@ -33,6 +33,7 @@ stitching:
   #   save_to_file: False
   #   orb_features: 10000
   #   min_matches: 10
+  #   enable_debug_output: True
   homography:
     type: OptimizedSiftHandler
     continous_recomputation: False
@@ -40,9 +41,20 @@ stitching:
     sift_features: 10000
     min_matches: 10
     relevant_areas_one:
-      - [[200, 200], [900, 500]]
+      # - [[200, 200], [900, 500]]
+      - [[191, 209], [270, 450]] # Heck
+      - [[191, 209], [555, 282]] # Backboard
+      - [[188, 391], [558, 463]] # Steuerboard
+      - [[844, 309], [907, 400]] # Bug
+      - [[645, 325], [685, 365]] # Kreis
     relevant_areas_two:
-      - [[200, 200], [900, 500]]
+      # - [[200, 200], [900, 500]]
+      - [[158, 243], [199, 462]] # Heck
+      - [[158, 243], [527, 300]] # Backboard
+      - [[154, 406], [521, 473]] # Steuerboard
+      - [[784, 345], [847, 434]] # Bug
+      - [[601, 356], [634, 398]] # Kreis
+    enable_debug_output: True
   masking:
     type: NaiveFading
     continous_recomputation: False
