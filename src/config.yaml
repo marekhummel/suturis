@@ -3,10 +3,10 @@ io:
     - type: FileReader
       path: ./data/input/lr/2022-04-23/starboard_0120220423163949.mp4
       skip: 7.8
-      speed_up: 4
+      speed_up: 8
     - type: FileReader
       path: ./data/input/lr/2022-04-23/port_0120220423162959.mp4
-      speed_up: 4
+      speed_up: 8
     # - type: FileReader
     #   path: ./data/input/lr/2022-06-22/starboard_0120220622103404.mp4
     #   speed_up: 4
@@ -26,14 +26,14 @@ stitching:
     #   degrees_img1: 180
     #   degrees_img2: 180
     # - type: Coloring
-    - type: TextRemoval
-      needed_for_computation: False
-      text_areas_one:
-        - [[454, 17], [823, 41]] # Text Top
-        - [[1052, 671], [1264, 698]] # Text Bot
-      text_areas_two:
-        - [[454, 17], [823, 41]] # Text Top
-        - [[1085, 671], [1264, 698]] # Text Bot
+    # - type: TextRemoval
+    #   needed_for_computation: False
+    #   text_areas_one:
+    #     - [[454, 17], [823, 41]] # Text Top
+    #     - [[1052, 671], [1264, 698]] # Text Bot
+    #   text_areas_two:
+    #     - [[454, 17], [823, 41]] # Text Top
+    #     - [[1085, 671], [1264, 698]] # Text Bot
   # homography:
   #   type: NoWarpingHandler
   #   save_to_file: False

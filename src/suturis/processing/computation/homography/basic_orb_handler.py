@@ -9,7 +9,7 @@ from suturis.typing import Homography, Image
 class BasicOrbHandler(BaseHomographyHandler):
     orb_features: int
     min_matches: int
-    enable_debug_output: False
+    enable_debug_output: bool
 
     def __init__(
         self,
@@ -28,8 +28,8 @@ class BasicOrbHandler(BaseHomographyHandler):
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
         # Create ORB and compute
         orb = cv2.ORB_create(nfeatures=self.orb_features)
-        kpts_img1, descs_img1 = orb.detectAndCompute(img1, mask=self._mask_img1)  # queryImage
-        kpts_img2, descs_img2 = orb.detectAndCompute(img2, mask=self._mask_img2)  # trainImage
+        kpts_img1, descs_img1 = orb.detectAndCompute(img1)  # queryImage
+        kpts_img2, descs_img2 = orb.detectAndCompute(img2)  # trainImage
 
         # Match and return default if not enough matches
         bfm = cv2.BFMatcher_create(cv2.NORM_HAMMING)

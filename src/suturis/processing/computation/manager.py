@@ -54,10 +54,11 @@ def shutdown() -> None:
     # This might take some time if a new computation just started
     if _process:
         log.debug("Requested termination of subprocess")
-        while _computation_running:
-            pass
-        subproc_timings = _local_pipe.recv()
-        update_timings(subproc_timings)
+        if _local_pipe:
+            while _computation_running:
+                pass
+            subproc_timings = _local_pipe.recv()
+            update_timings(subproc_timings)
         _process.join()
 
     if _local_pipe:

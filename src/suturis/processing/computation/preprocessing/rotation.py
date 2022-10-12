@@ -11,7 +11,7 @@ class Rotation(BasePreprocessor):
     degrees_img2: float
 
     def __init__(
-        self, index: int, /, needed_for_computation: bool = True, *degrees_img1: float, degrees_img2: float
+        self, index: int, /, needed_for_computation: bool = True, *, degrees_img1: float, degrees_img2: float
     ) -> None:
         log.debug(f"Init Rotation preprocessor at index #{index}")
         super().__init__(index, needed_for_computation)

@@ -1,11 +1,9 @@
 import logging as log
 
-import numpy.typing as npt
-import numpy as np
 import cv2
-
+import numpy as np
+import numpy.typing as npt
 from suturis.processing.computation.preprocessing.base_preprocessor import BasePreprocessor
-from suturis.timer import track_timings
 from suturis.typing import CvRect, Image
 
 
@@ -32,7 +30,6 @@ class TextRemoval(BasePreprocessor):
         self._mask_img1 = None
         self._mask_img2 = None
 
-    @track_timings(name="Preprocessing TextRemoval")
     def process(self, img1: Image, img2: Image) -> tuple[Image, Image]:
         if len(self.text_areas_one) > 0 and self._mask_img1 is None:
             self._mask_img1 = np.zeros(shape=img1.shape[:2], dtype=np.uint8)
