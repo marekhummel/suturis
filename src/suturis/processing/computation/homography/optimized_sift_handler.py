@@ -26,7 +26,7 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         relevant_areas_two: list[CvRect] | None = None,
         enable_debug_output: bool = False,
     ):
-        log.debug("Init Orb Ransac Homography Handler")
+        log.debug(f"Init Optimized SIFT Homography Handler with {sift_features} and {min_matches} min matches")
         super().__init__(continous_recomputation, save_to_file)
         self.sift_features = sift_features
         self.min_matches = min_matches
@@ -37,6 +37,7 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         self.enable_debug_output = enable_debug_output
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
+        log.debug("Compute new homography with SIFT for images")
         # Create masks if needed to restrict detection to relevant areas
         if len(self.relevant_areas_one) > 0 and self._mask_img1 is None:
             self._mask_img1 = np.zeros(shape=img1.shape[:2], dtype=np.uint8)
@@ -49,19 +50,25 @@ class OptimizedSiftHandler(BaseHomographyHandler):
                 self._mask_img2[ys : ye + 1, xs : xe + 1] = 255
 
         # Create SIFT and compute
+        log.debug("Find features")
         sift = cv2.SIFT_create(nfeatures=self.sift_features)
         kpts_img1, descs_img1 = sift.detectAndCompute(img1, mask=self._mask_img1)  # queryImage
         kpts_img2, descs_img2 = sift.detectAndCompute(img2, mask=self._mask_img2)  # trainImage
 
         # Match and return default if not enough matches
+        log.debug("Match features and filter by descriptor distance and spatial distance")
         bfm = cv2.BFMatcher_create(cv2.NORM_L2)
         matches = bfm.match(descs_img1, descs_img2)
         good_matches = self._filter_good_matches(matches, kpts_img1, kpts_img2)
 
+        # Write debug images
         if self.enable_debug_output:
+            log.debug("Write debug images (keypoints and matches)")
             self._output_debug_images(img1, img2, kpts_img1, kpts_img2, good_matches)
 
+        # Return identity if not enough matches
         if len(good_matches) < self.min_matches:
+            log.debug("Not enough matches found, return identity")
             return Homography(np.identity(3, dtype=np.float64))
 
         # Convert keypoints to an argument for findHomography
@@ -70,6 +77,7 @@ class OptimizedSiftHandler(BaseHomographyHandler):
 
         # Establish a homography
         h, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC)
+        log.debug(f"Computed homography {h.tolist()}")
         return Homography(h)
 
     def _filter_good_matches(self, matches, kpts_img1, kpts_img2):

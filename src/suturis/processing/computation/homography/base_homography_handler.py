@@ -11,6 +11,10 @@ class BaseHomographyHandler:
     _cached_homography: Homography | None
 
     def __init__(self, continous_recomputation: bool, save_to_file: bool):
+        log.debug(
+            f"Init homography handler, with continous recomputation set to {continous_recomputation}"
+            "and file output set to {save_to_file}"
+        )
         self.continous_recomputation = continous_recomputation
         self.save_to_file = save_to_file
         self._cached_homography = None
@@ -32,6 +36,8 @@ class BaseHomographyHandler:
         raise NotImplementedError("Abstract method needs to be overriden")
 
     def analyze_transformed_canvas(self, img_shape: NpShape, homography: Homography) -> CanvasInfo:
+        log.debug("Find dimensions of transformed image space")
+
         # Set corners
         height, width = img_shape[:2]
         corners_basic = [[0, 0], [0, height - 1], [width - 1, height - 1], [width - 1, 0]]
@@ -48,6 +54,7 @@ class BaseHomographyHandler:
         # Compute translation and canvas size
         translation = TranslationVector((-x_min, -y_min))
         canvas_size = CanvasSize((x_max - x_min + 1, y_max - y_min + 1))
+        log.debug(f"Computed translation {translation} and canvas size {canvas_size}")
 
         # Apply transformation to find crop
         img1_corners_transformed = corners + np.array(translation)
@@ -65,6 +72,7 @@ class BaseHomographyHandler:
         x_start, y_start = np.floor(np.max(min_corners, axis=0)).astype(np.int32)
         x_end, y_end = np.ceil(np.min(max_corners, axis=0)).astype(np.int32)
         crop_area = NpPoint((y_start, x_start)), NpPoint((y_end, x_end))
+        log.debug(f"Computed crop area from {crop_area[0]} to {crop_area[1]}")
 
         # Return
         return canvas_size, translation, crop_area
@@ -77,6 +85,7 @@ class BaseHomographyHandler:
         translation: TranslationVector,
         homography_matrix: Homography,
     ) -> tuple[Image, Image]:
+        log.debug("Apply transformations to input images")
         target_width, target_height = canvas_size
         tx, ty = translation
 
@@ -96,6 +105,7 @@ class BaseHomographyHandler:
         return Image(img1_translated), Image(img2_warped)
 
     def apply_crop(self, img1: Image, img2: Image, start: NpPoint, end: NpPoint) -> tuple[Image, Image]:
+        log.debug("Crop transformed images to computed area")
         ystart, xstart = start
         yend, xend = end
 

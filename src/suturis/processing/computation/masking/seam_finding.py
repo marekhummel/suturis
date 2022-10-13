@@ -31,8 +31,15 @@ class SeamFinding(BaseMaskingHandler):
         self.preferred_seam = preferred_seam
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
+        log.debug("Compute new mask from images")
+
+        log.debug("Insert preferred seam to guide seam finding")
         img1_modified = self._insert_preferred_seam(img1, img2)
+
+        log.debug("Compute seam matrix")
         seam_matrix = self._find_seam(img1_modified, img2)
+
+        log.debug("Create image mask from seam matrix")
         return self._create_mask_from_seam(seam_matrix, img1, img2)
 
     def _insert_preferred_seam(self, img1: Image, img2: Image) -> Image:

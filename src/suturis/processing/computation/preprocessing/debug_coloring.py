@@ -25,6 +25,7 @@ class DebugColoring(BasePreprocessor):
         self.color_img2 = color_img2
 
     def process(self, img1: Image, img2: Image) -> tuple[Image, Image]:
+        log.debug("Add debugging colors to images")
         return self._color(img1, self.color_img1), self._color(img2, self.color_img2)
 
     def _color(self, img: Image, color: tuple[int, int, int]) -> Image:

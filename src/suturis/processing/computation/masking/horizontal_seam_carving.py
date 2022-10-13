@@ -32,11 +32,22 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         self.yrange = yrange
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
+        log.debug("Compute new mask")
         output_size = NpSize((img1.shape[0], img1.shape[1]))
+
+        log.debug("Get energy map from transformed images")
         energy = self._get_energy(img1, img2)
+
+        log.debug("Deriving cost map from energy map")
         cost_matrix, path_matrix = self._compute_costs(output_size, energy)
+
+        log.debug("Use cost matrix to compute path")
         bool_mask = self._trace_back(cost_matrix, path_matrix)
+
+        log.debug("Compute image mask from path")
         img_mask = self._bool_to_img_mask(bool_mask)
+
+        log.debug("Add blur to mask")
         blurred_mask = cv2.GaussianBlur(
             img_mask, (self.gauss_size, self.gauss_size), 0, borderType=cv2.BORDER_REPLICATE
         )
@@ -52,6 +63,7 @@ class HorizontalSeamCarving(BaseMaskingHandler):
 
         # Block off some values to restrict the path by setting them to the max possible value
         if self.yrange is not None:
+            log.debug(f"Set rows outside of {self.yrange} to max value")
             ystart, yend = np.array(self.yrange) * diff.shape[0]
             diff[: int(ystart), :] = MAX_ENERGY_VALUE
             diff[int(yend + 1) :, :] = MAX_ENERGY_VALUE

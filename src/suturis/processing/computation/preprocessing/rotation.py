@@ -13,13 +13,17 @@ class Rotation(BasePreprocessor):
     def __init__(
         self, index: int, /, needed_for_computation: bool = True, *, degrees_img1: float, degrees_img2: float
     ) -> None:
-        log.debug(f"Init Rotation preprocessor at index #{index}")
+        log.debug(
+            f"Init Rotation preprocessor at index #{index}, "
+            "with rotations of {degrees_img1}deg for image one and {degrees_img2}deg for img2"
+        )
         super().__init__(index, needed_for_computation)
 
         self.degrees_img1 = degrees_img1
         self.degrees_img2 = degrees_img2
 
     def process(self, img1: Image, img2: Image) -> tuple[Image, Image]:
+        log.debug("Rotate images")
         return self._rotate(img1, self.degrees_img1), self._rotate(img2, self.degrees_img2)
 
     def _rotate(self, img: Image, degrees: float) -> Image:

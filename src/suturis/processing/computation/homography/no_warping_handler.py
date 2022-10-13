@@ -11,4 +11,5 @@ class NoWarpingHandler(BaseHomographyHandler):
         super().__init__(continous_recomputation, save_to_file)
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
+        log.debug("Return identity as homography")
         return Homography(np.identity(3, dtype=np.float64))

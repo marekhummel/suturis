@@ -11,6 +11,10 @@ class BaseMaskingHandler:
     _cached_mask: Mask | None
 
     def __init__(self, continous_recomputation: bool, save_to_file: bool, invert: bool):
+        log.debug(
+            f"Init masking handler, with continous recomputation set to {continous_recomputation}, "
+            "file output set to {save_to_file} and invert set to {invert}"
+        )
         self.continous_recomputation = continous_recomputation
         self.save_to_file = save_to_file
         self.invert = invert
@@ -34,6 +38,7 @@ class BaseMaskingHandler:
         raise NotImplementedError("Abstract method needs to be overriden")
 
     def apply_mask(self, img1: Image, img2: Image, mask: Mask) -> Image:
+        log.debug("Apply mask to images")
         mask1, mask2 = (1 - mask, mask) if self.invert else (mask, 1 - mask)
         img1_masked = img1.astype(np.float64) * mask1
         img2_masked = img2.astype(np.float64) * mask2

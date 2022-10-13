@@ -19,13 +19,14 @@ class BasicOrbHandler(BaseHomographyHandler):
         min_matches: int = 10,
         enable_debug_output: bool = False,
     ):
-        log.debug("Init Orb Ransac Homography Handler")
+        log.debug(f"Init ORB Ransac Homography Handler with {orb_features} features and {min_matches} min matches")
         super().__init__(continous_recomputation, save_to_file)
         self.orb_features = orb_features
         self.min_matches = min_matches
         self.enable_debug_output = enable_debug_output
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
+        log.debug("Compute new homography with ORB for images")
         # Create ORB and compute
         orb = cv2.ORB_create(nfeatures=self.orb_features)
         kpts_img1, descs_img1 = orb.detectAndCompute(img1)  # queryImage
@@ -35,10 +36,14 @@ class BasicOrbHandler(BaseHomographyHandler):
         bfm = cv2.BFMatcher_create(cv2.NORM_HAMMING)
         matches = bfm.match(descs_img1, descs_img2)
 
+        # Output some debug results
         if self.enable_debug_output:
+            log.debug("Write debug images (keypoints and matches)")
             self._output_debug_images(img1, img2, kpts_img1, kpts_img2, matches)
 
+        # Return identity if not enough matches
         if len(matches) <= self.min_matches:
+            log.debug("Not enough matches found, return identity")
             return Homography(np.identity(3, dtype=np.float64))
 
         # Convert keypoints to an argument for findHomography
@@ -47,6 +52,7 @@ class BasicOrbHandler(BaseHomographyHandler):
 
         # Establish a homography
         h, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC)
+        log.debug(f"Computed homography {h.tolist()}")
         return Homography(h)
 
     def _output_debug_images(self, img1: Image, img2: Image, kpts_img1: list, kpts_img2: list, matches: list) -> None:

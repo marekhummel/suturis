@@ -20,4 +20,5 @@ class FileLoadHandler(BaseMaskingHandler):
         self._loaded_mask = Mask(np.load(path, allow_pickle=False))
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
+        log.debug("Return loaded mask")
         return self._loaded_mask

@@ -35,6 +35,7 @@ def update_timings(other_timings: dict):
 
 def finalize_timings() -> None:
     global timings
+    log.debug("Calculate final timing results")
 
     timing_results = []
     timing_missing = []

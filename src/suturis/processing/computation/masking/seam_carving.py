@@ -35,8 +35,15 @@ class SeamCarving(BaseMaskingHandler):
         self.blocked_area_two = blocked_area_two
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
+        log.debug("Compute new mask from images")
+
+        log.debug("Create high contrast areas to guide seam")
         img1_modified, img2_modified = self._insert_blocked_areas(img1, img2)
+
+        log.debug("Find seam through images")
         seam_matrix = self._find_seam(img1_modified, img2_modified)
+
+        log.debug("Convert seam matrix into image mask")
         return self._create_mask_from_seam(seam_matrix, img1, img2)
 
     def _insert_blocked_areas(self, img1: Image, img2: Image) -> tuple[Image, Image]:
@@ -67,6 +74,7 @@ class SeamCarving(BaseMaskingHandler):
         return self._find_bool_matrix(previous, paths)
 
     def _get_energy(self, img1: Image, img2: Image, xstart: int, ystart: int, xend: int, yend: int) -> npt.NDArray:
+        log.debug("Compute energy map")
         width = xend - xstart
         height = yend - ystart
         dif = np.zeros((height, width))

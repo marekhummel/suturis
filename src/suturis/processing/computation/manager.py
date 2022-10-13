@@ -31,6 +31,7 @@ def get_params(
 
     # Create subprocess if needed
     if _process is None:
+        log.debug("Creating daemon process")
         _create_subprocess(preprocessing_handlers, homography_handler, masking_handler)
 
     # Recompute params when possible
@@ -86,6 +87,7 @@ def _create_subprocess(
     _process.start()
 
     # Send handlers once
+    log.debug("Pass handlers to subprocess")
     _local_pipe.send(preprocessing_handlers)
     _local_pipe.send(homography_handler)
     _local_pipe.send(masking_handler)

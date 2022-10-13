@@ -26,10 +26,12 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
     proc_logger.debug("Subprocess started")
 
     # Receive delegate classes
+    proc_logger.debug("Receive handlers")
     preprocessors = pipe_conn.recv()
     homography_delegate = pipe_conn.recv()
     masking_delegate = pipe_conn.recv()
 
+    proc_logger.debug("Start main loop")
     while not shutdown_event.is_set():
         try:
             # Check if data is available
@@ -42,6 +44,7 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
             image2: Image = pipe_conn.recv()
 
             # Preprocessing
+            proc_logger.debug("Preprocess images")
             for preprocessor in preprocessors:
                 if preprocessor.needed_for_computation:
                     image1, image2 = preprocessor.process(image1, image2)

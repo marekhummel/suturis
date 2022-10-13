@@ -31,6 +31,9 @@ class TextRemoval(BasePreprocessor):
         self._mask_img2 = None
 
     def process(self, img1: Image, img2: Image) -> tuple[Image, Image]:
+        log.debug("Remove texts from given areas")
+
+        # Create masks
         if len(self.text_areas_one) > 0 and self._mask_img1 is None:
             self._mask_img1 = np.zeros(shape=img1.shape[:2], dtype=np.uint8)
             for (xs, ys), (xe, ye) in self.text_areas_one:
@@ -41,6 +44,7 @@ class TextRemoval(BasePreprocessor):
             for (xs, ys), (xe, ye) in self.text_areas_one:
                 self._mask_img2[ys : ye + 1, xs : xe + 1] = 255
 
+        # Inpaint areas
         return self._remove_text(img1, self._mask_img1), self._remove_text(img2, self._mask_img2)
 
     def _remove_text(self, img: Image, mask: npt.NDArray | None) -> Image:

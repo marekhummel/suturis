@@ -11,5 +11,6 @@ class NaiveFading(BaseMaskingHandler):
         super().__init__(continous_recomputation, save_to_file, invert)
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
+        log.debug("Return basic fading mask (50%% of each image)")
         faded_mask = np.full_like(img1, 0.5, dtype=np.float64)
         return Mask(faded_mask)
