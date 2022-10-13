@@ -7,11 +7,13 @@ from suturis.typing import Image, Mask
 class BaseMaskingHandler:
     continous_recomputation: bool
     save_to_file: bool
+    invert: bool
     _cached_mask: Mask | None
 
-    def __init__(self, continous_recomputation: bool, save_to_file: bool):
+    def __init__(self, continous_recomputation: bool, save_to_file: bool, invert: bool):
         self.continous_recomputation = continous_recomputation
         self.save_to_file = save_to_file
+        self.invert = invert
         self._cached_mask = None
 
     def compute_mask(self, img1: Image, img2: Image) -> Mask:
@@ -32,7 +34,8 @@ class BaseMaskingHandler:
         raise NotImplementedError("Abstract method needs to be overriden")
 
     def apply_mask(self, img1: Image, img2: Image, mask: Mask) -> Image:
-        img1_masked = img1.astype(np.float64) * mask
-        img2_masked = img2.astype(np.float64) * (1 - mask)
+        mask1, mask2 = (1 - mask, mask) if self.invert else (mask, 1 - mask)
+        img1_masked = img1.astype(np.float64) * mask1
+        img2_masked = img2.astype(np.float64) * mask2
         final = (img1_masked + img2_masked).astype(np.uint8)
         return Image(final)

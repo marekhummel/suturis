@@ -19,9 +19,15 @@ GAUSS_SIZE = 17
 class SeamFinding(BaseMaskingHandler):
     preferred_seam: CvRect | None
 
-    def __init__(self, continous_recomputation: bool, save_to_file: bool = False, preferred_seam: CvRect | None = None):
+    def __init__(
+        self,
+        continous_recomputation: bool,
+        save_to_file: bool = False,
+        invert: bool = False,
+        preferred_seam: CvRect | None = None,
+    ):
         log.debug("Init Seam Finding Masking Handler")
-        super().__init__(continous_recomputation, save_to_file)
+        super().__init__(continous_recomputation, save_to_file, invert)
         self.preferred_seam = preferred_seam
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
