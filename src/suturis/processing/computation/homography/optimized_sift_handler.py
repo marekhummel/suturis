@@ -98,10 +98,10 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         matches_img = cv2.drawMatches(
             img1, kpts_img1, img2, kpts_img2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
         )
-        cv2.imwrite("data/out/osift_matches.jpg", matches_img)
+        cv2.imwrite("data/out/debug/osift_matches.jpg", matches_img)
 
         kpts1_img = cv2.drawKeypoints(img1, kpts_img1, None, color=(72, 144, 233))
-        cv2.imwrite("data/out/osift_keypoints1.jpg", kpts1_img)
+        cv2.imwrite("data/out/debug/osift_keypoints1.jpg", kpts1_img)
 
         kpts2_img = cv2.drawKeypoints(img2, kpts_img2, None, color=(72, 144, 233))
-        cv2.imwrite("data/out/osift_keypoints2.jpg", kpts2_img)
+        cv2.imwrite("data/out/debug/osift_keypoints2.jpg", kpts2_img)
