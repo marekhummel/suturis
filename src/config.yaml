@@ -25,7 +25,7 @@ stitching:
     # - type: Rotation
     #   degrees_img1: 180
     #   degrees_img2: 180
-    # - type: Coloring
+    # - type: DebugColoring
     # - type: TextRemoval
     #   needed_for_computation: False
     #   text_areas_one:

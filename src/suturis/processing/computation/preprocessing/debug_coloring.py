@@ -6,7 +6,7 @@ from suturis.processing.computation.preprocessing.base_preprocessor import BaseP
 from suturis.typing import Image
 
 
-class Coloring(BasePreprocessor):
+class DebugColoring(BasePreprocessor):
     color_img1: tuple[int, int, int]
     color_img2: tuple[int, int, int]
 
