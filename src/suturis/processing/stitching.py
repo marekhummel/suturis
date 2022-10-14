@@ -56,7 +56,7 @@ def compute(*images: Image) -> Image:
 
 def set_delegates(
     preprocessors: list[BasePreprocessor], homography: BaseHomographyHandler, masking: BaseMaskingHandler
-):
+) -> None:
     """Sets delegates at beginning of runtime.
 
     Parameters

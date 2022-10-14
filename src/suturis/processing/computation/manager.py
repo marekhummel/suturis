@@ -95,7 +95,7 @@ def _create_subprocess(
     preprocessing_handlers: list[BasePreprocessor],
     homography_handler: BaseHomographyHandler,
     masking_handler: BaseMaskingHandler,
-):
+) -> None:
     """Create a new subprocess at the beginning of the application lifetime.
 
     Parameters

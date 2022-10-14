@@ -11,7 +11,7 @@ from suturis.processing import stitching
 from suturis.timer import finalize_timings, track_timings
 
 
-def run(io: IOConfig, delegates: StichingConfig):
+def run(io: IOConfig, delegates: StichingConfig) -> None:
     """Main application loop.
 
     Parameters

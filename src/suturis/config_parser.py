@@ -74,7 +74,7 @@ def _config_logging(cfg: dict) -> None:
     logging.logMultiprocessing = False
 
     # Define namer method to rename files (put date before ext and add counter for exceptions)
-    def _namer(new_name):
+    def _namer(new_name: str) -> str:
         sub = re.sub(
             r"\\(?P<name>\w+)\.(?P<ext>\w+)\.(?P<date>[\d_-]+)$",
             r"\\\g<name>.\g<date>.\g<ext>",
