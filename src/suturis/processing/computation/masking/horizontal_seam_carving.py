@@ -10,8 +10,14 @@ from suturis.typing import Image, Mask, NpSize, SeamMatrix
 # L2 distance between min and max gives around 373
 MAX_ENERGY_VALUE = np.sqrt(np.sum(np.square(np.array([0, -127, -127]) - np.array([100, 127, 127]))))
 
+EnergyMatrix = npt.NDArray[np.float64]
+CostMatrix = npt.NDArray[np.float64]
+PathMatrix = npt.NDArray[np.int8]
+
 
 class HorizontalSeamCarving(BaseMaskingHandler):
+    """Masking handler which finds an low energy (least difference in color) seam from left to right."""
+
     half_window_size: int
     gauss_size: int
     yrange: tuple[float, float] | None
@@ -25,6 +31,24 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         gauss_size: int = 17,
         yrange: tuple[float, float] | None = None,
     ):
+        """Creates new horizontal seam carving handler.
+
+        Parameters
+        ----------
+        continous_recomputation : bool
+            If set, homography will be recomputed each time, otherwise the first result will be reused
+        save_to_file : bool, optional
+            If set, the homography matrix will be saved to a .npy file in "data/out/debug", by default False
+        invert : bool, optional
+            If set, the mask will be inverted before applying, by default False
+        half_window_size : int, optional
+            When using dynamic programming to find the optimal seam,
+            the algorithm checks half_window_size rows above and below, by default 3
+        gauss_size : int, optional
+            Kernel size of gaussian blur after mask finding to blur the seam, by default 17
+        yrange : tuple[float, float] | None, optional
+            Range of y coordiantes ranging from 0 to 1 to fixate the seam between two rows, by default None
+        """
         log.debug("Init Seam Carving Masking Handler")
         super().__init__(continous_recomputation, save_to_file, invert)
         self.half_window_size = half_window_size
@@ -32,6 +56,20 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         self.yrange = yrange
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
+        """Computation of the mask with the seam carving algorithm.
+
+        Parameters
+        ----------
+        img1 : Image
+            Transformed and cropped first image
+        img2 : Image
+            Transformed and cropped second image
+
+        Returns
+        -------
+        Mask
+            The mask matrix used to combine the images.
+        """
         log.debug("Compute new mask")
         output_size = NpSize((img1.shape[0], img1.shape[1]))
 
@@ -53,7 +91,21 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         )
         return Mask(blurred_mask)
 
-    def _get_energy(self, img1: Image, img2: Image) -> npt.NDArray[np.float64]:
+    def _get_energy(self, img1: Image, img2: Image) -> EnergyMatrix:
+        """Creates energy map between both images, energy meaning color difference (higher energy = less similar colors)
+
+        Parameters
+        ----------
+        img1 : Image
+            Transformed and cropped first image
+        img2 : Image
+            Transformed and cropped second image
+
+        Returns
+        -------
+        EnergyMatrix
+            Energy map. Values outside the given y-range will be set to a max value.
+        """
         # Convert to Lab color space (and to float32 for better accuracy)
         img1_lab = cv2.cvtColor(img1, cv2.COLOR_BGR2Lab).astype(np.float32)
         img2_lab = cv2.cvtColor(img2, cv2.COLOR_BGR2Lab).astype(np.float32)
@@ -71,11 +123,27 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         # Return
         return diff
 
-    def _compute_costs(self, output_size: NpSize, energy: npt.NDArray) -> tuple[npt.NDArray, npt.NDArray]:
+    def _compute_costs(self, output_size: NpSize, energy: EnergyMatrix) -> tuple[CostMatrix, PathMatrix]:
+        """Uses dynamic programming to find route from left to right with minimal cumulative energy.
+
+        Parameters
+        ----------
+        output_size : NpSize
+            Size of the images and the energy map
+        energy : EnergyMatrix
+            Energy map computed for images
+
+        Returns
+        -------
+        tuple[CostMatrix, PathMatrix]
+            First matrix contains accumulated energies (increasing going left), meaning a cell value describes the
+            total min energy needed to reach the right border. Second matrix contains offset in rows to achieve the
+            minimum energy path, meaning a cell value describes the offset in y to take for next column.
+        """
         # Prepare arrays
         height, width = output_size
-        costs = np.empty(shape=output_size)
-        paths = np.empty(shape=(height, width - 1), dtype=np.int32)
+        costs = np.empty(shape=output_size, dtype=np.float64)
+        paths = np.empty(shape=(height, width - 1), dtype=np.int8)
         costs[:, -1] = energy[:, -1]  # start of with given energy in last col
 
         # Iterate from second to last col up to first col for dyn prog
@@ -98,7 +166,21 @@ class HorizontalSeamCarving(BaseMaskingHandler):
 
         return costs, paths
 
-    def _trace_back(self, cost_matrix: npt.NDArray, path_matrix: npt.NDArray) -> SeamMatrix:
+    def _trace_back(self, cost_matrix: CostMatrix, path_matrix: PathMatrix) -> SeamMatrix:
+        """Given the cost and path matrix, we can back track the optimal path to find the seam.
+
+        Parameters
+        ----------
+        cost_matrix : CostMatrix
+            Cost matrix containing accumulated energy values
+        path_matrix : PathMatrix
+            Path matrix containing row offsets to find minimum path
+
+        Returns
+        -------
+        SeamMatrix
+            Boolean matrix describing the seam.
+        """
         curr = int(np.argmin(cost_matrix[:, 0]))
         bool_matrix = SeamMatrix(np.zeros_like(cost_matrix, dtype=bool))
         bool_matrix[curr:, 0] = True
@@ -111,6 +193,18 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         return bool_matrix
 
     def _bool_to_img_mask(self, bool_mask: SeamMatrix) -> Mask:
+        """Converts seam matrix (with seam as boolean values) to float mask which can be applied to images
+
+        Parameters
+        ----------
+        bool_mask : SeamMatrix
+            The seam matrix with booleans.
+
+        Returns
+        -------
+        Mask
+            Mask usable for images.
+        """
         # Given a bool matrix for each pixel, turns into mask (adding third dimension for 3 color channels)
         stacked = np.stack([bool_mask for _ in range(3)], axis=-1)
         return Mask(stacked.astype(np.float64))

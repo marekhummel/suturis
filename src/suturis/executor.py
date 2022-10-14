@@ -12,6 +12,15 @@ from suturis.timer import finalize_timings, track_timings
 
 
 def run(io: IOConfig, delegates: StichingConfig):
+    """Main application loop.
+
+    Parameters
+    ----------
+    io : IOConfig
+        Configuration of IO
+    delegates : StichingConfig
+        Configuration of sticthing
+    """
     readers, writers = io
     stitching.set_delegates(*delegates)
     assert len(readers) == 2
@@ -24,12 +33,27 @@ def run(io: IOConfig, delegates: StichingConfig):
 
 
 def shutdown() -> None:
+    """Finialize the application."""
     mgr.shutdown()
     finalize_timings()
 
 
 @track_timings(name="Iteration")
 def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter]) -> bool:
+    """Single stitching iteration. Starts with receiving images, ends by returning the stitched image.
+
+    Parameters
+    ----------
+    readers : list[BaseReader]
+        List of defined readers to get the images from.
+    writers : list[BaseWriter]
+        List of defined writers to write the output (or the input) to.
+
+    Returns
+    -------
+    bool
+        True, as long as the application didn't fail.
+    """
     # ** Read (reading might block hence the threads)
     log.debug("Read images")
     with ThreadPoolExecutor(max_workers=len(readers)) as tpe:

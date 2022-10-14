@@ -9,6 +9,19 @@ timings: dict[str, list[float]] = {}
 
 
 def track_timings(*, name: str) -> Callable[[Callable], Any]:
+    """Decorator which can be used to track runtime of single methods.
+    Average times will be logged when the application is closing.
+
+    Parameters
+    ----------
+    name : str
+        Name of this entry, to be used in logs.
+
+    Returns
+    -------
+    Callable[[Callable], Any]
+        Decorated functions
+    """
     global timings
     assert name not in timings, "Function with same name already tracked."
     timings[name] = []
@@ -28,12 +41,20 @@ def track_timings(*, name: str) -> Callable[[Callable], Any]:
 
 
 def update_timings(other_timings: dict):
+    """Updates this modules timing dictionary with another one. Needed for time tracking in subprocess.
+
+    Parameters
+    ----------
+    other_timings : dict
+        Other dictionary
+    """
     global timings
     for name, times in other_timings.items():
         timings[name].extend(times)
 
 
 def finalize_timings() -> None:
+    """Computes average and standard deviation for all timings and logs them."""
     global timings
     log.debug("Calculate final timing results")
 

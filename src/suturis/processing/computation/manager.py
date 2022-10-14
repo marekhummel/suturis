@@ -27,6 +27,26 @@ def get_params(
     homography_handler: BaseHomographyHandler,
     masking_handler: BaseMaskingHandler,
 ) -> ComputationParams | None:
+    """Return params needed for stitching (start new computation in seperate process if possible).
+
+    Parameters
+    ----------
+    image1 : Image
+        First input image
+    image2 : Image
+        Second input image
+    preprocessing_handlers : list[BasePreprocessor]
+        List of preprocessors
+    homography_handler : BaseHomographyHandler
+        Homography handler
+    masking_handler : BaseMaskingHandler
+        Masking handler
+
+    Returns
+    -------
+    ComputationParams | None
+        Set of computation params
+    """
     global _computation_running, _process
 
     # Create subprocess if needed
@@ -48,7 +68,9 @@ def get_params(
 
 
 def shutdown() -> None:
+    """Finalize the application by closing the subprocess and clean up."""
     global _shutdown_event, _computation_running, _process, _local_pipe, _queue_listener
+
     log.debug("Cleanly close subprocess")
     _shutdown_event.set()
 
@@ -74,6 +96,17 @@ def _create_subprocess(
     homography_handler: BaseHomographyHandler,
     masking_handler: BaseMaskingHandler,
 ):
+    """Create a new subprocess at the beginning of the application lifetime.
+
+    Parameters
+    ----------
+    preprocessing_handlers : list[BasePreprocessor]
+        List of preprocessors
+    homography_handler : BaseHomographyHandler
+        Homography handler
+    masking_handler : BaseMaskingHandler
+        Masking handler
+    """
     global _process, _local_pipe, _queue_listener
 
     # Setup logging
@@ -95,6 +128,15 @@ def _create_subprocess(
 
 @track_timings(name="Update call")
 def _computation_watcher(image1: Image, image2: Image) -> None:
+    """Daemon thread which communicates with the subprocess and updates params when completed.
+
+    Parameters
+    ----------
+    image1 : Image
+        First input image
+    image2 : Image
+        Second input image
+    """
     global _computation_running, _local_params, _shutdown_event, _local_pipe
     assert _local_pipe is not None
 

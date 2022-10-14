@@ -8,6 +8,10 @@ from suturis.typing import CvRect, Homography, Image
 
 
 class OptimizedSiftHandler(BaseHomographyHandler):
+    """Homography handler which uses SIFT and RANSAC to find features in masked image and
+    filters matches intelligently
+    """
+
     sift_features: int
     min_matches: int
     relevant_areas_one: list[CvRect]
@@ -26,6 +30,26 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         relevant_areas_two: list[CvRect] | None = None,
         enable_debug_output: bool = False,
     ):
+        """_summary_
+
+        Parameters
+        ----------
+        continous_recomputation : bool
+            If set, homography will be recomputed each time, otherwise the first result will be reused
+        save_to_file : bool, optional
+            If set, the homography matrix will be saved to a .npy file in "data/out/debug", by default False
+        sift_features : int, optional
+            Number of max features for SIFT instance, by default 50000
+        min_matches : int, optional
+            Number of min found matches, otherwise identity will be returned, by default 10
+        relevant_areas_one : list[CvRect] | None, optional
+            List of rectangles, which defines the set of areas used for feature finding in first image, by default []
+        relevant_areas_two : list[CvRect] | None, optional
+            List of rectangles, which defines the set of areas used for feature finding in second image, by default []
+        enable_debug_output : bool, optional
+            If true, computed keypoints and matches will be visualized and saved to "data/out/debug/osift_*.jpg",
+            by default False
+        """
         log.debug(f"Init Optimized SIFT Homography Handler with {sift_features} and {min_matches} min matches")
         super().__init__(continous_recomputation, save_to_file)
         self.sift_features = sift_features
@@ -37,6 +61,21 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         self.enable_debug_output = enable_debug_output
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
+        """Algorithm to find homography with SIFT.
+        Matches are filtered by descriptor distance (obviously) but also by spatial distance.
+
+        Parameters
+        ----------
+        img1 : Image
+            First input image (query)
+        img2 : Image
+            Second input image (train)
+
+        Returns
+        -------
+        Homography
+            Homography to warp the second image onto the first, based on SIFT features
+        """
         log.debug("Compute new homography with SIFT for images")
         # Create masks if needed to restrict detection to relevant areas
         if len(self.relevant_areas_one) > 0 and self._mask_img1 is None:
@@ -80,7 +119,25 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         log.debug(f"Computed homography {h.tolist()}")
         return Homography(h)
 
-    def _filter_good_matches(self, matches, kpts_img1, kpts_img2):
+    def _filter_good_matches(self, matches: list, kpts_img1: list, kpts_img2: list) -> list:
+        """Find relevant matches. Not only have the descriptors to be similar,
+        but the keypoints need to be close to each other.
+
+        Parameters
+        ----------
+        matches : list
+            List of matches found by a brute force matcher
+        kpts_img1 : list
+            List of keypoints in first image
+        kpts_img2 : list
+            List of keypoints in second image
+
+        Returns
+        -------
+        list
+            Subset of given matches, filtered by criteria mentioned above.
+        """
+
         def loc_distance(m):
             pt1 = kpts_img1[m.queryIdx].pt
             pt2 = kpts_img2[m.trainIdx].pt
@@ -95,6 +152,22 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         return [m for m in matches if comb_distance(m) < 0.25]
 
     def _output_debug_images(self, img1: Image, img2: Image, kpts_img1: list, kpts_img2: list, matches: list) -> None:
+        """Writes debug images to disk to visualize matches and keypoints.
+
+        Parameters
+        ----------
+        img1 : Image
+            First image
+        img2 : Image
+            Second image
+        kpts_img1 : list
+            Keypoints in first image
+        kpts_img2 : list
+            Keypoints in second image
+        matches : list
+            Set of matches found by SIFT and a brute force matcher
+        """
+
         matches_img = cv2.drawMatches(
             img1, kpts_img1, img2, kpts_img2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
         )

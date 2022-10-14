@@ -20,6 +20,18 @@ MiscConfig = dict
 
 
 def parse(path: str) -> tuple[IOConfig | None, StichingConfig | None, MiscConfig]:
+    """Parses the YAML config at the given path to required objects.
+
+    Parameters
+    ----------
+    path : str
+        Path to YAML config
+
+    Returns
+    -------
+    tuple[IOConfig | None, StichingConfig | None, MiscConfig]
+        Created objects based on config
+    """
     # Read file
     with open(path) as f:
         config = yaml.safe_load(f.read())
@@ -44,6 +56,13 @@ def parse(path: str) -> tuple[IOConfig | None, StichingConfig | None, MiscConfig
 
 
 def _config_logging(cfg: dict) -> None:
+    """Parses the configuration for the logging and applies it. Schema controlled by pythons internal logging.
+
+    Parameters
+    ----------
+    cfg : dict
+        The config section for logging
+    """
     # Create output dir
     if not os.path.isdir("log"):
         os.mkdir("log")
@@ -70,7 +89,19 @@ def _config_logging(cfg: dict) -> None:
     logging.info("Setup of loggers successful")
 
 
-def _define_io(cfg) -> IOConfig | None:
+def _define_io(cfg: dict) -> IOConfig | None:
+    """Parses config section for IO (readers and writers)
+
+    Parameters
+    ----------
+    cfg : dict
+        Config for IO
+
+    Returns
+    -------
+    IOConfig | None
+        Readers and writers or None if an error occured.
+    """
     logging.debug("Define readers and writers")
 
     # Check input output fields
@@ -95,7 +126,19 @@ def _define_io(cfg) -> IOConfig | None:
     return (readers, writers) if readers is not None and writers is not None else None
 
 
-def _define_stitching(cfg) -> StichingConfig | None:
+def _define_stitching(cfg: dict) -> StichingConfig | None:
+    """Parses config section for stitching (preprocessors, homography and mask handler).
+
+    Parameters
+    ----------
+    cfg : dict
+        Config for Stitching
+
+    Returns
+    -------
+    StichingConfig | None
+        Preprocessing, homography and masking handler(s) or None, if an error occured.
+    """
     logging.debug("Define stitching classes")
 
     # Check input output fields
@@ -118,6 +161,24 @@ def _define_stitching(cfg) -> StichingConfig | None:
 
 
 def _create_instances(base_class, configs: list[dict], include_index: bool) -> list | None:
+    """Creates subclass instances based on a given base class and their config.
+
+    Parameters
+    ----------
+    base_class : _type_
+        Defined classes in the configs have to derive from this class
+    configs : list[dict]
+        Configs for each instance to be created. Needs to have a "type" and all required params that are used in the
+        respective constructor.
+    include_index : bool
+        If set, the list index will be provided to the instance as well
+
+    Returns
+    -------
+    list | None
+        List of instances or None, if any failed.
+    """
+
     def _find_subclasses(cls_obj):
         all_subclasses = {}
 

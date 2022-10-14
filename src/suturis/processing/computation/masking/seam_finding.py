@@ -17,6 +17,8 @@ GAUSS_SIZE = 17
 
 
 class SeamFinding(BaseMaskingHandler):
+    """Masking handler which finds an optimal (least difference in color) seam from top left to bottom right"""
+
     preferred_seam: CvRect | None
 
     def __init__(
@@ -26,11 +28,38 @@ class SeamFinding(BaseMaskingHandler):
         invert: bool = False,
         preferred_seam: CvRect | None = None,
     ):
+        """Creates new seam finding handler.
+
+        Parameters
+        ----------
+        continous_recomputation : bool
+            If set, homography will be recomputed each time, otherwise the first result will be reused
+        save_to_file : bool, optional
+            If set, the homography matrix will be saved to a .npy file in "data/out/debug", by default False
+        invert : bool, optional
+            If set, the mask will be inverted before applying, by default False
+        preferred_seam : CvRect | None, optional
+            Rectangle of which the diagonal will be used as a guideline for the seam, by default None
+        """
         log.debug("Init Seam Finding Masking Handler")
         super().__init__(continous_recomputation, save_to_file, invert)
         self.preferred_seam = preferred_seam
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
+        """Computation of the mask with the seam finding algorithm.
+
+        Parameters
+        ----------
+        img1 : Image
+            Transformed and cropped first image
+        img2 : Image
+            Transformed and cropped second image
+
+        Returns
+        -------
+        Mask
+            The mask matrix used to combine the images.
+        """
         log.debug("Compute new mask from images")
 
         log.debug("Insert preferred seam to guide seam finding")
@@ -43,6 +72,20 @@ class SeamFinding(BaseMaskingHandler):
         return self._create_mask_from_seam(seam_matrix, img1, img2)
 
     def _insert_preferred_seam(self, img1: Image, img2: Image) -> Image:
+        """Inserts the second image into the first image at the given seam, to create a line with zero energy.
+
+        Parameters
+        ----------
+        img1 : Image
+            Transformed and cropped first image
+        img2 : Image
+            Transformed and cropped second image
+
+        Returns
+        -------
+        Image
+            Modified first image, with the inserted diagonal
+        """
         img1_modified = img1.copy()
         if self.preferred_seam is None:
             return img1_modified
@@ -58,6 +101,19 @@ class SeamFinding(BaseMaskingHandler):
         return img1_modified
 
     def _find_seam(self, img1: Image, img2: Image) -> SeamMatrix:
+        """Finds bool matrix to describe the seam for the mask.
+
+        Parameters
+        ----------
+        img1 : Image
+            Transformed and cropped first image
+        img2 : Image
+            Transformed and cropped second image
+        Returns
+        -------
+        SeamMatrix
+            Bool matrix to describe seam.
+        """
         # Convert color into Lab space, because we would like to follow EN ISO 11664-4
         img1 = cv2.cvtColor(img1.astype(np.uint8), cv2.COLOR_BGR2Lab)
         img2 = cv2.cvtColor(img2.astype(np.uint8), cv2.COLOR_BGR2Lab)
@@ -145,8 +201,25 @@ class SeamFinding(BaseMaskingHandler):
     def _fill_row(
         self, row: int, im1: Image, im2: Image, errors: npt.NDArray, previous: npt.NDArray
     ) -> tuple[npt.NDArray, npt.NDArray]:
-        """
-        Iterate through one row and fill in values
+        """Iterate through one row and fill in values.
+
+        Parameters
+        ----------
+        row : int
+            Row to fill in
+        im1 : Image
+            First image
+        im2 : Image
+            Second image
+        errors : npt.NDArray
+            Accumulated errors (difference in colors) so far
+        previous : npt.NDArray
+            Path taken so far to be able to trace back
+
+        Returns
+        -------
+        tuple[npt.NDArray, npt.NDArray]
+            Updated errors and previous arrays.
         """
         assert row < errors.shape[0], f"idx is: {row}, errors.shape[0] is: {errors.shape[0]}"
         # Go through columns
@@ -186,8 +259,25 @@ class SeamFinding(BaseMaskingHandler):
     def _fill_column(
         self, col: int, im1: Image, im2: Image, errors: npt.NDArray, previous: npt.NDArray
     ) -> tuple[npt.NDArray, npt.NDArray]:
-        """
-        Iterate through one column and fill in values
+        """Iterate through one column and fill in values
+
+        Parameters
+        ----------
+        col : int
+            Column to fill in
+        im1 : Image
+            First image
+        im2 : Image
+            Second image
+        errors : npt.NDArray
+            Accumulated errors (difference in colors) so far
+        previous : npt.NDArray
+            Path taken so far to be able to trace back
+
+        Returns
+        -------
+        tuple[npt.NDArray, npt.NDArray]
+            Updated errors and previous arrays.
         """
         assert col < errors.shape[1]
         # Go through rows
@@ -226,9 +316,18 @@ class SeamFinding(BaseMaskingHandler):
         return errors, previous
 
     def _find_bool_matrix(self, previous: npt.NDArray) -> SeamMatrix:
-        """
-        Does the last seam finding step by calculating the perfect seam from the found path.
+        """Does the last seam finding step by calculating the perfect seam from the found path.
         This is to be considered going back the best path.
+
+        Parameters
+        ----------
+        previous : npt.NDArray
+            Path matrix used trace seam
+
+        Returns
+        -------
+        SeamMatrix
+            Bool matrix describing the seam.
         """
         finished = False
         current_x = previous.shape[1] - 1
@@ -254,9 +353,22 @@ class SeamFinding(BaseMaskingHandler):
         return bool_matrix
 
     def _create_mask_from_seam(self, seammat: SeamMatrix, im1: Image, im2: Image) -> Mask:
-        """
-        Creates a mask for the merged images with values between 0 and 1. 1 is for fully filling the left image,
+        """Creates a mask for the merged images with values between 0 and 1. 1 is for fully filling the left image,
         0 is for fully filling the right image. Everything else is in between.
+
+        Parameters
+        ----------
+        seammat : SeamMatrix
+            Bool matrix which contains the seam
+        im1 : Image
+            Transformed and cropped first image
+        im2 : Image
+            Transformed and cropped second image
+
+        Returns
+        -------
+        Mask
+            A mask array applicable to the images.
         """
         assert im1.shape == im2.shape
         mask_mat = np.ones_like(im1)
@@ -309,9 +421,25 @@ class SeamFinding(BaseMaskingHandler):
     def _flood_fill(
         self, seammat: SeamMatrix, xmax: int, ymax: int, x: int, y: int, previous_val: bool, new_val: bool
     ) -> None:
-        """
-        Implementation of floodfill with a queue (Q) instead of a recursion because the stack is
+        """Implementation of floodfill with a queue (Q) instead of a recursion because the stack is
         usually limited. We have to respect that. Still very sad, that the recursion didn't work.
+
+        Parameters
+        ----------
+        seammat : SeamMatrix
+            Bool matrix containing a single seam
+        xmax : int
+            Maximum x-value of the matrix
+        ymax : int
+            Maximum y-value of the matrix
+        x : int
+            Starting x value
+        y : int
+            Starting y value
+        previous_val : bool
+            Old value to be overwritten in the matrix
+        new_val : bool
+            New value to set in the matrix
         """
 
         # Append the position of starting
@@ -357,8 +485,29 @@ class SeamFinding(BaseMaskingHandler):
     def _is_valid(
         self, seammat: SeamMatrix, xmax: int, ymax: int, x: int, y: int, previous_val: bool, new_val: bool
     ) -> bool:
-        """
-        Helping function for the floodfill that checks, whether a given pixel can be overridden.
+        """Helping function for the floodfill that checks, whether a given pixel can be overridden.
+
+        Parameters
+        ----------
+        seammat : SeamMatrix
+            Matrix to check
+        xmax : int
+            Max x-value of the matrix
+        ymax : int
+            Max y-value of the matrix
+        x : int
+            X-value to check
+        y : int
+            Y-value to check
+        previous_val : bool
+            Old value which has to be present right now
+        new_val : bool
+            New value which is meant to be set
+
+        Returns
+        -------
+        bool
+            True, if value can be set.
         """
         return (
             x >= 0 and x < xmax and y >= 0 and y < ymax and seammat[x][y] == previous_val and seammat[x][y] != new_val

@@ -7,6 +7,8 @@ from suturis.typing import Homography, Image
 
 
 class BasicOrbHandler(BaseHomographyHandler):
+    """Simple homography handler which uses ORB and RANSAC to find features"""
+
     orb_features: int
     min_matches: int
     enable_debug_output: bool
@@ -19,6 +21,22 @@ class BasicOrbHandler(BaseHomographyHandler):
         min_matches: int = 10,
         enable_debug_output: bool = False,
     ):
+        """Creates new basic ORB handler instance.
+
+        Parameters
+        ----------
+        continous_recomputation : bool
+            If set, homography will be recomputed each time, otherwise the first result will be reused
+        save_to_file : bool, optional
+            If set, the homography matrix will be saved to a .npy file in "data/out/debug", by default False
+        orb_features : int, optional
+            Number of max features for ORB instance, by default 50000
+        min_matches : int, optional
+            Number of min found matches, otherwise identity will be returned, by default 10
+        enable_debug_output : bool, optional
+            If true, computed keypoints and matches will be visualized and saved to "data/out/debug/orb_*.jpg",
+            by default False
+        """
         log.debug(f"Init ORB Ransac Homography Handler with {orb_features} features and {min_matches} min matches")
         super().__init__(continous_recomputation, save_to_file)
         self.orb_features = orb_features
@@ -26,16 +44,30 @@ class BasicOrbHandler(BaseHomographyHandler):
         self.enable_debug_output = enable_debug_output
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
+        """Algorithm to find homography with ORB.
+
+        Parameters
+        ----------
+        img1 : Image
+            First input image (query)
+        img2 : Image
+            Second input image (train)
+
+        Returns
+        -------
+        Homography
+            Homography to warp the second image onto the first, based on ORB features
+        """
         log.debug("Compute new homography with ORB for images")
         # Create ORB and compute
         orb = cv2.ORB_create(nfeatures=self.orb_features)
-        kpts_img1, descs_img1 = orb.detectAndCompute(img1, None)  # queryImage
-        kpts_img2, descs_img2 = orb.detectAndCompute(img2, None)  # trainImage
+        kpts_img1, descs_img1 = orb.detectAndCompute(img1, None)
+        kpts_img2, descs_img2 = orb.detectAndCompute(img2, None)
 
         # Match and return default if not enough matches
         bfm = cv2.BFMatcher_create(cv2.NORM_HAMMING)
         matches = bfm.knnMatch(descs_img1, descs_img2, k=2)
-        good_matches = [m1 for m1, m2 in matches if m1.distance < 0.75 * m2.distance]
+        good_matches = [m1 for m1, m2 in matches if m1.distance < 0.75 * m2.distance]  # Lowes ratio test
 
         # Output some debug results
         if self.enable_debug_output:
@@ -57,6 +89,21 @@ class BasicOrbHandler(BaseHomographyHandler):
         return Homography(h)
 
     def _output_debug_images(self, img1: Image, img2: Image, kpts_img1: list, kpts_img2: list, matches: list) -> None:
+        """Writes debug images to disk to visualize matches and keypoints.
+
+        Parameters
+        ----------
+        img1 : Image
+            First image
+        img2 : Image
+            Second image
+        kpts_img1 : list
+            Keypoints in first image
+        kpts_img2 : list
+            Keypoints in second image
+        matches : list
+            Set of matches found by ORB and a brute force matcher
+        """
         matches_img = cv2.drawMatches(
             img1, kpts_img1, img2, kpts_img2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
         )

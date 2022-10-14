@@ -4,13 +4,44 @@ from suturis.typing import Image
 
 
 class BasePreprocessor:
+    """Base class for preprocessors."""
+
     index: int
     needed_for_computation: bool
 
     def __init__(self, index: int, /, needed_for_computation: bool) -> None:
+        """Create new base preprocessor instance.
+
+        Parameters
+        ----------
+        index : int
+            0-based index of this preprocessor. Given implicitly by list index in config
+        needed_for_computation : bool
+            Flag to indicate of this preprocessor should be used for computation,
+            if not they're only used when applying the params
+        """
         log.debug(f"Init preprocessing handler #{index}, with needed_for_computation set to {needed_for_computation}")
         self.index = index
         self.needed_for_computation = needed_for_computation
 
     def process(self, img1: Image, img2: Image) -> tuple[Image, Image]:
+        """Abstract method to process images and return modified images.
+
+        Parameters
+        ----------
+        img1 : Image
+            First input image, may be modified by previous preprocessors
+        img2 : Image
+            Second input image, may be modified by previous preprocessors
+
+        Returns
+        -------
+        tuple[Image, Image]
+            Modified images.
+
+        Raises
+        ------
+        NotImplementedError
+            Unless overriden, this method will raise an error.
+        """
         raise NotImplementedError("Abstract method needs to be overriden")

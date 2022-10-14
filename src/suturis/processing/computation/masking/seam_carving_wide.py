@@ -17,11 +17,29 @@ GAUSS_SIZE = 17
 
 
 class SeamCarvingWide(SeamCarving):
+    """Masking handler which finds an low energy (least difference in color) seam from top to bottom,
+    improved by using wider angles."""
+
     def _fill_row(
         self, paths: npt.NDArray, row: int, dif: npt.NDArray, previous: npt.NDArray
     ) -> tuple[npt.NDArray, npt.NDArray]:
-        """
-        Fill one row based on the values from the previous row.
+        """Fill one row based on the values from the previous row.
+
+        Parameters
+        ----------
+        paths : npt.NDArray
+            Current accumulated energies
+        row : int
+            Current row to update
+        dif : npt.NDArray
+            Energy map
+        previous : npt.NDArray
+            Current path array
+
+        Returns
+        -------
+        tuple[npt.NDArray, npt.NDArray]
+            Updated previous and paths arrays.
         """
         assert 0 <= row < dif.shape[0]
         assert dif.shape == paths.shape
@@ -127,8 +145,19 @@ class SeamCarvingWide(SeamCarving):
         return previous, paths
 
     def _find_bool_matrix(self, previous: npt.NDArray, paths: npt.NDArray) -> SeamMatrix:
-        """
-        Finds a bool matrix with the seam with a better angle.
+        """Finds a bool matrix for the seam for better angles.
+
+        Parameters
+        ----------
+        previous : npt.NDArray
+            Path array
+        paths : npt.NDArray
+            Accumulated energy values
+
+        Returns
+        -------
+        SeamMatrix
+            Bool matrix with seam.
         """
         index = 0
         current_min = 0

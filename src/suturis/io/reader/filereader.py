@@ -7,6 +7,8 @@ from suturis.typing import Image
 
 
 class FileReader(BaseReader):
+    """Reader class that reads its images from a video file."""
+
     _capture: cv2.VideoCapture
     _last_read: float | None
     _frame_time: float
@@ -15,6 +17,26 @@ class FileReader(BaseReader):
     def __init__(
         self, index: int, /, path: str, *, skip: int = 0, speed_up: int = 1, single_frame: bool = False
     ) -> None:
+        """Creates new file reader.
+
+        Parameters
+        ----------
+        index : int
+            0-based index of this reader. Given implicitly by list index in config
+        path : str
+            Path to the video file
+        skip : int, optional
+            Seconds to skip at start of this video (to sync with other input), by default 0
+        speed_up : int, optional
+            Factor to multiply fps by, by default 1
+        single_frame : bool, optional
+            Flag to freeze video, if set, the first frame will always be returned, by default False
+
+        Raises
+        ------
+        FileNotFoundError
+            Raised if path not existing or not readable by cv2
+        """
         log.debug(f"Init file reader #{index} from {path} skipping {skip} seconds and accelerate fps by {speed_up}")
         super().__init__(index)
 
@@ -32,6 +54,13 @@ class FileReader(BaseReader):
         self._single_frame = Image(self._capture.read()[1]) if single_frame else None
 
     def read_image(self) -> _ReadImageType:
+        """Returns next frame in video capture or first frame if single_frame was set.
+
+        Returns
+        -------
+        _ReadImageType
+            Either true and the frame or false and None
+        """
         log.debug(f"Reading image from reader #{self.index}")
         if not self._capture.isOpened():
             log.info(f"Trying to read from closed capture in reader #{self.index}, return")

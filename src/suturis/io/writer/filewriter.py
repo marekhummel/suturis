@@ -10,6 +10,8 @@ from suturis.typing import CvSize, Image
 
 
 class FileWriter(BaseWriter):
+    """Write class that writes its images to a mp4 file."""
+
     _writer: cv2.VideoWriter
     _dimensions: CvSize
     _last_frame: Image | None
@@ -26,6 +28,22 @@ class FileWriter(BaseWriter):
         target_dir: str = "data/out/",
         filename: str = "{date}_stitching.mp4",
     ) -> None:
+        """Creates new file writer.
+
+        Parameters
+        ----------
+        index : int
+            0-based index of this writer. Given implicitly by list index in config
+        dimensions : CvSize
+            Dimensions of the video
+        source : str, optional
+            Describes what image to write, has to be member of SourceImage, by default "OUTPUT"
+        target_dir : str, optional
+            Directory in which to save the file, by default "data/out/"
+        filename : str, optional
+            Filename to use, the substring "{date}" will be replaced with the current date and time,
+            by default "{date}_stitching.mp4"
+        """
         log.debug(f"Init file writer #{index} with dimensions {dimensions} to save {source} images")
         super().__init__(index, source)
 
@@ -48,6 +66,13 @@ class FileWriter(BaseWriter):
         log.info(f"Target file of file writer #{index} is at '{target}'")
 
     def write_image(self, image: Image) -> None:
+        """Writes images to file
+
+        Parameters
+        ----------
+        image : Image
+            The frame to append.
+        """
         log.debug(f"Writing image with writer #{self.index}")
 
         # Prepare image

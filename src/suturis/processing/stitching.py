@@ -16,11 +16,23 @@ _default_image: Image = Image(np.zeros(shape=(720, 1280, 3), dtype=np.uint8))
 
 @track_timings(name="Stitching")
 def compute(*images: Image) -> Image:
+    """Stiches two images with the params given by the manager.
+
+    Parameters
+    ----------
+    images : list[Image]
+        List of images to stitch. Right now it has to be two images
+
+    Returns
+    -------
+    Image
+        Stitched image
+    """
     assert _preprocessor_delegates is not None and _homography_delegate and _masking_delegate
     assert len(images) == 2
     image1, image2 = images
 
-    # ** Get data
+    # Get data
     log.debug("Fetch current stitching params")
     params = mgr.get_params(image1, image2, _preprocessor_delegates, _homography_delegate, _masking_delegate)
 
@@ -28,7 +40,7 @@ def compute(*images: Image) -> Image:
         log.debug("Initial computation hasn't finished yet, return black image")
         return _default_image
 
-    # ** Stitch
+    # Stitch
     log.debug("Stitch images")
     transformation, crop, mask = params
 
@@ -45,6 +57,17 @@ def compute(*images: Image) -> Image:
 def set_delegates(
     preprocessors: list[BasePreprocessor], homography: BaseHomographyHandler, masking: BaseMaskingHandler
 ):
+    """Sets delegates at beginning of runtime.
+
+    Parameters
+    ----------
+    preprocessors : list[BasePreprocessor]
+        List of preprocessors
+    homography : BaseHomographyHandler
+        Homography handler
+    masking : BaseMaskingHandler
+        Masking handler
+    """
     global _preprocessor_delegates, _homography_delegate, _masking_delegate
     _preprocessor_delegates = preprocessors
     _homography_delegate = homography

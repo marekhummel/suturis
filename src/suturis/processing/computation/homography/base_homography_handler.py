@@ -6,11 +6,22 @@ from suturis.typing import CanvasInfo, CanvasSize, Homography, Image, NpPoint, N
 
 
 class BaseHomographyHandler:
+    """Base class for homography computation."""
+
     continous_recomputation: bool
     save_to_file: bool
     _cached_homography: Homography | None
 
     def __init__(self, continous_recomputation: bool, save_to_file: bool):
+        """Create new base homography handler instance, should not be called explicitly only from subclasses.
+
+        Parameters
+        ----------
+        continous_recomputation : bool
+            If set, homography will be recomputed each time, otherwise the first result will be reused
+        save_to_file : bool
+            If set, the homography matrix will be saved to a .npy file in "data/out/debug"
+        """
         log.debug(
             f"Init homography handler, with continous recomputation set to {continous_recomputation}"
             "and file output set to {save_to_file}"
@@ -20,6 +31,20 @@ class BaseHomographyHandler:
         self._cached_homography = None
 
     def find_homography(self, img1: Image, img2: Image) -> Homography:
+        """Return homography for input images, recomputed if needed.
+
+        Parameters
+        ----------
+        img1 : Image
+            First input image (source)
+        img2 : Image
+            Second input image (destination)
+
+        Returns
+        -------
+        Homography
+            The homography computed for those images, or the cached one
+        """
         log.debug("Find homography")
 
         if self.continous_recomputation or self._cached_homography is None:
@@ -28,14 +53,48 @@ class BaseHomographyHandler:
 
             if self.save_to_file:
                 log.debug("Save computed mask to file")
-                np.save("data/out/homography.npy", self._cached_homography, allow_pickle=False)
+                np.save("data/out/debug/homography.npy", self._cached_homography, allow_pickle=False)
 
         return self._cached_homography
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
+        """Abstract method to compute homography.
+
+        Parameters
+        ----------
+        img1 : Image
+            First input image (source)
+        img2 : Image
+            Second input image (destination)
+
+        Returns
+        -------
+        Homography
+            The homography computed for those images
+
+        Raises
+        ------
+        NotImplementedError
+            Unless overriden, this method will raise an error.
+        """
         raise NotImplementedError("Abstract method needs to be overriden")
 
     def analyze_transformed_canvas(self, img_shape: NpShape, homography: Homography) -> CanvasInfo:
+        """Analyzes the dimensions of the input and the homography, to compute dimensions and crop area in target space.
+
+        Parameters
+        ----------
+        img_shape : NpShape
+            Numpy shape of the input images
+        homography : Homography
+            Homography which will be applied to warp the images
+
+        Returns
+        -------
+        CanvasInfo
+            Set of information about the target space. Includes the necessary translation to avoid negative coordinates,
+            the size of the target space, and the rectangle to which the target space can be cropped to.
+        """
         log.debug("Find dimensions of transformed image space")
 
         # Set corners
@@ -85,6 +144,26 @@ class BaseHomographyHandler:
         translation: TranslationVector,
         homography_matrix: Homography,
     ) -> tuple[Image, Image]:
+        """Applies computed transformations to the source images.
+
+        Parameters
+        ----------
+        img1 : Image
+            First input image
+        img2 : Image
+            Second input image
+        canvas_size : CanvasSize
+            Dimensions of the target space
+        translation : TranslationVector
+            Translation needed to move out of negative coordinates
+        homography_matrix : Homography
+            Homography which warpes the second image
+
+        Returns
+        -------
+        tuple[Image, Image]
+            Transformed images
+        """
         log.debug("Apply transformations to input images")
         target_width, target_height = canvas_size
         tx, ty = translation
@@ -105,6 +184,24 @@ class BaseHomographyHandler:
         return Image(img1_translated), Image(img2_warped)
 
     def apply_crop(self, img1: Image, img2: Image, start: NpPoint, end: NpPoint) -> tuple[Image, Image]:
+        """Applies cropping to transformed images.
+
+        Parameters
+        ----------
+        img1 : Image
+            First image, transformed (only translation here)
+        img2 : Image
+            Second image, transformed (translation + warping)
+        start : NpPoint
+            Top left corner of the crop rectangle
+        end : NpPoint
+            Bottom right corner of the crop rectabngle
+
+        Returns
+        -------
+        tuple[Image, Image]
+            Cropped images
+        """
         log.debug("Crop transformed images to computed area")
         ystart, xstart = start
         yend, xend = end

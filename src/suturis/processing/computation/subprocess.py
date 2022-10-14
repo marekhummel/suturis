@@ -18,6 +18,17 @@ masking_delegate: BaseMaskingHandler
 
 
 def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue: mp.Queue) -> None:
+    """Main loop for the subprocess. Initially receives handlers, then continously receive images and compute params.
+
+    Parameters
+    ----------
+    pipe_conn : mpc.PipeConnection
+        Connection used to communicate with main process
+    shutdown_event : EventType
+        Shutdown event used by the main process to signalize when to exit this process
+    logging_queue : mp.Queue
+        Queue needed for logging, so that the configured loggers can be used
+    """
     global proc_logger, preprocessors, homography_delegate, masking_delegate
     # Set logging
     qh = logging.handlers.QueueHandler(logging_queue)
@@ -31,6 +42,7 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
     homography_delegate = pipe_conn.recv()
     masking_delegate = pipe_conn.recv()
 
+    # Start main loop
     proc_logger.debug("Start main loop")
     while not shutdown_event.is_set():
         try:
@@ -38,7 +50,7 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
             if not pipe_conn.poll(0.25):
                 continue
 
-            # Get images and delegates
+            # Get images
             proc_logger.debug("Receive images")
             image1: Image = pipe_conn.recv()
             image2: Image = pipe_conn.recv()
@@ -71,6 +83,20 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
 
 @track_timings(name="Raw computation")
 def _compute_params(image1: Image, image2: Image) -> ComputationParams:
+    """Function to compute the parameters from the images
+
+    Parameters
+    ----------
+    image1 : Image
+        First input image
+    image2 : Image
+        Second input image
+
+    Returns
+    -------
+    ComputationParams
+        Compute parameters needed for stitching
+    """
     global proc_logger, homography_delegate, masking_delegate
     assert image1.shape == image2.shape
 

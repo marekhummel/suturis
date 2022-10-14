@@ -18,6 +18,8 @@ GAUSS_SIZE = 17
 
 
 class SeamCarving(BaseMaskingHandler):
+    """Masking handler which finds an low energy (least difference in color) seam from top to bottom"""
+
     blocked_area_one: CvRect | None
     blocked_area_two: CvRect | None
 
@@ -29,12 +31,41 @@ class SeamCarving(BaseMaskingHandler):
         blocked_area_one: CvRect | None = None,
         blocked_area_two: CvRect | None = None,
     ):
+        """_summary_
+
+        Parameters
+        ----------
+        continous_recomputation : bool
+            If set, homography will be recomputed each time, otherwise the first result will be reused
+        save_to_file : bool, optional
+            If set, the homography matrix will be saved to a .npy file in "data/out/debug", by default False
+        invert : bool, optional
+            If set, the mask will be inverted before applying, by default False
+        blocked_area_one : CvRect | None, optional
+            Rectangle for first image, in which an artifical high energy will be created, by default None
+        blocked_area_two : CvRect | None, optional
+            Rectangle for second image, in which an artifical high energy will be created, by default None
+        """
         log.debug("Init Seam Carving Masking Handler")
         super().__init__(continous_recomputation, save_to_file, invert)
         self.blocked_area_one = blocked_area_one
         self.blocked_area_two = blocked_area_two
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
+        """Computation of the mask with the seam carving algorithm (implementation could be better).
+
+        Parameters
+        ----------
+        img1 : Image
+            Transformed and cropped first image
+        img2 : Image
+            Transformed and cropped second image
+
+        Returns
+        -------
+        Mask
+            The mask matrix used to combine the images.
+        """
         log.debug("Compute new mask from images")
 
         log.debug("Create high contrast areas to guide seam")
@@ -47,6 +78,21 @@ class SeamCarving(BaseMaskingHandler):
         return self._create_mask_from_seam(seam_matrix, img1, img2)
 
     def _insert_blocked_areas(self, img1: Image, img2: Image) -> tuple[Image, Image]:
+        """Sets rectangles in both image to certain colors to artifically create high energy areas,
+        which will be avoided by the seam.
+
+        Parameters
+        ----------
+        img1 : Image
+            Transformed and cropped first image
+        img2 : Image
+            Transformed and cropped second image
+
+        Returns
+        -------
+        tuple[Image, Image]
+            Modified images.
+        """
         img1_modified = img1.copy()
         img2_modified = img2.copy()
 
@@ -63,6 +109,19 @@ class SeamCarving(BaseMaskingHandler):
         return img1_modified, img2_modified
 
     def _find_seam(self, im1: Image, im2: Image) -> SeamMatrix:
+        """Finds bool matrix to describe the seam for the mask.
+
+        Parameters
+        ----------
+        img1 : Image
+            Transformed and cropped first image
+        img2 : Image
+            Transformed and cropped second image
+        Returns
+        -------
+        SeamMatrix
+            Bool matrix to describe seam.
+        """
         ystart, xstart = 0, 0
         yend, xend = im1.shape[:2]
         dif = self._get_energy(im1, im2, xstart, ystart, xend, yend)
@@ -74,6 +133,28 @@ class SeamCarving(BaseMaskingHandler):
         return self._find_bool_matrix(previous, paths)
 
     def _get_energy(self, img1: Image, img2: Image, xstart: int, ystart: int, xend: int, yend: int) -> npt.NDArray:
+        """Creates energy map between both images, energy meaning color difference (higher energy = less similar colors)
+
+        Parameters
+        ----------
+        img1 : Image
+            Transformed and cropped first image
+        img2 : Image
+            Transformed and cropped second image
+        xstart : int
+            Starting x-value.
+        ystart : int
+            Starting y-value.
+        xend : int
+            Ending x-value.
+        yend : int
+            Ending y-value.
+
+        Returns
+        -------
+        npt.NDArray
+            Energy map. Values inside the blocked areas will have max energy.
+        """
         log.debug("Compute energy map")
         width = xend - xstart
         height = yend - ystart
@@ -96,8 +177,23 @@ class SeamCarving(BaseMaskingHandler):
     def _fill_row(
         self, paths: npt.NDArray, row: int, dif: npt.NDArray, previous: npt.NDArray
     ) -> tuple[npt.NDArray, npt.NDArray]:
-        """
-        Fill one row based on the values from the previous row.
+        """Fill one row based on the values from the previous row.
+
+        Parameters
+        ----------
+        paths : npt.NDArray
+            Current accumulated energies
+        row : int
+            Current row to update
+        dif : npt.NDArray
+            Energy map
+        previous : npt.NDArray
+            Current path array
+
+        Returns
+        -------
+        tuple[npt.NDArray, npt.NDArray]
+            Updated previous and paths arrays.
         """
         assert 0 <= row < dif.shape[0]
         assert dif.shape == paths.shape
@@ -146,8 +242,19 @@ class SeamCarving(BaseMaskingHandler):
         return previous, paths
 
     def _find_bool_matrix(self, previous: npt.NDArray, paths: npt.NDArray) -> SeamMatrix:
-        """
-        Finds a bool matrix for the seam for not so sharp angles.
+        """Finds a bool matrix for the seam for not so sharp angles.
+
+        Parameters
+        ----------
+        previous : npt.NDArray
+            Path array
+        paths : npt.NDArray
+            Accumulated energy values
+
+        Returns
+        -------
+        SeamMatrix
+            Bool matrix with seam.
         """
         index = 0
         current_min = 0
@@ -181,8 +288,21 @@ class SeamCarving(BaseMaskingHandler):
         return bools
 
     def _create_mask_from_seam(self, seammat: SeamMatrix, im1: Image, im2: Image) -> Mask:
-        """
-        Creates a mask without needing to floodfill because in each row there is one true value.
+        """Creates a mask without needing to floodfill because in each row there is one true value.
+
+        Parameters
+        ----------
+        seammat : SeamMatrix
+            Bool matrix with the seam
+        im1 : Image
+            First image
+        im2 : Image
+            Second image
+
+        Returns
+        -------
+        Mask
+            Mask applicable to images based on the seam matrix.
         """
         mask_mat = np.ones((*seammat.shape, 3))
 
