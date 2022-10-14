@@ -1,14 +1,17 @@
 import logging as log
 from functools import wraps
 from time import perf_counter_ns
-from typing import Any, Callable
+from typing import Any, Callable, ParamSpec, TypeVar
 
 import numpy as np
 
 timings: dict[str, list[float]] = {}
 
+T = TypeVar("T")
+P = ParamSpec("P")
 
-def track_timings(*, name: str) -> Callable[[Callable], Any]:
+
+def track_timings(*, name: str) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorator which can be used to track runtime of single methods.
     Average times will be logged when the application is closing.
 
@@ -26,9 +29,9 @@ def track_timings(*, name: str) -> Callable[[Callable], Any]:
     assert name not in timings, "Function with same name already tracked."
     timings[name] = []
 
-    def decorator(func):
+    def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             begin = perf_counter_ns()
             result = func(*args, **kwargs)
             end = perf_counter_ns()
@@ -40,7 +43,7 @@ def track_timings(*, name: str) -> Callable[[Callable], Any]:
     return decorator
 
 
-def update_timings(other_timings: dict):
+def update_timings(other_timings: dict) -> None:
     """Updates this modules timing dictionary with another one. Needed for time tracking in subprocess.
 
     Parameters

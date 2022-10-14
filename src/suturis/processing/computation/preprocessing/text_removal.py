@@ -91,4 +91,4 @@ class TextRemoval(BasePreprocessor):
         Image
             Inpainted image.
         """
-        return cv2.inpaint(img, mask, 7, cv2.INPAINT_TELEA) if mask is not None else img
+        return Image(cv2.inpaint(img, mask, 7, cv2.INPAINT_TELEA)) if mask is not None else img

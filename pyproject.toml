@@ -2,12 +2,15 @@
 line-length = 120
 target-version = ['py310']
 extend-exclude = ['test/']
+force-exclude = 'src/cv2/__init__.pyi'
 
 [tool.mypy]
 python_version = '3.10'
 plugins = 'numpy.typing.mypy_plugin'
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
 exclude = ['test/']
 
-[[tool.mypy.overrides]]
-module = 'cv2'
-ignore_missing_imports = true

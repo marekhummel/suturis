@@ -115,17 +115,17 @@ class SeamFinding(BaseMaskingHandler):
             Bool matrix to describe seam.
         """
         # Convert color into Lab space, because we would like to follow EN ISO 11664-4
-        img1 = cv2.cvtColor(img1.astype(np.uint8), cv2.COLOR_BGR2Lab)
-        img2 = cv2.cvtColor(img2.astype(np.uint8), cv2.COLOR_BGR2Lab)
+        img1_lab = Image(cv2.cvtColor(img1.astype(np.uint8), cv2.COLOR_BGR2Lab))
+        img2_lab = Image(cv2.cvtColor(img2.astype(np.uint8), cv2.COLOR_BGR2Lab))
 
         # Doing some initializations
-        height, width = img1.shape[:2]
+        height, width = img1_lab.shape[:2]
         errors = np.zeros((height, width))
         previous = np.zeros((height, width))
 
         # Calculate distances
         for idx in range(min(errors.shape[0], errors.shape[1])):
-            dist = np.sqrt(sum(abs(int(x) - int(y)) for x, y in zip(img1[idx][idx], img2[idx][idx])))
+            dist = np.sqrt(sum(abs(int(x) - int(y)) for x, y in zip(img1_lab[idx][idx], img2_lab[idx][idx])))
 
             is_last_col, is_last_row = False, False
             # Check whether we are at an edge
@@ -187,14 +187,14 @@ class SeamFinding(BaseMaskingHandler):
 
             if is_last_col:
                 # Now we reached the end of the columns so we only need to fill that column, then we're done
-                errors, previous = self._fill_column(idx, img1, img2, errors, previous)
+                errors, previous = self._fill_column(idx, img1_lab, img2_lab, errors, previous)
             elif is_last_row:
                 # Now we reached the end of the rows, so we only need to fill that row before we're done
-                errors, previous = self._fill_row(idx, img1, img2, errors, previous)
+                errors, previous = self._fill_row(idx, img1_lab, img2_lab, errors, previous)
             else:
                 # We have to fill both rows and columns
-                errors, previous = self._fill_row(idx, img1, img2, errors, previous)
-                errors, previous = self._fill_column(idx, img1, img2, errors, previous)
+                errors, previous = self._fill_row(idx, img1_lab, img2_lab, errors, previous)
+                errors, previous = self._fill_column(idx, img1_lab, img2_lab, errors, previous)
 
         return self._find_bool_matrix(previous)
 
@@ -410,12 +410,14 @@ class SeamFinding(BaseMaskingHandler):
         # stitch.show_image('Mask', mask_mat)
 
         # Add a bit of gauss and return it
-        return cv2.GaussianBlur(
-            mask_mat,
-            (GAUSS_SIZE, GAUSS_SIZE),
-            0,
-            sigmaY=0,
-            borderType=cv2.BORDER_REPLICATE,
+        return Mask(
+            cv2.GaussianBlur(
+                mask_mat,
+                (GAUSS_SIZE, GAUSS_SIZE),
+                0,
+                sigmaY=0,
+                borderType=cv2.BORDER_REPLICATE,
+            )
         )
 
     def _flood_fill(

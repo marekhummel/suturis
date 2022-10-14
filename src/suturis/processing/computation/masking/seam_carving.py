@@ -159,16 +159,16 @@ class SeamCarving(BaseMaskingHandler):
         width = xend - xstart
         height = yend - ystart
         dif = np.zeros((height, width))
-        img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2Lab)
-        img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2Lab)
+        img1_lab = cv2.cvtColor(img1, cv2.COLOR_BGR2Lab)
+        img2_lab = cv2.cvtColor(img2, cv2.COLOR_BGR2Lab)
         for row in range(height):
             for col in range(width):
                 dif[row][col] = np.sqrt(
                     sum(
                         abs(int(x) - int(y))
                         for x, y in zip(
-                            img1[row + ystart][col + xstart],
-                            img2[row + ystart][col + xstart],
+                            img1_lab[row + ystart][col + xstart],
+                            img2_lab[row + ystart][col + xstart],
                         )
                     )
                 )
@@ -333,10 +333,12 @@ class SeamCarving(BaseMaskingHandler):
                 ] = [0, 0, 0]
 
         # stitch.show_image('Carvmask: After', mask_mat)
-        return cv2.GaussianBlur(
-            mask_mat,
-            (GAUSS_SIZE, GAUSS_SIZE),
-            0,
-            sigmaY=0,
-            borderType=cv2.BORDER_REPLICATE,
+        return Mask(
+            cv2.GaussianBlur(
+                mask_mat,
+                (GAUSS_SIZE, GAUSS_SIZE),
+                0,
+                sigmaY=0,
+                borderType=cv2.BORDER_REPLICATE,
+            )
         )

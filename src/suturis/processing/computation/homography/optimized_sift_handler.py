@@ -119,7 +119,9 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         log.debug(f"Computed homography {h.tolist()}")
         return Homography(h)
 
-    def _filter_good_matches(self, matches: list, kpts_img1: list, kpts_img2: list) -> list:
+    def _filter_good_matches(
+        self, matches: list[cv2.DMatch], kpts_img1: list[cv2.KeyPoint], kpts_img2: list[cv2.KeyPoint]
+    ) -> list[cv2.DMatch]:
         """Find relevant matches. Not only have the descriptors to be similar,
         but the keypoints need to be close to each other.
 
@@ -138,7 +140,7 @@ class OptimizedSiftHandler(BaseHomographyHandler):
             Subset of given matches, filtered by criteria mentioned above.
         """
 
-        def loc_distance(m):
+        def loc_distance(m: cv2.DMatch) -> float:
             pt1 = kpts_img1[m.queryIdx].pt
             pt2 = kpts_img2[m.trainIdx].pt
             return (pt1[0] - pt2[0]) ** 2 + (pt1[1] - pt2[1]) ** 2
@@ -146,7 +148,7 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         max_loc_distance = max(loc_distance(m) for m in matches)
         max_desc_distance = max(m.distance for m in matches)
 
-        def comb_distance(m):
+        def comb_distance(m: cv2.DMatch) -> float:
             return (2 * m.distance / max_desc_distance + loc_distance(m) / max_loc_distance) / 3
 
         return [m for m in matches if comb_distance(m) < 0.25]

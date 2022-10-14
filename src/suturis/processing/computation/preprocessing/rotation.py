@@ -75,4 +75,4 @@ class Rotation(BasePreprocessor):
         rot_matrix = cv2.getRotationMatrix2D(center, degrees, 1.0)
         rotated = cv2.warpAffine(img, rot_matrix, (width, height))
 
-        return rotated.astype(np.uint8)
+        return Image(rotated.astype(np.uint8))

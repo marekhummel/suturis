@@ -76,4 +76,4 @@ class DebugColoring(BasePreprocessor):
         colored_plane[:, :] = color
 
         colored_img = cv2.addWeighted(img, 0.7, colored_plane, 0.3, 0)
-        return colored_img.astype(np.uint8)
+        return Image(colored_img.astype(np.uint8))

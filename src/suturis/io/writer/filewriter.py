@@ -78,10 +78,11 @@ class FileWriter(BaseWriter):
         # Prepare image
         image_save = image
         if image.shape[1::-1] != self._dimensions:
-            image_save = cv2.resize(image_save, dsize=self._dimensions, interpolation=cv2.INTER_CUBIC)
+            image_save = Image(cv2.resize(image_save, dsize=self._dimensions, interpolation=cv2.INTER_CUBIC))
 
         # Write last image repeatedly to match fps of input / processing
         if self._last_write_time != 0:
+            assert self._last_frame is not None
             frame_time = 1 / self._fps
             current = self._last_write_time + frame_time
             while current < time():
