@@ -59,7 +59,7 @@ class FileReader(BaseReader):
         Returns
         -------
         _ReadImageType
-            Either true and the frame or false and None
+            Either True and the frame or False and None
         """
         log.debug(f"Reading image from reader #{self.index}")
         if not self._capture.isOpened():
