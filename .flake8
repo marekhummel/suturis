@@ -3,7 +3,7 @@ max-line-length = 120
 extend-ignore = E741, W503, E203
 exclude = 
     test/
-    src/cv2/__init__.pyi
+    test/cv2.pyi
 per-file-ignores =
     __init__.py:F401
 

@@ -2,7 +2,7 @@
 line-length = 120
 target-version = ['py310']
 extend-exclude = ['test/']
-force-exclude = 'src/cv2/__init__.pyi'
+force-exclude = 'test/cv2.pyi'
 
 [tool.mypy]
 python_version = '3.10'
