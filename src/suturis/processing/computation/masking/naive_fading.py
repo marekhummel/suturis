@@ -16,7 +16,7 @@ class NaiveFading(BaseMaskingHandler):
         continous_recomputation : bool, optional
             If set, homography will be recomputed each time, otherwise the first result will be reused, by default False
         save_to_file : bool, optional
-            If set, the homography matrix will be saved to a .npy file in "data/out/debug", by default False
+            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
         """
         log.debug("Init Naive Fading Handler")
         super().__init__(continous_recomputation, save_to_file, False)

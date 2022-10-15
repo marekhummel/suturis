@@ -1,0 +1,62 @@
+io:
+  inputs:
+    - type: FileReader
+      path: ./data/examples/files/2022-04-23/port_0120220423162959.mp4
+      speed_up: 8
+    - type: FileReader
+      path: ./data/examples/files/2022-04-23/starboard_0120220423163949.mp4
+      skip: 7.8
+      speed_up: 8
+  outputs:
+    - type: ScreenOutput
+      title: Stitched
+
+stitching:
+  preprocessing:
+  homography:
+    type: OptimizedSiftHandler
+    continous_recomputation: False
+    save_to_file: False
+    sift_features: 10000
+    min_matches: 10
+    relevant_areas_one:
+      - [[200, 200], [900, 500]]
+    relevant_areas_two:
+      - [[200, 200], [900, 500]]
+    enable_debug_output: False
+  masking:
+    type: HorizontalSeamCarving
+    continous_recomputation: True
+    save_to_file: False
+    invert: True
+    half_window_size: 3
+    gauss_size: 27
+    yrange: [0.4, 0.6]
+misc:
+  automatic_restart: True
+logging:
+  version: 1
+  formatters:
+    precise:
+      format: "%(asctime)s.%(msecs)03d: %(levelname)s@%(module)s:%(lineno)d(%(funcName)s) - %(message)s."
+      datefmt: "%Y-%m-%d %H:%M:%S"
+    brief:
+      format: "%(asctime)s.%(msecs)03d: %(levelname)s - %(message)s."
+      datefmt: "%H:%M:%S"
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: INFO
+      formatter: brief
+      stream: ext://sys.stdout
+    file:
+      class: logging.handlers.TimedRotatingFileHandler
+      level: DEBUG
+      formatter: precise
+      filename: log/suturis.log
+      encoding: utf-8
+      when: MIDNIGHT
+      backupCount: 14
+  root:
+    level: DEBUG
+    handlers: [console, file]

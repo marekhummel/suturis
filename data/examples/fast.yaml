@@ -1,0 +1,48 @@
+io:
+  inputs:
+    - type: FileReader
+      path: ./data/examples/files/2022-04-23/starboard_0120220423163949.mp4
+      skip: 7.8
+      speed_up: 8
+    - type: FileReader
+      path: ./data/examples/files/2022-04-23/port_0120220423162959.mp4
+      speed_up: 8
+  outputs:
+    - type: ScreenOutput
+      title: Stitched
+stitching:
+  preprocessing:
+  homography:
+    type: FileLoadHandler
+    path: ./data/examples/files/homography.npy
+  masking:
+    type: FileLoadHandler
+    path: ./data/examples/files/mask.npy
+misc:
+  automatic_restart: True
+logging:
+  version: 1
+  formatters:
+    precise:
+      format: "%(asctime)s.%(msecs)03d: %(levelname)s@%(module)s:%(lineno)d(%(funcName)s) - %(message)s."
+      datefmt: "%Y-%m-%d %H:%M:%S"
+    brief:
+      format: "%(asctime)s.%(msecs)03d: %(levelname)s - %(message)s."
+      datefmt: "%H:%M:%S"
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: INFO
+      formatter: brief
+      stream: ext://sys.stdout
+    file:
+      class: logging.handlers.TimedRotatingFileHandler
+      level: DEBUG
+      formatter: precise
+      filename: log/suturis.log
+      encoding: utf-8
+      when: MIDNIGHT
+      backupCount: 14
+  root:
+    level: DEBUG
+    handlers: [console, file]

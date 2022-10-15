@@ -10,5 +10,10 @@ __pycache__/
 # Log
 log/
 
-# Test input / output data
-data/
+# Input / output (but keep directories)
+data/input/*
+!data/input/.gitkeep
+data/out/*
+!data/out/*/
+data/out/*/*
+!data/out/*/.gitkeep

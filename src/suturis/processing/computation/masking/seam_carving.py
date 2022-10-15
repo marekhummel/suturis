@@ -38,7 +38,7 @@ class SeamCarving(BaseMaskingHandler):
         continous_recomputation : bool
             If set, homography will be recomputed each time, otherwise the first result will be reused
         save_to_file : bool, optional
-            If set, the homography matrix will be saved to a .npy file in "data/out/debug", by default False
+            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
         invert : bool, optional
             If set, the mask will be inverted before applying, by default False
         blocked_area_one : CvRect | None, optional

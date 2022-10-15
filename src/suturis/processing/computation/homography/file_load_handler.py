@@ -10,13 +10,13 @@ class FileLoadHandler(BaseHomographyHandler):
 
     _loaded_homography: Homography
 
-    def __init__(self, path: str = "data/out/debug/homography.npy"):
+    def __init__(self, path: str = "data/out/matrix/homography.npy"):
         """Creates new file load handler.
 
         Parameters
         ----------
         path : str, optional
-            Path to the homography file, by default "data/out/debug/homography.npy"
+            Path to the homography file, by default "data/out/matrix/homography.npy"
         """
         log.debug(f"Init File Load Handler looking at {path}")
         super().__init__(False, False)

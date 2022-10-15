@@ -11,7 +11,7 @@ Output data can be found [here](data/out/) and logs [here](log/).
 
 ## Structure
 
-The main code base is as usual in the [`src/`](src/) directory with the `main.py` file as the entry point. Right next to it there is the default config, more can be found in the [examples folder](examples/).
+The main code base is as usual in the [`src/`](src/) directory with the `main.py` file as the entry point. Right next to it there is the default config, more can be found in the [examples folder](data/examples/).
 Defining new readers or writers can be done [here](src/suturis/io/), just create new classes deriving from the respective base class. The same goes for any processing handlers, located in the subdirectories [here](src/suturis/processing/computation/).
 
 One iteration goes as follows: Data is fetched from the readers, then processed, and send to the writers. Note that the processing is obviously the CPU-intensive part, while the reading might be IO-blocking.

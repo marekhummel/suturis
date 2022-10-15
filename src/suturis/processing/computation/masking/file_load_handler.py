@@ -14,7 +14,7 @@ class FileLoadHandler(BaseMaskingHandler):
     def __init__(
         self,
         invert: bool = False,
-        path: str = "data/out/debug/mask.npy",
+        path: str = "data/out/matrix/mask.npy",
     ):
         """Creates new file load handler.
 
@@ -23,7 +23,7 @@ class FileLoadHandler(BaseMaskingHandler):
         invert : bool, optional
             If set, the mask will be inverted before applying, by default False
         path : str, optional
-            Path to the mask file, by default "data/out/debug/mask.npy"
+            Path to the mask file, by default "data/out/matrix/mask.npy"
         """
 
         log.debug("Init File Load Handler")

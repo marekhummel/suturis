@@ -20,7 +20,7 @@ class BaseMaskingHandler:
         continous_recomputation : bool
             If set, homography will be recomputed each time, otherwise the first result will be reused
         save_to_file : bool
-            If set, the homography matrix will be saved to a .npy file in "data/out/debug"
+            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/"
         invert : bool
             If set, the mask will be inverted before applying
         """
@@ -57,7 +57,7 @@ class BaseMaskingHandler:
 
             if self.save_to_file:
                 log.debug("Save computed mask to file")
-                np.save("data/out/debug/mask.npy", self._cached_mask, allow_pickle=False)
+                np.save("data/out/matrix/mask.npy", self._cached_mask, allow_pickle=False)
 
         return self._cached_mask
 

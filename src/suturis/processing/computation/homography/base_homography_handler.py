@@ -20,7 +20,7 @@ class BaseHomographyHandler:
         continous_recomputation : bool
             If set, homography will be recomputed each time, otherwise the first result will be reused
         save_to_file : bool
-            If set, the homography matrix will be saved to a .npy file in "data/out/debug"
+            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/"
         """
         log.debug(
             f"Init homography handler, with continous recomputation set to {continous_recomputation}"
@@ -53,7 +53,7 @@ class BaseHomographyHandler:
 
             if self.save_to_file:
                 log.debug("Save computed mask to file")
-                np.save("data/out/debug/homography.npy", self._cached_homography, allow_pickle=False)
+                np.save("data/out/matrix/homography.npy", self._cached_homography, allow_pickle=False)
 
         return self._cached_homography
 

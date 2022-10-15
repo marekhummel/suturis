@@ -37,7 +37,7 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         continous_recomputation : bool
             If set, homography will be recomputed each time, otherwise the first result will be reused
         save_to_file : bool, optional
-            If set, the homography matrix will be saved to a .npy file in "data/out/debug", by default False
+            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
         sift_features : int, optional
             Number of max features for SIFT instance, by default 50000
         min_matches : int, optional
