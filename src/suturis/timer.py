@@ -1,7 +1,7 @@
 import logging as log
 from functools import wraps
 from time import perf_counter_ns
-from typing import Any, Callable, ParamSpec, TypeVar
+from typing import Callable, ParamSpec, TypeVar
 
 import numpy as np
 
