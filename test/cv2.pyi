@@ -1,6 +1,4 @@
 import numpy.typing as npt
-import cv2 as orig_cv2
-
 
 InputArray = npt.NDArray
 OutputArray = npt.NDArray
