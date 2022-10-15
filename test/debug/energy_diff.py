@@ -38,8 +38,8 @@ def _get_energy2(img1, img2, xstart, ystart, xend, yend):
     return diff
 
 
-img1 = cv2.imread("data/out/img1_transformed.jpg")
-img2 = cv2.imread("data/out/img2_transformed.jpg")
+img1 = cv2.imread("data/out/debug/img1_transformed.jpg")
+img2 = cv2.imread("data/out/debug/img2_transformed.jpg")
 ystart = 57
 yend = 774
 xstart = 37
