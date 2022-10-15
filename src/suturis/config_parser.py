@@ -4,6 +4,7 @@ import logging.handlers
 import os
 import os.path
 import re
+from typing import Type, TypeVar
 
 import yaml
 
@@ -17,6 +18,7 @@ from suturis.processing.computation.preprocessing.base_preprocessor import BaseP
 IOConfig = tuple[list[BaseReader], list[BaseWriter]]
 StichingConfig = tuple[list[BasePreprocessor], BaseHomographyHandler, BaseMaskingHandler]
 MiscConfig = dict
+T = TypeVar("T")
 
 
 def parse(path: str) -> tuple[IOConfig | None, StichingConfig | None, MiscConfig]:
@@ -160,12 +162,12 @@ def _define_stitching(cfg: dict) -> StichingConfig | None:
     )
 
 
-def _create_instances(base_class, configs: list[dict], include_index: bool) -> list | None:
+def _create_instances(base_class: Type[T], configs: list[dict], include_index: bool) -> list[T] | None:
     """Creates subclass instances based on a given base class and their config.
 
     Parameters
     ----------
-    base_class : _type_
+    base_class : Type
         Defined classes in the configs have to derive from this class
     configs : list[dict]
         Configs for each instance to be created. Needs to have a "type" and all required params that are used in the
@@ -179,7 +181,7 @@ def _create_instances(base_class, configs: list[dict], include_index: bool) -> l
         List of instances or None, if any failed.
     """
 
-    def _find_subclasses(cls_obj):
+    def _find_subclasses(cls_obj: Type) -> dict[str, Type]:
         all_subclasses = {}
 
         for sc in cls_obj.__subclasses__():
