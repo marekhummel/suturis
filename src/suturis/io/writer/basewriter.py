@@ -1,4 +1,5 @@
 import enum
+import logging as log
 
 from suturis.typing import Image
 
@@ -23,16 +24,17 @@ class BaseWriter:
     index: int
     source: SourceImage
 
-    def __init__(self, index: int, /, source: str) -> None:
+    def __init__(self, index: int, /, source: str = SourceImage.OUTPUT.name) -> None:
         """Creates new writer instance, should not be called explicitly only from subclasses.
 
         Parameters
         ----------
         index : int
             0-based index of this writer. Given implicitly by list index in config
-        source : str
-            Describes what image to write, has to be member of SourceImage
+        source : str, optional
+            Describes what image to write, has to be member of SourceImage, by default "OUTPUT"
         """
+        log.debug(f"Init writer #{index} from source {source}")
         self.index = index
         self.source = SourceImage[source]
 

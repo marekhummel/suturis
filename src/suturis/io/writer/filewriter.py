@@ -3,6 +3,7 @@ from datetime import datetime
 from os import makedirs
 from os.path import isdir, join
 from time import time
+from typing import Any
 
 import cv2
 from suturis.io.writer.basewriter import BaseWriter, SourceImage
@@ -20,32 +21,30 @@ class FileWriter(BaseWriter):
 
     def __init__(
         self,
-        index: int,
-        /,
-        source: str = SourceImage.OUTPUT.name,
-        *,
+        *args: Any,
         dimensions: CvSize,
         target_dir: str = "data/out/",
         filename: str = "{date}_stitching.mp4",
+        **kwargs: Any,
     ) -> None:
         """Creates new file writer.
 
         Parameters
         ----------
-        index : int
-            0-based index of this writer. Given implicitly by list index in config
+        *args : Any, optional
+            Positional arguments passed to base class, by default []
         dimensions : CvSize
             Dimensions of the video
-        source : str, optional
-            Describes what image to write, has to be member of SourceImage, by default "OUTPUT"
         target_dir : str, optional
             Directory in which to save the file, by default "data/out/"
         filename : str, optional
             Filename to use, the substring "{date}" will be replaced with the current date and time,
             by default "{date}_stitching.mp4"
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
-        log.debug(f"Init file writer #{index} with dimensions {dimensions} to save {source} images")
-        super().__init__(index, source)
+        log.debug(f"Init file writer with dimensions {dimensions}")
+        super().__init__(*args, **kwargs)
 
         # Create target dir
         if not isdir(target_dir):
@@ -53,7 +52,7 @@ class FileWriter(BaseWriter):
 
         # Prepare filename
         if not filename.endswith(".mp4"):
-            log.warning(f"File writer #{index} got invalid filename (no mp4), using default name now")
+            log.warning("File writer got invalid filename (no mp4), using default name now")
             filename = "stitching_{date}.mp4"
         filename = filename.replace("{date}", datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
 
@@ -63,7 +62,7 @@ class FileWriter(BaseWriter):
         self._dimensions = dimensions
         self._writer = cv2.VideoWriter(target, fourcc, self._fps, dimensions)
         self._last_write_time = 0
-        log.info(f"Target file of file writer #{index} is at '{target}'")
+        log.info(f"Target file of file writer is at '{target}'")
 
     def write_image(self, image: Image) -> None:
         """Writes images to file

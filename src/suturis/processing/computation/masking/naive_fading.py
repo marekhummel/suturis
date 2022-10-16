@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import numpy as np
 from suturis.processing.computation.masking import BaseMaskingHandler
@@ -8,18 +9,24 @@ from suturis.typing import Image, Mask
 class NaiveFading(BaseMaskingHandler):
     """Simple masking handler which just overlays both images with half transperancy."""
 
-    def __init__(self, continous_recomputation: bool = False, save_to_file: bool = False):
+    def __init__(self, **kwargs: Any):
         """Create new naive fading handler.
 
         Parameters
         ----------
-        continous_recomputation : bool, optional
-            If set, homography will be recomputed each time, otherwise the first result will be reused, by default False
-        save_to_file : bool, optional
-            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
         log.debug("Init Naive Fading Handler")
-        super().__init__(continous_recomputation, save_to_file, False)
+
+        if "continous_recomputation" in kwargs:
+            log.warn("continous_recomputation flag in config will be ignored and overwritten with False")
+        if "invert" in kwargs:
+            log.warn("invert flag in config will be ignored and overwritten with False")
+
+        kwargs["continous_recomputation"] = False
+        kwargs["invert"] = False
+        super().__init__(**kwargs)
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
         """Creation of the mask with 50% transparency everywhere.

@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import cv2
 from suturis.io.reader.basereader import BaseReader, _ReadImageType
@@ -10,18 +11,20 @@ class RtspReader(BaseReader):
 
     _capture: cv2.VideoCapture
 
-    def __init__(self, index: int, /, uri: str) -> None:
+    def __init__(self, *args: Any, uri: str, **kwargs: Any) -> None:
         """Creates new RTSP reader.
 
         Parameters
         ----------
-        index : int
-            0-based index of this reader. Given implicitly by list index in config
+        *args : Any, optional
+            Positional arguments passed to base class, by default []
         uri : str
             URI to stream
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
         log.debug("Init rtsp reader from {uri}")
-        super().__init__(index)
+        super().__init__(*args, **kwargs)
         self._capture = cv2.VideoCapture(uri)
 
     def read_image(self) -> _ReadImageType:

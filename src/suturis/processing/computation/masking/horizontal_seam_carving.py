@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import cv2
 import numpy as np
@@ -23,24 +24,12 @@ class HorizontalSeamCarving(BaseMaskingHandler):
     yrange: tuple[float, float] | None
 
     def __init__(
-        self,
-        continous_recomputation: bool,
-        save_to_file: bool = False,
-        invert: bool = False,
-        half_window_size: int = 3,
-        gauss_size: int = 17,
-        yrange: tuple[float, float] | None = None,
+        self, half_window_size: int = 3, gauss_size: int = 17, yrange: tuple[float, float] | None = None, **kwargs: Any
     ):
         """Creates new horizontal seam carving handler.
 
         Parameters
         ----------
-        continous_recomputation : bool
-            If set, homography will be recomputed each time, otherwise the first result will be reused
-        save_to_file : bool, optional
-            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
-        invert : bool, optional
-            If set, the mask will be inverted before applying, by default False
         half_window_size : int, optional
             When using dynamic programming to find the optimal seam,
             the algorithm checks half_window_size rows above and below, by default 3
@@ -48,9 +37,11 @@ class HorizontalSeamCarving(BaseMaskingHandler):
             Kernel size of gaussian blur after mask finding to blur the seam, by default 17
         yrange : tuple[float, float] | None, optional
             Range of y coordiantes ranging from 0 to 1 to fixate the seam between two rows, by default None
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
         log.debug("Init Seam Carving Masking Handler")
-        super().__init__(continous_recomputation, save_to_file, invert)
+        super().__init__(**kwargs)
         self.half_window_size = half_window_size
         self.gauss_size = gauss_size
         self.yrange = yrange

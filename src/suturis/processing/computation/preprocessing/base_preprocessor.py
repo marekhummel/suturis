@@ -9,16 +9,16 @@ class BasePreprocessor:
     index: int
     needed_for_computation: bool
 
-    def __init__(self, index: int, /, needed_for_computation: bool) -> None:
+    def __init__(self, index: int, /, needed_for_computation: bool = False) -> None:
         """Create new base preprocessor instance.
 
         Parameters
         ----------
         index : int
             0-based index of this preprocessor. Given implicitly by list index in config
-        needed_for_computation : bool
+        needed_for_computation : bool, optional
             Flag to indicate of this preprocessor should be used for computation,
-            if not they're only used when applying the params
+            if not they're only used when applying the params, by default False
         """
         log.debug(f"Init preprocessing handler #{index}, with needed_for_computation set to {needed_for_computation}")
         self.index = index

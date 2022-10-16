@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import cv2
 import numpy as np
@@ -21,28 +22,18 @@ class SeamFinding(BaseMaskingHandler):
 
     preferred_seam: CvRect | None
 
-    def __init__(
-        self,
-        continous_recomputation: bool,
-        save_to_file: bool = False,
-        invert: bool = False,
-        preferred_seam: CvRect | None = None,
-    ):
+    def __init__(self, preferred_seam: CvRect | None = None, **kwargs: Any):
         """Creates new seam finding handler.
 
         Parameters
         ----------
-        continous_recomputation : bool
-            If set, homography will be recomputed each time, otherwise the first result will be reused
-        save_to_file : bool, optional
-            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
-        invert : bool, optional
-            If set, the mask will be inverted before applying, by default False
         preferred_seam : CvRect | None, optional
             Rectangle of which the diagonal will be used as a guideline for the seam, by default None
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
         log.debug("Init Seam Finding Masking Handler")
-        super().__init__(continous_recomputation, save_to_file, invert)
+        super().__init__(**kwargs)
         self.preferred_seam = preferred_seam
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:

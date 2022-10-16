@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import cv2
 from suturis.io.writer.basewriter import BaseWriter, SourceImage
@@ -13,28 +14,26 @@ class ScreenOutput(BaseWriter):
 
     def __init__(
         self,
-        index: int,
-        /,
-        source: str = SourceImage.OUTPUT.name,
-        *,
+        *args: Any,
         title: str = "Current Frame",
         window_size: CvSize | None = None,
+        **kwargs: Any,
     ) -> None:
         """Creates new screen output writer.
 
         Parameters
         ----------
-        index : int
-            0-based index of this writer. Given implicitly by list index in config
-        source : str, optional
-            Describes what image to write, has to be member of SourceImage, by default "OUTPUT"
+        *args : Any, optional
+            Positional arguments passed to base class, by default []
         title : str | None, optional
             Title of the window to be displayed, by default "Current Frame"
         window_size : CvSize | None, optional
             Size of the output window. If not given, size is dependent on stitching result, by default None
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
-        log.debug(f"Init screen output '{title}' to display {source} images")
-        super().__init__(index, source)
+        log.debug(f"Init screen output '{title}'")
+        super().__init__(*args, **kwargs)
         self.title = title
         self.window_size = window_size
 

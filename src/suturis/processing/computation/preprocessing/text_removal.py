@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import cv2
 import numpy as np
@@ -17,28 +18,26 @@ class TextRemoval(BasePreprocessor):
 
     def __init__(
         self,
-        index: int,
-        /,
-        needed_for_computation: bool = False,
-        *,
+        *args: Any,
         text_areas_one: list[CvRect] | None = None,
         text_areas_two: list[CvRect] | None = None,
+        **kwargs: Any,
     ) -> None:
         """Create a new text removal preprocessor.
 
         Parameters
         ----------
-        index : int
-            0-based index of this preprocessor. Given implicitly by list index in config
-        needed_for_computation : bool, optional
-            Flag to indicate of this preprocessor should be used for computation, by default False
+        *args : Any, optional
+            Positional arguments passed to base class, by default []
         text_areas_one : list[CvRect] | None, optional
             Areas in first image where text can be found, by default []
         text_areas_two : list[CvRect] | None, optional
             Areas in first image where text can be found, by default []
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
-        log.debug(f"Init Text Removal preprocessor at index #{index}")
-        super().__init__(index, needed_for_computation)
+        log.debug("Init Text Removal preprocessor")
+        super().__init__(*args, **kwargs)
 
         self.text_areas_one = text_areas_one or []
         self.text_areas_two = text_areas_two or []

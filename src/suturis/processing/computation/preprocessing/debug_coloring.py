@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import cv2
 import numpy as np
@@ -7,34 +8,33 @@ from suturis.typing import Image
 
 
 class DebugColoring(BasePreprocessor):
-    """Preprocessor which adds slight coloring to images for easier debugging."""
+    """Preprocessor which adds slight coloring to images for easier distiction."""
 
     color_img1: tuple[int, int, int]
     color_img2: tuple[int, int, int]
 
     def __init__(
         self,
-        index: int,
-        /,
-        needed_for_computation: bool = False,
+        *args: Any,
         color_img1: tuple[int, int, int] = (0, 0, 127),
         color_img2: tuple[int, int, int] = (127, 0, 0),
+        **kwargs: Any,
     ) -> None:
         """Create new debug coloring preprocessor.
 
         Parameters
         ----------
-        index : int
-            0-based index of this preprocessor. Given implicitly by list index in config
-        needed_for_computation : bool, optional
-            Flag to indicate of this preprocessor should be used for computation, by default False
+        *args : Any, optional
+            Positional arguments passed to base class, by default []
         color_img1 : tuple[int, int, int], optional
             BGR color to use for first image, by default (0, 0, 127)
         color_img2 : tuple[int, int, int], optional
             BGR color to use for second image, by default (127, 0, 0)
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
-        log.debug(f"Init Coloring preprocessor at index #{index}")
-        super().__init__(index, needed_for_computation)
+        log.debug("Init Debug Coloring preprocessor")
+        super().__init__(*args, **kwargs)
 
         self.color_img1 = color_img1
         self.color_img2 = color_img2

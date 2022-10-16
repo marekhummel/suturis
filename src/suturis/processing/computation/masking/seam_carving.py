@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import cv2
 import numpy as np
@@ -23,31 +24,20 @@ class SeamCarving(BaseMaskingHandler):
     blocked_area_one: CvRect | None
     blocked_area_two: CvRect | None
 
-    def __init__(
-        self,
-        continous_recomputation: bool,
-        save_to_file: bool = False,
-        invert: bool = False,
-        blocked_area_one: CvRect | None = None,
-        blocked_area_two: CvRect | None = None,
-    ):
+    def __init__(self, blocked_area_one: CvRect | None = None, blocked_area_two: CvRect | None = None, **kwargs: Any):
         """_summary_
 
         Parameters
         ----------
-        continous_recomputation : bool
-            If set, homography will be recomputed each time, otherwise the first result will be reused
-        save_to_file : bool, optional
-            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
-        invert : bool, optional
-            If set, the mask will be inverted before applying, by default False
         blocked_area_one : CvRect | None, optional
             Rectangle for first image, in which an artifical high energy will be created, by default None
         blocked_area_two : CvRect | None, optional
             Rectangle for second image, in which an artifical high energy will be created, by default None
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
         log.debug("Init Seam Carving Masking Handler")
-        super().__init__(continous_recomputation, save_to_file, invert)
+        super().__init__(**kwargs)
         self.blocked_area_one = blocked_area_one
         self.blocked_area_two = blocked_area_two
 

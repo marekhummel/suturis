@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import cv2
 import numpy as np
@@ -14,25 +15,12 @@ class BasicOrbHandler(BaseHomographyHandler):
     enable_debug_output: bool
 
     def __init__(
-        self,
-        continous_recomputation: bool,
-        save_to_file: bool = False,
-        disable_cropping: bool = False,
-        orb_features: int = 50000,
-        min_matches: int = 10,
-        enable_debug_output: bool = False,
+        self, orb_features: int = 50000, min_matches: int = 10, enable_debug_output: bool = False, **kwargs: Any
     ):
         """Creates new basic ORB handler instance.
 
         Parameters
         ----------
-        continous_recomputation : bool
-            If set, homography will be recomputed each time, otherwise the first result will be reused
-        save_to_file : bool, optional
-            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
-        disable_cropping : bool, optional
-            If set, the target canvas won't be cropped to the relevant parts (this will likely create black areas),
-            by default False
         orb_features : int, optional
             Number of max features for ORB instance, by default 50000
         min_matches : int, optional
@@ -40,9 +28,11 @@ class BasicOrbHandler(BaseHomographyHandler):
         enable_debug_output : bool, optional
             If true, computed keypoints and matches will be visualized and saved to "data/out/debug/orb_*.jpg",
             by default False
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
         log.debug(f"Init ORB Ransac Homography Handler with {orb_features} features and {min_matches} min matches")
-        super().__init__(continous_recomputation, save_to_file, disable_cropping)
+        super().__init__(**kwargs)
         self.orb_features = orb_features
         self.min_matches = min_matches
         self.enable_debug_output = enable_debug_output

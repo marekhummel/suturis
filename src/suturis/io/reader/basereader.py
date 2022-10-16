@@ -1,7 +1,7 @@
+import logging as log
 from typing import Literal, Union
 
 from suturis.typing import Image
-
 
 _ReadImageType = Union[tuple[Literal[True], Image], tuple[Literal[False], None]]
 
@@ -25,6 +25,7 @@ class BaseReader:
         index : int
             0-based index of this reader. Given implicitly by list index in config
         """
+        log.debug(f"Init reader #{index}")
         self.index = index
 
     def read_image(self) -> _ReadImageType:

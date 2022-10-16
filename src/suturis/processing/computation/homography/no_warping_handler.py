@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import numpy as np
 from suturis.processing.computation.homography import BaseHomographyHandler
@@ -8,16 +9,24 @@ from suturis.typing import Homography, Image
 class NoWarpingHandler(BaseHomographyHandler):
     """Dummy homography handler, just returns identity."""
 
-    def __init__(self, save_to_file: bool = False):
+    def __init__(self, **kwargs: Any):
         """Creates new no warping handler.
 
         Parameters
         ----------
-        save_to_file : bool, optional
-            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
         log.debug("Init No Warping Handler")
-        super().__init__(False, save_to_file, True)
+
+        if "continous_recomputation" in kwargs:
+            log.warn("continous_recomputation flag in config will be ignored and overwritten with False")
+        if "disable_cropping" in kwargs:
+            log.warn("disable_cropping flag in config will be ignored and overwritten with True")
+
+        kwargs["continous_recomputation"] = False
+        kwargs["disable_cropping"] = True
+        super().__init__(**kwargs)
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
         """Homography finding, just retuns identity.

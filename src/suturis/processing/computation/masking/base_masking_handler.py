@@ -12,17 +12,17 @@ class BaseMaskingHandler:
     invert: bool
     _cached_mask: Mask | None
 
-    def __init__(self, continous_recomputation: bool, save_to_file: bool, invert: bool):
+    def __init__(self, continous_recomputation: bool, save_to_file: bool = False, invert: bool = False):
         """Create new base mask handler instance, should not be called explicitly only from subclasses.
 
         Parameters
         ----------
         continous_recomputation : bool
             If set, homography will be recomputed each time, otherwise the first result will be reused
-        save_to_file : bool
-            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/"
-        invert : bool
-            If set, the mask will be inverted before applying
+        save_to_file : bool, optional
+            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
+        invert : bool, optional
+            If set, the mask will be inverted before applying, by default False
         """
         log.debug(
             f"Init masking handler, with continous recomputation set to {continous_recomputation}, "

@@ -1,5 +1,6 @@
 import logging as log
 import time
+from typing import Any
 
 import cv2
 from suturis.io.reader.basereader import BaseReader, _ReadImageType
@@ -15,14 +16,14 @@ class FileReader(BaseReader):
     _single_frame: Image | None
 
     def __init__(
-        self, index: int, /, path: str, *, skip: int = 0, speed_up: int = 1, single_frame: bool = False
+        self, *args: Any, path: str, skip: int = 0, speed_up: int = 1, single_frame: bool = False, **kwargs: Any
     ) -> None:
         """Creates new file reader.
 
         Parameters
         ----------
-        index : int
-            0-based index of this reader. Given implicitly by list index in config
+        *args : Any, optional
+            Positional arguments passed to base class, by default []
         path : str
             Path to the video file
         skip : int, optional
@@ -31,14 +32,16 @@ class FileReader(BaseReader):
             Factor to multiply fps by, by default 1
         single_frame : bool, optional
             Flag to freeze video, if set, the first frame will always be returned, by default False
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
 
         Raises
         ------
         FileNotFoundError
             Raised if path not existing or not readable by cv2
         """
-        log.debug(f"Init file reader #{index} from {path} skipping {skip} seconds and accelerate fps by {speed_up}")
-        super().__init__(index)
+        log.debug(f"Init file reader from {path} skipping {skip} seconds and accelerate fps by {speed_up}")
+        super().__init__(*args, **kwargs)
 
         self._capture = cv2.VideoCapture(path)
         if not self._capture.isOpened():

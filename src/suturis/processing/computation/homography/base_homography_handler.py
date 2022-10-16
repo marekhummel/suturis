@@ -13,17 +13,18 @@ class BaseHomographyHandler:
     disable_cropping: bool
     _cached_homography: Homography | None
 
-    def __init__(self, continous_recomputation: bool, save_to_file: bool, disable_cropping: bool):
+    def __init__(self, continous_recomputation: bool, save_to_file: bool = False, disable_cropping: bool = False):
         """Create new base homography handler instance, should not be called explicitly only from subclasses.
 
         Parameters
         ----------
         continous_recomputation : bool
             If set, homography will be recomputed each time, otherwise the first result will be reused
-        save_to_file : bool
-            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/"
-        disable_cropping : bool
-            If set, the target canvas won't be cropped to the relevant parts (this will likely create black areas)
+        save_to_file : bool, optional
+            If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
+        disable_cropping : bool, optional
+            If set, the target canvas won't be cropped to the relevant parts (this will likely create black areas),
+            by default False
         """
         log.debug(
             f"Init homography handler, with continous recomputation set to {continous_recomputation}, "

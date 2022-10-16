@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import numpy as np
 from suturis.processing.computation.homography import BaseHomographyHandler
@@ -10,19 +11,26 @@ class FileLoadHandler(BaseHomographyHandler):
 
     _loaded_homography: Homography
 
-    def __init__(self, disable_cropping: bool = False, path: str = "data/out/matrix/homography.npy"):
+    def __init__(self, path: str = "data/out/matrix/homography.npy", **kwargs: Any):
         """Creates new file load handler.
 
         Parameters
         ----------
-        disable_cropping : bool, optional
-            If set, the target canvas won't be cropped to the relevant parts (this will likely create black areas),
-            by default False
         path : str, optional
             Path to the homography file, by default "data/out/matrix/homography.npy"
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
         log.debug(f"Init File Load Handler looking at {path}")
-        super().__init__(False, False, disable_cropping)
+
+        if "continous_recomputation" in kwargs:
+            log.warn("continous_recomputation flag in config will be ignored and overwritten with False")
+        if "save_to_file" in kwargs:
+            log.warn("save_to_file flag in config will be ignored and overwritten with False")
+
+        kwargs["continous_recomputation"] = False
+        kwargs["save_to_file"] = False
+        super().__init__(**kwargs)
         self._loaded_homography = Homography(np.load(path, allow_pickle=False))
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:

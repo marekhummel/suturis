@@ -29,7 +29,6 @@ stitching:
     enable_debug_output: False
   masking:
     type: NaiveFading
-    continous_recomputation: False
     save_to_file: False
   # masking:
   #   type: FileLoadHandler
