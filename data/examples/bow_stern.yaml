@@ -1,18 +1,24 @@
 io:
   inputs:
     - type: FileReader
-      path: ./data/examples/files/2022-05-28/bow_0120220528105828_modified.mp4
+      path: ./data/examples/files/2022-05-28/bow_0120220528105828_compressed_2fps.mp4
       speed_up: 2
     - type: FileReader
-      path: ./data/examples/files/2022-05-28/stern_0120220528110011.mp4
-      skip: 268
+      path: ./data/examples/files/2022-05-28/stern_0120220528110011_compressed.mp4
+      skip: 282
       speed_up: 2
   outputs:
     - type: ScreenOutput
       title: Stitched
-      window_size: [640, 360]
+      window_size: [1280, 720]
+    - type: FileWriter
+      dimensions: [1280, 720]
+      source: OUTPUT
+      filename: "{date}_stitching_bowstern.mp4"
 stitching:
   preprocessing:
+    - type: DebugColoring
+      needed_for_computation: False
   homography:
     type: FileLoadHandler
     disable_cropping: True
@@ -30,9 +36,12 @@ stitching:
   #     # - [[446, 208], [1174, 438]]
   #   enable_debug_output: True
   masking:
-    type: NaiveFading
-    continous_recomputation: False
-    save_to_file: False
+    type: FileLoadHandler
+    path: ./data/examples/files/mask_bowstern.npy
+  # masking:
+  #   type: NaiveFading
+  #   continous_recomputation: False
+  #   save_to_file: False
 misc:
   automatic_restart: False
 logging:
