@@ -1,0 +1,61 @@
+io:
+  inputs:
+    - type: FileReader
+      path: ./data/examples/files/2022-05-28/bow_0120220528105828_modified.mp4
+      speed_up: 2
+    - type: FileReader
+      path: ./data/examples/files/2022-05-28/stern_0120220528110011.mp4
+      skip: 268
+      speed_up: 2
+  outputs:
+    - type: ScreenOutput
+      title: Stitched
+      window_size: [640, 360]
+stitching:
+  preprocessing:
+  homography:
+    type: FileLoadHandler
+    path: ./data/examples/files/homography_bowstern.npy
+  # homography:
+  #   type: OptimizedSiftHandler
+  #   continous_recomputation: False
+  #   save_to_file: False
+  #   sift_features: 10000
+  #   min_matches: 0
+  #   relevant_areas_one:
+  #     # - [[771, 208], [1280, 460]]
+  #   relevant_areas_two:
+  #     # - [[446, 208], [1174, 438]]
+  #   enable_debug_output: True
+  masking:
+    type: NaiveFading
+    continous_recomputation: False
+    save_to_file: False
+misc:
+  automatic_restart: False
+logging:
+  version: 1
+  formatters:
+    precise:
+      format: "%(asctime)s.%(msecs)03d: %(levelname)s@%(module)s:%(lineno)d(%(funcName)s) - %(message)s."
+      datefmt: "%Y-%m-%d %H:%M:%S"
+    brief:
+      format: "%(asctime)s.%(msecs)03d: %(levelname)s - %(message)s."
+      datefmt: "%H:%M:%S"
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: INFO
+      formatter: brief
+      stream: ext://sys.stdout
+    file:
+      class: logging.handlers.TimedRotatingFileHandler
+      level: DEBUG
+      formatter: precise
+      filename: log/suturis.log
+      encoding: utf-8
+      when: MIDNIGHT
+      backupCount: 14
+  root:
+    level: DEBUG
+    handlers: [console, file]
