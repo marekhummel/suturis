@@ -163,4 +163,4 @@ def _computation_watcher(image1: Image, image2: Image) -> None:
         return
     finally:
         _computation_running = False
-        log.debug("Update complete.")
+        log.debug("Update complete")

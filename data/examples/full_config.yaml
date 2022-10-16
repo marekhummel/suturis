@@ -16,6 +16,7 @@ io:
   outputs:
     - type: ScreenOutput
       title: Stitched
+      window_size: [1280, 720]
     # - type: FileWriter
     #   dimensions: [1280, 720]
     #   source: OUTPUT
@@ -37,7 +38,6 @@ stitching:
   # homography:
   #   type: NoWarpingHandler
   #   save_to_file: False
-  #   continous_recomputation: False
   # homography:
   #   type: FileLoadHandler
   # homography:

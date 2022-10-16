@@ -26,7 +26,7 @@ class BaseMaskingHandler:
         """
         log.debug(
             f"Init masking handler, with continous recomputation set to {continous_recomputation}, "
-            "file output set to {save_to_file} and invert set to {invert}"
+            f"file output set to {save_to_file} and invert set to {invert}"
         )
         self.continous_recomputation = continous_recomputation
         self.save_to_file = save_to_file

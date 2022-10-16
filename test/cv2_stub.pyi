@@ -1,6 +1,6 @@
 """
 Stub file for cv2 containing all things used in suturis. Sadly python / mypy only allow 
-stub overriding, not extension, meaning that when this file is put into the src folder,
+stub overriding not extension, meaning that when this file is put into the src folder,
 while all functions are type annotated, all docstrings are missing and all other functions and
 members are unknown, which is difficult when working with autocomplete and stuff.
 """

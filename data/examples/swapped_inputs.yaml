@@ -10,7 +10,7 @@ io:
   outputs:
     - type: ScreenOutput
       title: Stitched
-
+      window_size: [1280, 720]
 stitching:
   preprocessing:
   homography:
