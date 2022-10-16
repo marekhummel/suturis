@@ -50,7 +50,10 @@ class OptimizedSiftHandler(BaseHomographyHandler):
             If true, computed keypoints and matches will be visualized and saved to "data/out/debug/osift_*.jpg",
             by default False
         """
-        log.debug(f"Init Optimized SIFT Homography Handler with {sift_features} and {min_matches} min matches")
+        log.debug(
+            f"Init Optimized SIFT Homography Handler with {sift_features} features, {min_matches} min matches and "
+            f"{len(relevant_areas_one or [])} / {len(relevant_areas_two or [])} defined relevant areas"
+        )
         super().__init__(continous_recomputation, save_to_file)
         self.sift_features = sift_features
         self.min_matches = min_matches

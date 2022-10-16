@@ -23,8 +23,8 @@ class BaseHomographyHandler:
             If set, the homography matrix will be saved to a .npy file in "data/out/matrix/"
         """
         log.debug(
-            f"Init homography handler, with continous recomputation set to {continous_recomputation}"
-            "and file output set to {save_to_file}"
+            f"Init homography handler, with continous recomputation set to {continous_recomputation} "
+            f"and file output set to {save_to_file}"
         )
         self.continous_recomputation = continous_recomputation
         self.save_to_file = save_to_file
@@ -52,7 +52,7 @@ class BaseHomographyHandler:
             self._cached_homography = self._find_homography(img1, img2)
 
             if self.save_to_file:
-                log.debug("Save computed mask to file")
+                log.debug("Save computed homography to file")
                 np.save("data/out/matrix/homography.npy", self._cached_homography, allow_pickle=False)
 
         return self._cached_homography

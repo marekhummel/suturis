@@ -77,7 +77,7 @@ class FileReader(BaseReader):
         now = time.perf_counter()
         if self._last_read and (now - self._last_read) < self._frame_time:
             delay = self._frame_time - (now - self._last_read)
-            log.debug(f"Delay read of reader {self.index} by {delay:.6f}s to match fps")
+            log.debug(f"Delay read of reader #{self.index} by {delay:.6f}s to match fps")
             time.sleep(delay)
 
         log.debug(f"Reading image from reader #{self.index} successful")

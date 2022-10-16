@@ -9,7 +9,7 @@ from suturis.config_parser import parse
 
 if __name__ == "__main__":
     # Read and parse config
-    parser = argparse.ArgumentParser(description="Suturis - real time image stiching.")
+    parser = argparse.ArgumentParser(description="Suturis - real time image stitching.")
     parser.add_argument("config", type=str, nargs="?", default="src/config.yaml", help="Path to yaml config file")
     args = parser.parse_args()
     io, stitching, misc = parse(args.config)
