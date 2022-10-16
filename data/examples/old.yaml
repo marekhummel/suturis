@@ -19,6 +19,7 @@ stitching:
     type: BasicOrbHandler
     continous_recomputation: True
     save_to_file: False
+    disable_cropping: False
     orb_features: 10000
     min_matches: 10
     enable_debug_output: False

@@ -10,9 +10,10 @@ class BaseHomographyHandler:
 
     continous_recomputation: bool
     save_to_file: bool
+    disable_cropping: bool
     _cached_homography: Homography | None
 
-    def __init__(self, continous_recomputation: bool, save_to_file: bool):
+    def __init__(self, continous_recomputation: bool, save_to_file: bool, disable_cropping: bool):
         """Create new base homography handler instance, should not be called explicitly only from subclasses.
 
         Parameters
@@ -21,13 +22,16 @@ class BaseHomographyHandler:
             If set, homography will be recomputed each time, otherwise the first result will be reused
         save_to_file : bool
             If set, the homography matrix will be saved to a .npy file in "data/out/matrix/"
+        disable_cropping : bool
+            If set, the target canvas won't be cropped to the relevant parts (this will likely create black areas)
         """
         log.debug(
-            f"Init homography handler, with continous recomputation set to {continous_recomputation} "
-            f"and file output set to {save_to_file}"
+            f"Init homography handler, with continous recomputation set to {continous_recomputation}, "
+            f"file output set to {save_to_file} and disabled cropping set to {disable_cropping}"
         )
         self.continous_recomputation = continous_recomputation
         self.save_to_file = save_to_file
+        self.disable_cropping = disable_cropping
         self._cached_homography = None
 
     def find_homography(self, img1: Image, img2: Image) -> Homography:
@@ -115,23 +119,28 @@ class BaseHomographyHandler:
         canvas_size = CanvasSize((x_max - x_min + 1, y_max - y_min + 1))
         log.debug(f"Computed translation {translation} and canvas size {canvas_size}")
 
-        # Apply transformation to find crop
-        img1_corners_transformed = corners + np.array(translation)
-        img2_corners_transformed = corners_homography + np.array(translation)
+        if not self.disable_cropping:
+            # Apply transformation to find crop
+            img1_corners_transformed = corners + np.array(translation)
+            img2_corners_transformed = corners_homography + np.array(translation)
 
-        # Find min and max corner (not necessarily a corner, just min/max x/y as a point) in each image
-        img1_corners_min = np.min(img1_corners_transformed, axis=0)
-        img1_corners_max = np.max(img1_corners_transformed, axis=0)
-        img2_corners_min = np.min(img2_corners_transformed, axis=0)
-        img2_corners_max = np.max(img2_corners_transformed, axis=0)
+            # Find min and max corner (not necessarily a corner, just min/max x/y as a point) in each image
+            img1_corners_min = np.min(img1_corners_transformed, axis=0)
+            img1_corners_max = np.max(img1_corners_transformed, axis=0)
+            img2_corners_min = np.min(img2_corners_transformed, axis=0)
+            img2_corners_max = np.max(img2_corners_transformed, axis=0)
 
-        # For left top use the max of the min, for right bot use min of max
-        min_corners = np.concatenate([img1_corners_min, img2_corners_min])
-        max_corners = np.concatenate([img1_corners_max, img2_corners_max])
-        x_start, y_start = np.floor(np.max(min_corners, axis=0)).astype(np.int32)
-        x_end, y_end = np.ceil(np.min(max_corners, axis=0)).astype(np.int32)
-        crop_area = NpPoint((y_start, x_start)), NpPoint((y_end, x_end))
-        log.debug(f"Computed crop area from {crop_area[0]} to {crop_area[1]}")
+            # For left top use the max of the min, for right bot use min of max
+            min_corners = np.concatenate([img1_corners_min, img2_corners_min])
+            max_corners = np.concatenate([img1_corners_max, img2_corners_max])
+            x_start, y_start = np.floor(np.max(min_corners, axis=0)).astype(np.int32)
+            x_end, y_end = np.ceil(np.min(max_corners, axis=0)).astype(np.int32)
+            crop_area = NpPoint((y_start, x_start)), NpPoint((y_end, x_end))
+            log.debug(f"Computed crop area from {crop_area[0]} to {crop_area[1]}")
+        else:
+            # Crop area == Canvas size
+            width, height = canvas_size
+            crop_area = NpPoint((0, 0)), NpPoint((height + 1, width + 1))
 
         # Return
         return canvas_size, translation, crop_area

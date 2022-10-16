@@ -17,7 +17,7 @@ class NoWarpingHandler(BaseHomographyHandler):
             If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
         """
         log.debug("Init No Warping Handler")
-        super().__init__(False, save_to_file)
+        super().__init__(False, save_to_file, True)
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
         """Homography finding, just retuns identity.
