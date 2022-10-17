@@ -26,9 +26,8 @@ stitching:
       - [[200, 200], [900, 500]]
     relevant_areas_two:
       - [[200, 200], [900, 500]]
-  masking:
-    type: NaiveFading
-    save_to_file: False
+  # masking:
+  #   type: NaiveFading
   # masking:
   #   type: FileLoadHandler
   # masking:
@@ -50,6 +49,11 @@ stitching:
   #   half_window_size: 3
   #   gauss_size: 27
   #   yrange: [0.4, 0.6]
+  masking:
+    type: StraightSeam
+    invert: True
+    index: 400
+    vertical: False
 misc:
   automatic_restart: True
   enable_debug_outputs: True

@@ -76,6 +76,11 @@ stitching:
   # masking:
   #   type: FileLoadHandler
   # masking:
+  #   type: StraightSeam
+  #   invert: True
+  #   index: 400
+  #   vertical: False
+  # masking:
   #   type: SeamFinding
   #   continous_recomputation: True
   #   save_to_file: False

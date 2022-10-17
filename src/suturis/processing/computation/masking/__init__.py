@@ -6,3 +6,4 @@ from suturis.processing.computation.masking.naive_fading import NaiveFading
 from suturis.processing.computation.masking.seam_carving import SeamCarving
 from suturis.processing.computation.masking.seam_carving_wide import SeamCarvingWide
 from suturis.processing.computation.masking.seam_finding import SeamFinding
+from suturis.processing.computation.masking.straight_seam import StraightSeam
