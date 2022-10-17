@@ -29,7 +29,7 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
     logging_queue : mp.Queue
         Queue needed for logging, so that the configured loggers can be used
     """
-    global proc_logger, preprocessors, homography_delegate, masking_delegate
+    global preprocessors, homography_delegate, masking_delegate
     # Set logging
     qh = logging.handlers.QueueHandler(logging_queue)
     proc_logger.setLevel(log.DEBUG)
@@ -97,7 +97,7 @@ def _compute_params(image1: Image, image2: Image) -> ComputationParams:
     ComputationParams
         Compute parameters needed for stitching
     """
-    global proc_logger, homography_delegate, masking_delegate
+    global homography_delegate, masking_delegate
     assert image1.shape == image2.shape
 
     # Compute transformation and canvas params

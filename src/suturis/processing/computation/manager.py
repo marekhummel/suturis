@@ -47,7 +47,7 @@ def get_params(
     ComputationParams | None
         Set of computation params
     """
-    global _computation_running, _process
+    global _computation_running
 
     # Create subprocess if needed
     if _process is None:
@@ -69,8 +69,6 @@ def get_params(
 
 def shutdown() -> None:
     """Finalize the application by closing the subprocess and clean up."""
-    global _shutdown_event, _computation_running, _process, _local_pipe, _queue_listener
-
     log.debug("Cleanly close subprocess")
     _shutdown_event.set()
 
@@ -137,7 +135,7 @@ def _computation_watcher(image1: Image, image2: Image) -> None:
     image2 : Image
         Second input image
     """
-    global _computation_running, _local_params, _shutdown_event, _local_pipe
+    global _computation_running, _local_params
     assert _local_pipe is not None
 
     try:

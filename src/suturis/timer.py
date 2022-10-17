@@ -25,7 +25,6 @@ def track_timings(*, name: str) -> Callable[[Callable[P, T]], Callable[P, T]]:
     Callable[[Callable], Any]
         Decorated functions
     """
-    global timings
     assert name not in timings, "Function with same name already tracked."
     timings[name] = []
 
@@ -51,14 +50,12 @@ def update_timings(other_timings: dict) -> None:
     other_timings : dict
         Other dictionary
     """
-    global timings
     for name, times in other_timings.items():
         timings[name].extend(times)
 
 
 def finalize_timings() -> None:
     """Computes average and standard deviation for all timings and logs them."""
-    global timings
     log.debug("Calculate final timing results")
 
     timing_results = []
