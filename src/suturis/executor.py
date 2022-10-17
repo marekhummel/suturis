@@ -94,7 +94,7 @@ def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter], cancell
     if key == ord("e"):
         log.info("Manually raising error")
         raise ZeroDivisionError
-    if key == ord("p") or False:
+    if key == ord("p"):
         log.info("Manually pausing")
         while cv2.waitKey(25) & 0xFF != ord("p"):
             pass

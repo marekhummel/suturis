@@ -12,11 +12,11 @@ from suturis.io.reader import BaseReader
 from suturis.io.writer import BaseWriter
 from suturis.processing.computation.homography import BaseHomographyHandler
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.processing.computation.preprocessing.base_preprocessor import BasePreprocessor
-
+from suturis.processing.computation.postprocessing import BasePostprocessor
+from suturis.processing.computation.preprocessing import BasePreprocessor
 
 IOConfig = tuple[list[BaseReader], list[BaseWriter]]
-StichingConfig = tuple[list[BasePreprocessor], BaseHomographyHandler, BaseMaskingHandler]
+StichingConfig = tuple[list[BasePreprocessor], BaseHomographyHandler, BaseMaskingHandler, list[BasePostprocessor]]
 MiscConfig = dict
 T = TypeVar("T")
 
@@ -147,6 +147,7 @@ def _define_stitching(cfg: dict) -> StichingConfig | None:
     preprocessors = cfg.get("preprocessing")
     homography = cfg.get("homography")
     masking = cfg.get("masking")
+    postprocessors = cfg.get("postprocessing")
     if homography is None or masking is None:
         logging.error("Malformed config: Homography or Masking missing for Stitching")
         return None
@@ -155,9 +156,13 @@ def _define_stitching(cfg: dict) -> StichingConfig | None:
     preprocessing_handlers = _create_instances(BasePreprocessor, preprocessors or [], True)
     homography_handler = _create_instances(BaseHomographyHandler, [homography], False)
     masking_handler = _create_instances(BaseMaskingHandler, [masking], False)
+    postprocessing_handlers = _create_instances(BasePostprocessor, postprocessors or [], True)
     return (
-        (preprocessing_handlers, homography_handler[0], masking_handler[0])
-        if preprocessing_handlers is not None and homography_handler is not None and masking_handler is not None
+        (preprocessing_handlers, homography_handler[0], masking_handler[0], postprocessing_handlers)
+        if preprocessing_handlers is not None
+        and homography_handler is not None
+        and masking_handler is not None
+        and postprocessing_handlers is not None
         else None
     )
 

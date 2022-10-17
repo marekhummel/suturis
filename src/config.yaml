@@ -10,7 +10,7 @@ io:
   outputs:
     - type: ScreenOutput
       title: Stitched
-      window_size: [1280, 720]
+      window_size: [360, 640]
     # - type: FileWriter
     #   dimensions: [1280, 720]
     #   source: OUTPUT
@@ -45,19 +45,22 @@ stitching:
   #   save_to_file: False
   #   blocked_area_one: [[540, 70], [1300, 360]]
   #   blocked_area_two: [[0, 420], [825, 700]]
-  # masking:
-  #   type: HorizontalSeamCarving
-  #   continous_recomputation: False
-  #   save_to_file: True
-  #   invert: False
-  #   half_window_size: 3
-  #   gauss_size: 27
-  #   yrange: [0.4, 0.6]
   masking:
-    type: StraightSeam
-    invert: True
-    index: 400
-    vertical: False
+    type: HorizontalSeamCarving
+    continous_recomputation: False
+    save_to_file: True
+    invert: False
+    half_window_size: 3
+    gauss_size: 27
+    yrange: [0.4, 0.6]
+  # masking:
+  #   type: StraightSeam
+  #   invert: True
+  #   index: 400
+  #   vertical: False
+  postprocessing:
+    - type: Rotation
+      angle_deg: 90
 misc:
   automatic_restart: False
   enable_debug_outputs: False

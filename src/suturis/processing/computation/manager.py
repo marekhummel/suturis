@@ -21,13 +21,7 @@ _queue_listener: logging.handlers.QueueListener | None = None
 _shutdown_event: EventType = mp.Event()
 
 
-def get_params(
-    image1: Image,
-    image2: Image,
-    preprocessing_handlers: list[BasePreprocessor],
-    homography_handler: BaseHomographyHandler,
-    masking_handler: BaseMaskingHandler,
-) -> ComputationParams | None:
+def get_params(image1: Image, image2: Image) -> ComputationParams | None:
     """Return params needed for stitching (start new computation in seperate process if possible).
 
     Parameters
@@ -49,11 +43,7 @@ def get_params(
         Set of computation params
     """
     global _computation_running
-
-    # Create subprocess if needed
-    if _process is None:
-        log.debug("Creating daemon process")
-        _create_subprocess(preprocessing_handlers, homography_handler, masking_handler)
+    assert _process
 
     # Recompute params when possible
     if not _computation_running:
@@ -66,6 +56,45 @@ def get_params(
     # Return params
     log.debug("Return params")
     return _local_params
+
+
+def setup(
+    preprocessing_handlers: list[BasePreprocessor],
+    homography_handler: BaseHomographyHandler,
+    masking_handler: BaseMaskingHandler,
+) -> None:
+    """Setups the manager by creating the subprocess.
+
+    Parameters
+    ----------
+    preprocessing_handlers : list[BasePreprocessor]
+        List of preprocessors
+    homography_handler : BaseHomographyHandler
+        Homography handler
+    masking_handler : BaseMaskingHandler
+        Masking handler
+    """
+    global _process, _local_pipe, _queue_listener
+
+    # Create subprocess
+    assert _process is None
+    log.debug("Creating daemon process")
+
+    # Setup logging
+    log_queue: mp.Queue = mp.Queue()
+    _queue_listener = logging.handlers.QueueListener(log_queue, *log.getLogger().handlers, respect_handler_level=True)
+    _queue_listener.start()
+
+    # Start process and pipes
+    _local_pipe, fork = mp.Pipe(duplex=True)
+    _process = mp.Process(target=subprc.main, args=(fork, _shutdown_event, log_queue), daemon=True)
+    _process.start()
+
+    # Send handlers once
+    log.debug("Pass handlers to subprocess")
+    _local_pipe.send(preprocessing_handlers)
+    _local_pipe.send(homography_handler)
+    _local_pipe.send(masking_handler)
 
 
 def shutdown() -> None:
@@ -89,41 +118,6 @@ def shutdown() -> None:
 
     if _queue_listener:
         _queue_listener.stop()
-
-
-def _create_subprocess(
-    preprocessing_handlers: list[BasePreprocessor],
-    homography_handler: BaseHomographyHandler,
-    masking_handler: BaseMaskingHandler,
-) -> None:
-    """Create a new subprocess at the beginning of the application lifetime.
-
-    Parameters
-    ----------
-    preprocessing_handlers : list[BasePreprocessor]
-        List of preprocessors
-    homography_handler : BaseHomographyHandler
-        Homography handler
-    masking_handler : BaseMaskingHandler
-        Masking handler
-    """
-    global _process, _local_pipe, _queue_listener
-
-    # Setup logging
-    log_queue: mp.Queue = mp.Queue()
-    _queue_listener = logging.handlers.QueueListener(log_queue, *log.getLogger().handlers, respect_handler_level=True)
-    _queue_listener.start()
-
-    # Start process and pipes
-    _local_pipe, fork = mp.Pipe(duplex=True)
-    _process = mp.Process(target=subprc.main, args=(fork, _shutdown_event, log_queue), daemon=True)
-    _process.start()
-
-    # Send handlers once
-    log.debug("Pass handlers to subprocess")
-    _local_pipe.send(preprocessing_handlers)
-    _local_pipe.send(homography_handler)
-    _local_pipe.send(masking_handler)
 
 
 @track_timings(name="Update call")
