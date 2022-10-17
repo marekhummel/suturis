@@ -29,6 +29,7 @@ class BaseMaskingHandler(BaseDebuggingHandler):
             f"Init masking handler, with continous recomputation set to {continous_recomputation}, "
             f"file output set to {save_to_file} and invert set to {invert}"
         )
+        super().__init__()
         self.continous_recomputation = continous_recomputation
         self.save_to_file = save_to_file
         self.invert = invert

@@ -76,7 +76,7 @@ def shutdown() -> None:
 
     # This might take some time if a new computation just started
     if _process:
-        log.debug("Requested termination of subprocess")
+        log.info("Requested termination of subprocess (this might take a few seconds)")
         if _local_pipe:
             while _computation_running:
                 pass

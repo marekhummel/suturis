@@ -31,6 +31,7 @@ class BaseHomographyHandler(BaseDebuggingHandler):
             f"Init homography handler, with continous recomputation set to {continous_recomputation}, "
             f"file output set to {save_to_file} and disabled cropping set to {disable_cropping}"
         )
+        super().__init__()
         self.continous_recomputation = continous_recomputation
         self.save_to_file = save_to_file
         self.disable_cropping = disable_cropping

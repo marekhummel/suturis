@@ -19,7 +19,7 @@ stitching:
     path: ./data/examples/files/homography.npy
   masking:
     type: FileLoadHandler
-    disable_cropping: False
+    invert: False
     path: ./data/examples/files/mask.npy
 misc:
   automatic_restart: True

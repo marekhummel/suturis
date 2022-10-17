@@ -22,6 +22,7 @@ class BasePreprocessor(BaseDebuggingHandler):
             if not they're only used when applying the params, by default False
         """
         log.debug(f"Init preprocessing handler #{index}, with needed_for_computation set to {needed_for_computation}")
+        super().__init__()
         self.index = index
         self.needed_for_computation = needed_for_computation
 
