@@ -27,7 +27,7 @@ class RtspReader(BaseReader):
         super().__init__(*args, **kwargs)
         self._capture = cv2.VideoCapture(uri)
 
-    def read_image(self) -> _ReadImageType:
+    def _read_image(self) -> _ReadImageType:
         """Returns next image sent in the stream.
 
         Returns

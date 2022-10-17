@@ -3,14 +3,18 @@ io:
     - type: FileReader
       path: ./data/examples/files/2022-04-23/starboard_0120220423163949.mp4
       skip: 7.8
-      speed_up: 8
+      speed_up: 32
     - type: FileReader
       path: ./data/examples/files/2022-04-23/port_0120220423162959.mp4
-      speed_up: 8
+      speed_up: 32
   outputs:
     - type: ScreenOutput
       title: Stitched
       window_size: [1280, 720]
+    # - type: FileWriter
+    #   dimensions: [1280, 720]
+    #   source: OUTPUT
+    #   filename: "{date}_stitching.mp4"
 stitching:
   preprocessing:
   # homography:
@@ -55,8 +59,8 @@ stitching:
     index: 400
     vertical: False
 misc:
-  automatic_restart: True
-  enable_debug_outputs: True
+  automatic_restart: False
+  enable_debug_outputs: False
 logging:
   version: 1
   formatters:

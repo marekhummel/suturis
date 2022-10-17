@@ -16,7 +16,7 @@ class FileReader(BaseReader):
     _single_frame: Image | None
 
     def __init__(
-        self, *args: Any, path: str, skip: int = 0, speed_up: int = 1, single_frame: bool = False, **kwargs: Any
+        self, *args: Any, path: str, skip: int = 0, speed_up: float = 1.0, single_frame: bool = False, **kwargs: Any
     ) -> None:
         """Creates new file reader.
 
@@ -28,7 +28,7 @@ class FileReader(BaseReader):
             Path to the video file
         skip : int, optional
             Seconds to skip at start of this video (to sync with other input), by default 0
-        speed_up : int, optional
+        speed_up : float, optional
             Factor to multiply fps by, by default 1
         single_frame : bool, optional
             Flag to freeze video, if set, the first frame will always be returned, by default False
@@ -56,7 +56,7 @@ class FileReader(BaseReader):
         self._last_read = None
         self._single_frame = Image(self._capture.read()[1]) if single_frame else None
 
-    def read_image(self) -> _ReadImageType:
+    def _read_image(self) -> _ReadImageType:
         """Returns next frame in video capture or first frame if single_frame was set.
 
         Returns

@@ -1,7 +1,7 @@
 io:
   inputs:
     - type: FileReader
-      path: ./data/examples/files/2022-05-28/bow_0120220528105828_compressed_2fps.mp4
+      path: ./data/examples/files/2022-05-28/bow_0120220528105828_compressed.mp4 # different fps dont matter, extra frames will be skipped
       speed_up: 2
     - type: FileReader
       path: ./data/examples/files/2022-05-28/stern_0120220528110011_compressed.mp4

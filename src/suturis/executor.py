@@ -1,5 +1,5 @@
 import logging as log
-from concurrent.futures import ThreadPoolExecutor
+from threading import Event
 
 import cv2
 
@@ -28,13 +28,17 @@ def run(io: IOConfig, delegates: StichingConfig, misc: MiscConfig) -> None:
     stitching.set_delegates(*delegates)
     if misc.get("enable_debug_outputs", False):
         stitching.enable_debug_outputs()
-    assert len(readers) == 2
 
-    # Loop
+    # Set shared event for each reader to signal cancellation when one reader fails (EOF most likely)
+    assert len(readers) == 2
+    cancellation_token = Event()
+    for r in readers:
+        r.start(cancellation_token)
+
+    # Run while all readers live
     log.debug("Starting main loop")
-    running = True
-    while running:
-        running = _run_iteration(readers, writers)
+    while not cancellation_token.is_set():
+        _run_iteration(readers, writers, cancellation_token)
 
 
 def shutdown() -> None:
@@ -44,7 +48,7 @@ def shutdown() -> None:
 
 
 @track_timings(name="Iteration")
-def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter]) -> bool:
+def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter], cancellation_token: Event) -> None:
     """Single stitching iteration. Starts with receiving images, ends by returning the stitched image.
 
     Parameters
@@ -53,27 +57,24 @@ def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter]) -> bool
         List of defined readers to get the images from.
     writers : list[BaseWriter]
         List of defined writers to write the output (or the input) to.
+    cancellation_token : Event
+        Threading event to signal end of loop
 
     Returns
     -------
     bool
         True, as long as the application didn't fail.
     """
-    # ** Read (reading might block hence the threads)
+    # ** Read (reading might block)
     log.debug("Read images")
-    with ThreadPoolExecutor(max_workers=len(readers)) as tpe:
-        results = list(tpe.map(lambda r: r.read_image(), readers))
+    results = [r.get() for r in readers]
+    image1, image2 = results
 
-    if len(results) != len(readers):
+    # One reader failed
+    if image1 is None or image2 is None:
         log.error("Readers failed")
-        return False
-
-    success1, image1 = results[0]
-    success2, image2 = results[1]
-
-    if not success1 or not success2:
-        log.error("Readers failed")
-        return False
+        cancellation_token.set()
+        return
 
     # ** Process
     log.debug("Compute stitched image")
@@ -89,7 +90,7 @@ def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter]) -> bool
     key = cv2.waitKey(25) & 0xFF
     if key == ord("q"):
         log.info("Manually aborting")
-        return False
+        cancellation_token.set()
     if key == ord("e"):
         log.info("Manually raising error")
         raise ZeroDivisionError
@@ -97,5 +98,3 @@ def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter]) -> bool
         log.info("Manually pausing")
         while cv2.waitKey(25) & 0xFF != ord("p"):
             pass
-
-    return True
