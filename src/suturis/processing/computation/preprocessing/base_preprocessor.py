@@ -1,9 +1,10 @@
 import logging as log
 
+from suturis.processing.computation.base_debugging_handler import BaseDebuggingHandler
 from suturis.typing import Image
 
 
-class BasePreprocessor:
+class BasePreprocessor(BaseDebuggingHandler):
     """Base class for preprocessors."""
 
     index: int

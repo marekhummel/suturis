@@ -4,14 +4,14 @@ from concurrent.futures import ThreadPoolExecutor
 import cv2
 
 import suturis.processing.computation.manager as mgr
-from suturis.config_parser import IOConfig, StichingConfig
+from suturis.config_parser import IOConfig, MiscConfig, StichingConfig
 from suturis.io.reader.basereader import BaseReader
 from suturis.io.writer.basewriter import BaseWriter
 from suturis.processing import stitching
 from suturis.timer import finalize_timings, track_timings
 
 
-def run(io: IOConfig, delegates: StichingConfig) -> None:
+def run(io: IOConfig, delegates: StichingConfig, misc: MiscConfig) -> None:
     """Main application loop.
 
     Parameters
@@ -19,10 +19,15 @@ def run(io: IOConfig, delegates: StichingConfig) -> None:
     io : IOConfig
         Configuration of IO
     delegates : StichingConfig
-        Configuration of sticthing
+        Configuration of stitching
+    misc : MiscConfig
+        Miscellaneous configuration
     """
+    # Setup
     readers, writers = io
     stitching.set_delegates(*delegates)
+    if misc.get("enable_debug_outputs", False):
+        stitching.enable_debug_outputs()
     assert len(readers) == 2
 
     # Loop

@@ -17,7 +17,6 @@ class OptimizedSiftHandler(BaseHomographyHandler):
     min_matches: int
     relevant_areas_one: list[CvRect]
     relevant_areas_two: list[CvRect]
-    enable_debug_output: bool
     _mask_img1: npt.NDArray | None
     _mask_img2: npt.NDArray | None
 
@@ -27,7 +26,6 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         min_matches: int = 10,
         relevant_areas_one: list[CvRect] | None = None,
         relevant_areas_two: list[CvRect] | None = None,
-        enable_debug_output: bool = False,
         **kwargs: Any,
     ):
         """_summary_
@@ -42,9 +40,6 @@ class OptimizedSiftHandler(BaseHomographyHandler):
             List of rectangles, which defines the set of areas used for feature finding in first image, by default []
         relevant_areas_two : list[CvRect] | None, optional
             List of rectangles, which defines the set of areas used for feature finding in second image, by default []
-        enable_debug_output : bool, optional
-            If true, computed keypoints and matches will be visualized and saved to "data/out/debug/osift_*.jpg",
-            by default False
         **kwargs : dict, optional
             Keyword params passed to base class, by default {}
         """
@@ -59,7 +54,6 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         self.relevant_areas_two = relevant_areas_two or []
         self._mask_img1 = None
         self._mask_img2 = None
-        self.enable_debug_output = enable_debug_output
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
         """Algorithm to find homography with SIFT.
@@ -102,7 +96,7 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         good_matches = self._filter_good_matches(matches, kpts_img1, kpts_img2)
 
         # Write debug images
-        if self.enable_debug_output:
+        if self._debugging_enabled:
             log.debug("Write debug images (keypoints and matches)")
             self._output_debug_images(img1, img2, kpts_img1, kpts_img2, good_matches)
 
@@ -174,10 +168,10 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         matches_img = cv2.drawMatches(
             img1, kpts_img1, img2, kpts_img2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
         )
-        cv2.imwrite("data/out/debug/osift_matches.jpg", matches_img)
+        cv2.imwrite(f"{self._path}osift_matches.jpg", matches_img)
 
         kpts1_img = cv2.drawKeypoints(img1, kpts_img1, None, color=(72, 144, 233))
-        cv2.imwrite("data/out/debug/osift_keypoints1.jpg", kpts1_img)
+        cv2.imwrite(f"{self._path}img1_osift_keypoints.jpg", kpts1_img)
 
         kpts2_img = cv2.drawKeypoints(img2, kpts_img2, None, color=(72, 144, 233))
-        cv2.imwrite("data/out/debug/osift_keypoints2.jpg", kpts2_img)
+        cv2.imwrite(f"{self._path}img2_osift_keypoints.jpg", kpts2_img)

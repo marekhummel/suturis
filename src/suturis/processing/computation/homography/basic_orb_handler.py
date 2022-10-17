@@ -12,11 +12,8 @@ class BasicOrbHandler(BaseHomographyHandler):
 
     orb_features: int
     min_matches: int
-    enable_debug_output: bool
 
-    def __init__(
-        self, orb_features: int = 50000, min_matches: int = 10, enable_debug_output: bool = False, **kwargs: Any
-    ):
+    def __init__(self, orb_features: int = 50000, min_matches: int = 10, **kwargs: Any):
         """Creates new basic ORB handler instance.
 
         Parameters
@@ -25,9 +22,6 @@ class BasicOrbHandler(BaseHomographyHandler):
             Number of max features for ORB instance, by default 50000
         min_matches : int, optional
             Number of min found matches, otherwise identity will be returned, by default 10
-        enable_debug_output : bool, optional
-            If true, computed keypoints and matches will be visualized and saved to "data/out/debug/orb_*.jpg",
-            by default False
         **kwargs : dict, optional
             Keyword params passed to base class, by default {}
         """
@@ -35,7 +29,6 @@ class BasicOrbHandler(BaseHomographyHandler):
         super().__init__(**kwargs)
         self.orb_features = orb_features
         self.min_matches = min_matches
-        self.enable_debug_output = enable_debug_output
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
         """Algorithm to find homography with ORB.
@@ -64,7 +57,7 @@ class BasicOrbHandler(BaseHomographyHandler):
         good_matches = [m1 for m1, m2 in matches if m1.distance < 0.75 * m2.distance]  # Lowes ratio test
 
         # Output some debug results
-        if self.enable_debug_output:
+        if self._debugging_enabled:
             log.debug("Write debug images (keypoints and matches)")
             self._output_debug_images(img1, img2, kpts_img1, kpts_img2, good_matches)
 
@@ -101,10 +94,10 @@ class BasicOrbHandler(BaseHomographyHandler):
         matches_img = cv2.drawMatches(
             img1, kpts_img1, img2, kpts_img2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
         )
-        cv2.imwrite("data/out/debug/orb_matches.jpg", matches_img)
+        cv2.imwrite(f"{self._path}orb_matches.jpg", matches_img)
 
         kpts1_img = cv2.drawKeypoints(img1, kpts_img1, None, color=(72, 144, 233))
-        cv2.imwrite("data/out/debug/orb_keypoints1.jpg", kpts1_img)
+        cv2.imwrite(f"{self._path}img1_orb_keypoints.jpg", kpts1_img)
 
         kpts2_img = cv2.drawKeypoints(img2, kpts_img2, None, color=(72, 144, 233))
-        cv2.imwrite("data/out/debug/orb_keypoints2.jpg", kpts2_img)
+        cv2.imwrite(f"{self._path}img2_orb_keypoints.jpg", kpts2_img)

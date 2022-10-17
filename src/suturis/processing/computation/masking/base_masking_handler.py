@@ -1,10 +1,11 @@
 import logging as log
 
 import numpy as np
+from suturis.processing.computation.base_debugging_handler import BaseDebuggingHandler
 from suturis.typing import Image, Mask
 
 
-class BaseMaskingHandler:
+class BaseMaskingHandler(BaseDebuggingHandler):
     """Base class for mask computation."""
 
     continous_recomputation: bool

@@ -20,7 +20,7 @@ if __name__ == "__main__":
         restart = False
 
         try:
-            suturis.executor.run(io, stitching)
+            suturis.executor.run(io, stitching, misc)
         except (KeyboardInterrupt, SystemExit):
             log.info("Suturis was aborted")
         except Exception:

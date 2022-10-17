@@ -26,7 +26,6 @@ stitching:
       - [[200, 200], [900, 500]]
     relevant_areas_two:
       - [[200, 200], [900, 500]]
-    enable_debug_output: True
   masking:
     type: HorizontalSeamCarving
     continous_recomputation: True
@@ -37,6 +36,7 @@ stitching:
     yrange: [0.4, 0.6]
 misc:
   automatic_restart: True
+  enable_debug_output: False
 logging:
   version: 1
   formatters:

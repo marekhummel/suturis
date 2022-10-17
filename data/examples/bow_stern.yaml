@@ -34,7 +34,6 @@ stitching:
   #     # - [[771, 208], [1280, 460]]
   #   relevant_areas_two:
   #     # - [[446, 208], [1174, 438]]
-  #   enable_debug_output: True
   masking:
     type: FileLoadHandler
     path: ./data/examples/files/mask_bowstern.npy
@@ -44,6 +43,7 @@ stitching:
   #   save_to_file: False
 misc:
   automatic_restart: False
+  enable_debug_output: False
 logging:
   version: 1
   formatters:

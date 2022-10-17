@@ -48,7 +48,6 @@ stitching:
   #   disable_cropping: False
   #   orb_features: 10000
   #   min_matches: 10
-  #   enable_debug_output: False
   homography:
     type: OptimizedSiftHandler
     continous_recomputation: False
@@ -70,7 +69,6 @@ stitching:
       # - [[154, 406], [521, 473]] # Starboard
       # - [[784, 345], [847, 434]] # Bow
       # - [[601, 356], [634, 398]] # Circle
-    enable_debug_output: False
   # masking:
   #   type: NaiveFading
   #   continous_recomputation: False
@@ -104,6 +102,7 @@ stitching:
     yrange: [0.4, 0.6]
 misc:
   automatic_restart: True
+  enable_debug_output: False
 logging:
   version: 1
   formatters:

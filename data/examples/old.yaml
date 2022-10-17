@@ -22,7 +22,6 @@ stitching:
     disable_cropping: False
     orb_features: 10000
     min_matches: 10
-    enable_debug_output: False
   masking:
     type: SeamFinding
     continous_recomputation: True
@@ -42,6 +41,7 @@ stitching:
   #   blocked_area_two: [[0, 420], [825, 700]]
 misc:
   automatic_restart: True
+  enable_debug_output: False
 logging:
   version: 1
   formatters:

@@ -2,10 +2,11 @@ import logging as log
 
 import cv2
 import numpy as np
+from suturis.processing.computation.base_debugging_handler import BaseDebuggingHandler
 from suturis.typing import CanvasInfo, CanvasSize, Homography, Image, NpPoint, NpShape, TranslationVector
 
 
-class BaseHomographyHandler:
+class BaseHomographyHandler(BaseDebuggingHandler):
     """Base class for homography computation."""
 
     continous_recomputation: bool
