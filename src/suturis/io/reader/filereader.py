@@ -16,7 +16,7 @@ class FileReader(BaseReader):
     _single_frame: Image | None
 
     def __init__(
-        self, *args: Any, path: str, skip: int = 0, speed_up: float = 1.0, single_frame: bool = False, **kwargs: Any
+        self, *args: Any, path: str, skip: float = 0.0, speed_up: float = 1.0, single_frame: bool = False, **kwargs: Any
     ) -> None:
         """Creates new file reader.
 
@@ -26,7 +26,7 @@ class FileReader(BaseReader):
             Positional arguments passed to base class, by default []
         path : str
             Path to the video file
-        skip : int, optional
+        skip : float, optional
             Seconds to skip at start of this video (to sync with other input), by default 0
         speed_up : float, optional
             Factor to multiply fps by, by default 1

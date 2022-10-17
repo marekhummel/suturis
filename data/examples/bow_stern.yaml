@@ -34,13 +34,15 @@ stitching:
   #     # - [[771, 208], [1280, 460]]
   #   relevant_areas_two:
   #     # - [[446, 208], [1174, 438]]
-  masking:
-    type: FileLoadHandler
-    path: ./data/examples/files/mask_bowstern.npy
   # masking:
   #   type: NaiveFading
   #   continous_recomputation: False
   #   save_to_file: False
+  masking:
+    type: StraightSeam
+    invert: False
+    index: 1079 # 458
+    vertical: True
 misc:
   automatic_restart: False
   enable_debug_output: False

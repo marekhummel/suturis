@@ -1,3 +1,4 @@
+import contextlib
 import logging as log
 import logging.handlers
 import multiprocessing as mp
@@ -78,8 +79,9 @@ def shutdown() -> None:
         if _local_pipe:
             while _computation_running:
                 pass
-            subproc_timings = _local_pipe.recv()
-            update_timings(subproc_timings)
+            with contextlib.suppress(Exception):
+                subproc_timings = _local_pipe.recv()
+                update_timings(subproc_timings)
         _process.join()
 
     if _local_pipe:
