@@ -87,7 +87,7 @@ def set_delegates(
     _masking_delegate = masking
 
 
-def enable_debug_outputs():
+def enable_debug_outputs() -> None:
     """Enable debug outputs (various intermediate images for debugging)"""
     global _debug_outputs
     log.info("Debug outputs are enabled")

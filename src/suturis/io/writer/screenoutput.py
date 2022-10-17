@@ -2,7 +2,7 @@ import logging as log
 from typing import Any
 
 import cv2
-from suturis.io.writer.basewriter import BaseWriter, SourceImage
+from suturis.io.writer.basewriter import BaseWriter
 from suturis.typing import CvSize, Image
 
 

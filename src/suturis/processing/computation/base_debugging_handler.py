@@ -9,6 +9,6 @@ class BaseDebuggingHandler:
         self._debugging_enabled = False
         self._path = "data/out/debug/"
 
-    def enable_debug_outputs(self):
+    def enable_debug_outputs(self) -> None:
         """Enable the flag."""
         self._debugging_enabled = True
