@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import cv2
 import numpy as np
@@ -11,7 +12,7 @@ class BaseHomographyHandler(BaseComputationHandler[Homography]):
 
     save_to_file: bool
 
-    def __init__(self, save_to_file: bool = False, **kwargs):
+    def __init__(self, save_to_file: bool = False, **kwargs: Any):
         """Create new base homography handler instance, should not be called explicitly only from subclasses.
 
         Parameters
@@ -42,7 +43,7 @@ class BaseHomographyHandler(BaseComputationHandler[Homography]):
         """
         log.debug("Find homography")
 
-        if self._caching_enabled or self._cache is None:
+        if not self._caching_enabled or self._cache is None:
             log.debug("Recomputation of homography is requested")
             self._cache = self._find_homography(img1, img2)
 

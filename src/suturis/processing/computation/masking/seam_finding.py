@@ -3,9 +3,8 @@ from typing import Any
 
 import cv2
 import numpy as np
-import numpy.typing as npt
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import CvRect, Image, Mask, SeamMatrix
+from suturis.typing import CvRect, Image, Mask, Matrix, SeamMatrix
 
 END = 0
 F_BOT_LEFT = 1
@@ -189,9 +188,7 @@ class SeamFinding(BaseMaskingHandler):
 
         return self._find_bool_matrix(previous)
 
-    def _fill_row(
-        self, row: int, im1: Image, im2: Image, errors: npt.NDArray, previous: npt.NDArray
-    ) -> tuple[npt.NDArray, npt.NDArray]:
+    def _fill_row(self, row: int, im1: Image, im2: Image, errors: Matrix, previous: Matrix) -> tuple[Matrix, Matrix]:
         """Iterate through one row and fill in values.
 
         Parameters
@@ -202,14 +199,14 @@ class SeamFinding(BaseMaskingHandler):
             First image
         im2 : Image
             Second image
-        errors : npt.NDArray
+        errors : Matrix
             Accumulated errors (difference in colors) so far
-        previous : npt.NDArray
+        previous : Matrix
             Path taken so far to be able to trace back
 
         Returns
         -------
-        tuple[npt.NDArray, npt.NDArray]
+        tuple[Matrix, Matrix]
             Updated errors and previous arrays.
         """
         assert row < errors.shape[0], f"idx is: {row}, errors.shape[0] is: {errors.shape[0]}"
@@ -247,9 +244,7 @@ class SeamFinding(BaseMaskingHandler):
                 previous[row][col] = F_LEFT
         return errors, previous
 
-    def _fill_column(
-        self, col: int, im1: Image, im2: Image, errors: npt.NDArray, previous: npt.NDArray
-    ) -> tuple[npt.NDArray, npt.NDArray]:
+    def _fill_column(self, col: int, im1: Image, im2: Image, errors: Matrix, previous: Matrix) -> tuple[Matrix, Matrix]:
         """Iterate through one column and fill in values
 
         Parameters
@@ -260,14 +255,14 @@ class SeamFinding(BaseMaskingHandler):
             First image
         im2 : Image
             Second image
-        errors : npt.NDArray
+        errors : Matrix
             Accumulated errors (difference in colors) so far
-        previous : npt.NDArray
+        previous : Matrix
             Path taken so far to be able to trace back
 
         Returns
         -------
-        tuple[npt.NDArray, npt.NDArray]
+        tuple[Matrix, Matrix]
             Updated errors and previous arrays.
         """
         assert col < errors.shape[1]
@@ -306,13 +301,13 @@ class SeamFinding(BaseMaskingHandler):
                 previous[row][col] = F_TOP
         return errors, previous
 
-    def _find_bool_matrix(self, previous: npt.NDArray) -> SeamMatrix:
+    def _find_bool_matrix(self, previous: Matrix) -> SeamMatrix:
         """Does the last seam finding step by calculating the perfect seam from the found path.
         This is to be considered going back the best path.
 
         Parameters
         ----------
-        previous : npt.NDArray
+        previous : Matrix
             Path matrix used trace seam
 
         Returns

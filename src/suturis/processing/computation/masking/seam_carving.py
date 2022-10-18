@@ -3,9 +3,8 @@ from typing import Any
 
 import cv2
 import numpy as np
-import numpy.typing as npt
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import CvRect, Image, ImagePair, Mask, SeamMatrix
+from suturis.typing import CvRect, Image, ImagePair, Mask, Matrix, SeamMatrix
 
 END = 0
 LEFT = 2
@@ -122,7 +121,7 @@ class SeamCarving(BaseMaskingHandler):
 
         return self._find_bool_matrix(previous, paths)
 
-    def _get_energy(self, img1: Image, img2: Image, xstart: int, ystart: int, xend: int, yend: int) -> npt.NDArray:
+    def _get_energy(self, img1: Image, img2: Image, xstart: int, ystart: int, xend: int, yend: int) -> Matrix:
         """Creates energy map between both images, energy meaning color difference (higher energy = less similar colors)
 
         Parameters
@@ -142,7 +141,7 @@ class SeamCarving(BaseMaskingHandler):
 
         Returns
         -------
-        npt.NDArray
+        Matrix
             Energy map. Values inside the blocked areas will have max energy.
         """
         log.debug("Compute energy map")
@@ -164,25 +163,23 @@ class SeamCarving(BaseMaskingHandler):
                 )
         return dif
 
-    def _fill_row(
-        self, paths: npt.NDArray, row: int, dif: npt.NDArray, previous: npt.NDArray
-    ) -> tuple[npt.NDArray, npt.NDArray]:
+    def _fill_row(self, paths: Matrix, row: int, dif: Matrix, previous: Matrix) -> tuple[Matrix, Matrix]:
         """Fill one row based on the values from the previous row.
 
         Parameters
         ----------
-        paths : npt.NDArray
+        paths : Matrix
             Current accumulated energies
         row : int
             Current row to update
-        dif : npt.NDArray
+        dif : Matrix
             Energy map
-        previous : npt.NDArray
+        previous : Matrix
             Current path array
 
         Returns
         -------
-        tuple[npt.NDArray, npt.NDArray]
+        tuple[Matrix, Matrix]
             Updated previous and paths arrays.
         """
         assert 0 <= row < dif.shape[0]
@@ -231,14 +228,14 @@ class SeamCarving(BaseMaskingHandler):
 
         return previous, paths
 
-    def _find_bool_matrix(self, previous: npt.NDArray, paths: npt.NDArray) -> SeamMatrix:
+    def _find_bool_matrix(self, previous: Matrix, paths: Matrix) -> SeamMatrix:
         """Finds a bool matrix for the seam for not so sharp angles.
 
         Parameters
         ----------
-        previous : npt.NDArray
+        previous : Matrix
             Path array
-        paths : npt.NDArray
+        paths : Matrix
             Accumulated energy values
 
         Returns

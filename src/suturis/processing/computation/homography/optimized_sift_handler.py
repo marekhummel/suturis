@@ -3,9 +3,8 @@ from typing import Any
 
 import cv2
 import numpy as np
-import numpy.typing as npt
 from suturis.processing.computation.homography import BaseHomographyHandler
-from suturis.typing import CvRect, Homography, Image
+from suturis.typing import CvRect, Homography, Image, Matrix
 
 
 class OptimizedSiftHandler(BaseHomographyHandler):
@@ -17,8 +16,8 @@ class OptimizedSiftHandler(BaseHomographyHandler):
     min_matches: int
     relevant_areas_one: list[CvRect]
     relevant_areas_two: list[CvRect]
-    _mask_img1: npt.NDArray | None
-    _mask_img2: npt.NDArray | None
+    _mask_img1: Matrix | None
+    _mask_img2: Matrix | None
 
     def __init__(
         self,

@@ -1,4 +1,5 @@
 import logging as log
+from typing import Any
 
 import numpy as np
 from suturis.processing.computation.base_computation_handler import BaseComputationHandler
@@ -11,7 +12,7 @@ class BaseMaskingHandler(BaseComputationHandler[Mask]):
     save_to_file: bool
     invert: bool
 
-    def __init__(self, save_to_file: bool = False, invert: bool = False, **kwargs):
+    def __init__(self, save_to_file: bool = False, invert: bool = False, **kwargs: Any):
         """Create new base mask handler instance, should not be called explicitly only from subclasses.
 
         Parameters
@@ -46,7 +47,7 @@ class BaseMaskingHandler(BaseComputationHandler[Mask]):
         assert img1.shape[:2] == img2.shape[:2]
 
         log.debug("Find mask")
-        if self._caching_enabled or self._cache is None:
+        if not self._caching_enabled or self._cache is None:
             log.debug("Recomputation of mask is requested")
             self._cache = self._compute_mask(img1, img2)
 

@@ -1,7 +1,6 @@
 import numpy as np
-import numpy.typing as npt
 from suturis.processing.computation.masking import SeamCarving
-from suturis.typing import SeamMatrix
+from suturis.typing import Matrix, SeamMatrix
 
 END = 0
 LEFT_LEFT = 1
@@ -20,25 +19,23 @@ class SeamCarvingWide(SeamCarving):
     """Masking handler which finds an low energy (least difference in color) seam from top to bottom,
     improved by using wider angles."""
 
-    def _fill_row(
-        self, paths: npt.NDArray, row: int, dif: npt.NDArray, previous: npt.NDArray
-    ) -> tuple[npt.NDArray, npt.NDArray]:
+    def _fill_row(self, paths: Matrix, row: int, dif: Matrix, previous: Matrix) -> tuple[Matrix, Matrix]:
         """Fill one row based on the values from the previous row.
 
         Parameters
         ----------
-        paths : npt.NDArray
+        paths : Matrix
             Current accumulated energies
         row : int
             Current row to update
-        dif : npt.NDArray
+        dif : Matrix
             Energy map
-        previous : npt.NDArray
+        previous : Matrix
             Current path array
 
         Returns
         -------
-        tuple[npt.NDArray, npt.NDArray]
+        tuple[Matrix, Matrix]
             Updated previous and paths arrays.
         """
         assert 0 <= row < dif.shape[0]
@@ -144,14 +141,14 @@ class SeamCarvingWide(SeamCarving):
 
         return previous, paths
 
-    def _find_bool_matrix(self, previous: npt.NDArray, paths: npt.NDArray) -> SeamMatrix:
+    def _find_bool_matrix(self, previous: Matrix, paths: Matrix) -> SeamMatrix:
         """Finds a bool matrix for the seam for better angles.
 
         Parameters
         ----------
-        previous : npt.NDArray
+        previous : Matrix
             Path array
-        paths : npt.NDArray
+        paths : Matrix
             Accumulated energy values
 
         Returns

@@ -3,9 +3,8 @@ from typing import Any
 
 import cv2
 import numpy as np
-import numpy.typing as npt
 from suturis.processing.computation.preprocessing.base_preprocessor import BasePreprocessor
-from suturis.typing import CvRect, Image, ImagePair
+from suturis.typing import CvRect, Image, ImagePair, Matrix
 
 
 class TextRemoval(BasePreprocessor):
@@ -13,8 +12,8 @@ class TextRemoval(BasePreprocessor):
 
     text_areas_one: list[CvRect]
     text_areas_two: list[CvRect]
-    _mask_img1: npt.NDArray | None
-    _mask_img2: npt.NDArray | None
+    _mask_img1: Matrix | None
+    _mask_img2: Matrix | None
 
     def __init__(
         self,
@@ -75,14 +74,14 @@ class TextRemoval(BasePreprocessor):
         # Inpaint areas
         return self._remove_text(img1, self._mask_img1), self._remove_text(img2, self._mask_img2)
 
-    def _remove_text(self, img: Image, mask: npt.NDArray | None) -> Image:
+    def _remove_text(self, img: Image, mask: Matrix | None) -> Image:
         """Remove text from image.
 
         Parameters
         ----------
         img : Image
             Image to be inpainted
-        mask : npt.NDArray | None
+        mask : Matrix | None
             Mask which only has non-zeros where text is to be removed
 
         Returns

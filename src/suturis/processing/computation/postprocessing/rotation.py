@@ -4,10 +4,10 @@ from typing import Any
 import cv2
 import numpy as np
 from suturis.processing.computation.postprocessing.base_postprocessor import BasePostprocessor
-from suturis.typing import Image
+from suturis.typing import CvSize, Image, Matrix
 
 
-class Rotation(BasePostprocessor):
+class Rotation(BasePostprocessor[tuple[Matrix, CvSize]]):
     """Postprocessor which rotates the image"""
 
     angle_deg: float
@@ -44,18 +44,24 @@ class Rotation(BasePostprocessor):
         """
         log.debug("Rotate image")
 
-        # Compute rotation matrix
-        height, width = image.shape[:2]
-        center = width // 2, height // 2
-        rot_matrix = cv2.getRotationMatrix2D(center, self.angle_deg, 1.0)
+        if not self._caching_enabled or self._cache is None:
+            # Compute rotation matrix
+            height, width = image.shape[:2]
+            center = width // 2, height // 2
+            rot_matrix: Matrix = cv2.getRotationMatrix2D(center, self.angle_deg, 1.0)
 
-        # Compute new canvas size and translation
-        cos_angle, sin_angle = rot_matrix[0, 0:2]
-        new_width = int((height * sin_angle) + (width * cos_angle))
-        new_height = int((height * cos_angle) + (width * sin_angle))
-        translation = np.array([new_width, new_height]) / 2 - np.array(center)
+            # Compute new canvas size and translation
+            cos_angle, sin_angle = rot_matrix[0, 0:2]
+            new_width = int((height * sin_angle) + (width * cos_angle))
+            new_height = int((height * cos_angle) + (width * sin_angle))
+            translation = np.array([new_width, new_height]) / 2 - np.array(center)
 
-        # Adjust affine matrix and compute rotated image
-        rot_matrix[0:2, 2] += translation
-        rotated = cv2.warpAffine(image, rot_matrix, (new_width, new_height))
+            # Adjust affine matrix and compute rotated image
+            rot_matrix[0:2, 2] += translation
+
+            # Store
+            self._cache = rot_matrix, CvSize((new_width, new_height))
+
+        matrix, dimensions = self._cache
+        rotated = cv2.warpAffine(image, matrix, dimensions)
         return Image(rotated.astype(np.uint8))
