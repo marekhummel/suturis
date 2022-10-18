@@ -53,10 +53,9 @@ def compute(*images: Image) -> Image:
         image1, image2 = preprocessor.process(image1, image2)
 
     # Warping and masking
-    transformation, crop, mask = params
+    transformation, mask = params
     img1_tf, img2_tf = _homography_delegate.apply_transformations(image1, image2, *transformation)
-    img1_tf_crop, img2_tf_crop = _homography_delegate.apply_crop(img1_tf, img2_tf, *crop)
-    masked_img = _masking_delegate.apply_mask(img1_tf_crop, img2_tf_crop, mask)
+    masked_img = _masking_delegate.apply_mask(img1_tf, img2_tf, mask)
 
     # Postprocessing
     for postprocessor in _postprocessor_delegates:
@@ -69,8 +68,7 @@ def compute(*images: Image) -> Image:
         cv2.imwrite("data/out/debug/img2.jpg", image2)
         cv2.imwrite("data/out/debug/img1_transformed.jpg", img1_tf)
         cv2.imwrite("data/out/debug/img2_transformed.jpg", img2_tf)
-        cv2.imwrite("data/out/debug/img1_cropped.jpg", img1_tf_crop)
-        cv2.imwrite("data/out/debug/img2_cropped.jpg", img2_tf_crop)
+        cv2.imwrite("data/out/debug/result.jpg", masked_img)
 
     # ** Return
     return masked_img

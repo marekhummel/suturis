@@ -21,11 +21,8 @@ class NoWarpingHandler(BaseHomographyHandler):
 
         if "continous_recomputation" in kwargs:
             log.warn("continous_recomputation flag in config will be ignored and overwritten with False")
-        if "disable_cropping" in kwargs:
-            log.warn("disable_cropping flag in config will be ignored and overwritten with True")
 
         kwargs["continous_recomputation"] = False
-        kwargs["disable_cropping"] = True
         super().__init__(**kwargs)
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:

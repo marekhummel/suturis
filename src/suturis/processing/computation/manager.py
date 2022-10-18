@@ -11,7 +11,7 @@ from suturis.processing.computation.homography import BaseHomographyHandler
 from suturis.processing.computation.masking import BaseMaskingHandler
 from suturis.processing.computation.preprocessing import BasePreprocessor
 from suturis.timer import track_timings, update_timings
-from suturis.typing import ComputationParams, CropArea, Image, Mask, TransformationInfo
+from suturis.typing import ComputationParams, Image, Mask, TransformationInfo
 
 _local_params: ComputationParams | None = None
 _computation_running: bool = False
@@ -143,13 +143,12 @@ def _computation_watcher(image1: Image, image2: Image) -> None:
         # Idle until results
         log.debug("Wait until results received")
         warping_info: TransformationInfo = _local_pipe.recv()
-        crop_area: CropArea = _local_pipe.recv()
         mask: Mask = _local_pipe.recv()
 
         # Update local params
         if _local_params is None:
             log.info("Initial computation of params completed")
-        _local_params = warping_info, crop_area, mask
+        _local_params = warping_info, mask
 
     except (BrokenPipeError, EOFError):
         if not _shutdown_event.is_set():

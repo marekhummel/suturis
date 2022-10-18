@@ -25,7 +25,6 @@ stitching:
     #     - [[1085, 671], [1264, 698]] # Text Bot
   homography:
     type: FileLoadHandler
-    disable_cropping: True
     path: ./data/examples/files/homography.npy
   # homography:
   #   type: NoWarpingHandler

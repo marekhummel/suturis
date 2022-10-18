@@ -20,8 +20,7 @@ Mask = NewType("Mask", npt.NDArray[np.float64])
 SeamMatrix = NewType("SeamMatrix", npt.NDArray[np.bool_])
 
 # Aliases for readability
-CropArea = NpRect
 CanvasSize = CvSize
 TransformationInfo = tuple[CanvasSize, TranslationVector, Homography]
-CanvasInfo = tuple[CanvasSize, TranslationVector, CropArea]
-ComputationParams = tuple[TransformationInfo, CropArea, Mask]
+CanvasInfo = tuple[CanvasSize, TranslationVector]
+ComputationParams = tuple[TransformationInfo, Mask]

@@ -3,7 +3,7 @@ import logging as log
 import cv2
 import numpy as np
 from suturis.processing.computation.base_debugging_handler import BaseDebuggingHandler
-from suturis.typing import CanvasInfo, CanvasSize, Homography, Image, NpPoint, NpShape, TranslationVector
+from suturis.typing import CanvasInfo, CanvasSize, Homography, Image, NpShape, TranslationVector
 
 
 class BaseHomographyHandler(BaseDebuggingHandler):
@@ -11,10 +11,9 @@ class BaseHomographyHandler(BaseDebuggingHandler):
 
     continous_recomputation: bool
     save_to_file: bool
-    disable_cropping: bool
     _cached_homography: Homography | None
 
-    def __init__(self, continous_recomputation: bool, save_to_file: bool = False, disable_cropping: bool = False):
+    def __init__(self, continous_recomputation: bool, save_to_file: bool = False):
         """Create new base homography handler instance, should not be called explicitly only from subclasses.
 
         Parameters
@@ -23,18 +22,14 @@ class BaseHomographyHandler(BaseDebuggingHandler):
             If set, homography will be recomputed each time, otherwise the first result will be reused
         save_to_file : bool, optional
             If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
-        disable_cropping : bool, optional
-            If set, the target canvas won't be cropped to the relevant parts (this will likely create black areas),
-            by default False
         """
         log.debug(
             f"Init homography handler, with continous recomputation set to {continous_recomputation}, "
-            f"file output set to {save_to_file} and disabled cropping set to {disable_cropping}"
+            f"file output set to {save_to_file}"
         )
         super().__init__()
         self.continous_recomputation = continous_recomputation
         self.save_to_file = save_to_file
-        self.disable_cropping = disable_cropping
         self._cached_homography = None
 
     def find_homography(self, img1: Image, img2: Image) -> Homography:
@@ -122,31 +117,8 @@ class BaseHomographyHandler(BaseDebuggingHandler):
         canvas_size = CanvasSize((x_max - x_min + 1, y_max - y_min + 1))
         log.debug(f"Computed translation {translation} and canvas size {canvas_size}")
 
-        if not self.disable_cropping:
-            # Apply transformation to find crop
-            img1_corners_transformed = corners + np.array(translation)
-            img2_corners_transformed = corners_homography + np.array(translation)
-
-            # Find min and max corner (not necessarily a corner, just min/max x/y as a point) in each image
-            img1_corners_min = np.min(img1_corners_transformed, axis=0)
-            img1_corners_max = np.max(img1_corners_transformed, axis=0)
-            img2_corners_min = np.min(img2_corners_transformed, axis=0)
-            img2_corners_max = np.max(img2_corners_transformed, axis=0)
-
-            # For left top use the max of the min, for right bot use min of max
-            min_corners = np.concatenate([img1_corners_min, img2_corners_min])
-            max_corners = np.concatenate([img1_corners_max, img2_corners_max])
-            x_start, y_start = np.floor(np.max(min_corners, axis=0)).astype(np.int32)
-            x_end, y_end = np.ceil(np.min(max_corners, axis=0)).astype(np.int32)
-            crop_area = NpPoint((y_start, x_start)), NpPoint((y_end, x_end))
-            log.debug(f"Computed crop area from {crop_area[0]} to {crop_area[1]}")
-        else:
-            # Crop area == Canvas size
-            width, height = canvas_size
-            crop_area = NpPoint((0, 0)), NpPoint((height + 1, width + 1))
-
         # Return
-        return canvas_size, translation, crop_area
+        return canvas_size, translation
 
     def apply_transformations(
         self,
@@ -194,31 +166,3 @@ class BaseHomographyHandler(BaseDebuggingHandler):
 
         # Return images with same sized canvas for easy overlay
         return Image(img1_translated), Image(img2_warped)
-
-    def apply_crop(self, img1: Image, img2: Image, start: NpPoint, end: NpPoint) -> tuple[Image, Image]:
-        """Applies cropping to transformed images.
-
-        Parameters
-        ----------
-        img1 : Image
-            First image, transformed (only translation here)
-        img2 : Image
-            Second image, transformed (translation + warping)
-        start : NpPoint
-            Top left corner of the crop rectangle
-        end : NpPoint
-            Bottom right corner of the crop rectabngle
-
-        Returns
-        -------
-        tuple[Image, Image]
-            Cropped images
-        """
-        log.debug("Crop transformed images to computed area")
-        ystart, xstart = start
-        yend, xend = end
-
-        img1_crop = img1[ystart : yend + 1, xstart : xend + 1, :]
-        img2_crop = img2[ystart : yend + 1, xstart : xend + 1, :]
-
-        return Image(img1_crop), Image(img2_crop)

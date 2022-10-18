@@ -15,7 +15,6 @@ stitching:
   preprocessing:
   homography:
     type: FileLoadHandler
-    disable_cropping: False
     path: ./data/examples/files/homography.npy
   masking:
     type: FileLoadHandler

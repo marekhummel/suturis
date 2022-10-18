@@ -21,13 +21,11 @@ stitching:
       needed_for_computation: False
   homography:
     type: FileLoadHandler
-    disable_cropping: True
     path: ./data/examples/files/homography_bowstern.npy
   # homography:
   #   type: OptimizedSiftHandler
   #   continous_recomputation: False
   #   save_to_file: False
-  #   disable_cropping: True
   #   sift_features: 10000
   #   min_matches: 0
   #   relevant_areas_one:

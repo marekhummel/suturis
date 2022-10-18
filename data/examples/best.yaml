@@ -19,7 +19,6 @@ stitching:
     type: OptimizedSiftHandler
     continous_recomputation: False
     save_to_file: True
-    disable_cropping: False
     sift_features: 10000
     min_matches: 10
     relevant_areas_one:

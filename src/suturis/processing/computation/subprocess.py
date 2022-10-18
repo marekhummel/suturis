@@ -63,12 +63,11 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
 
             # Compute
             proc_logger.debug("Compute params")
-            warping_info, crop_area, mask = _compute_params(image1, image2)
+            warping_info, mask = _compute_params(image1, image2)
 
             # Return
             proc_logger.debug("Return params")
             pipe_conn.send(warping_info)
-            pipe_conn.send(crop_area)
             pipe_conn.send(mask)
 
         except (BrokenPipeError, EOFError):
@@ -103,16 +102,15 @@ def _compute_params(image1: Image, image2: Image) -> ComputationParams:
     # Compute transformation and canvas params
     proc_logger.debug("Compute warping and target canvas")
     homography = homography_delegate.find_homography(image1, image2)
-    canvas_size, translation, crop_area = homography_delegate.analyze_transformed_canvas(image1.shape, homography)
+    canvas_size, translation = homography_delegate.analyze_transformed_canvas(image1.shape, homography)
 
     # Apply transformation
     proc_logger.debug("Warp to target space")
     img1_translated, img2_warped = homography_delegate.apply_transformations(
         image1, image2, canvas_size, translation, homography
     )
-    img1_translated_crop, img2_warped_crop = homography_delegate.apply_crop(img1_translated, img2_warped, *crop_area)
 
     # Mask calculation
     proc_logger.debug("Compute mask")
-    mask = masking_delegate.compute_mask(img1_translated_crop, img2_warped_crop)
-    return ((canvas_size, translation, homography), crop_area, mask)
+    mask = masking_delegate.compute_mask(img1_translated, img2_warped)
+    return ((canvas_size, translation, homography), mask)
