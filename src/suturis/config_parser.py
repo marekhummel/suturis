@@ -4,7 +4,7 @@ import logging.handlers
 import os
 import os.path
 import re
-from typing import Type, TypeVar
+from typing import TypeVar
 
 import yaml
 
@@ -15,9 +15,12 @@ from suturis.processing.computation.masking import BaseMaskingHandler
 from suturis.processing.computation.postprocessing import BasePostprocessor
 from suturis.processing.computation.preprocessing import BasePreprocessor
 
+
 IOConfig = tuple[list[BaseReader], list[BaseWriter]]
 StichingConfig = tuple[list[BasePreprocessor], BaseHomographyHandler, BaseMaskingHandler, list[BasePostprocessor]]
 MiscConfig = dict
+
+
 T = TypeVar("T")
 
 
@@ -123,8 +126,8 @@ def _define_io(cfg: dict) -> IOConfig | None:
         logging.warning("Config doesn't specify any outputs. Stitching results will be lost.")
 
     # Create readers and writers
-    readers = _create_instances(BaseReader, inputs, True)
-    writers = _create_instances(BaseWriter, outputs, True)
+    readers = _create_instances(BaseReader, inputs)
+    writers = _create_instances(BaseWriter, outputs)
     return (readers, writers) if readers is not None and writers is not None else None
 
 
@@ -153,26 +156,34 @@ def _define_stitching(cfg: dict) -> StichingConfig | None:
         return None
 
     # Create handlers
-    preprocessing_handlers = _create_instances(BasePreprocessor, preprocessors or [], True)
-    homography_handler = _create_instances(BaseHomographyHandler, [homography], False)
-    masking_handler = _create_instances(BaseMaskingHandler, [masking], False)
-    postprocessing_handlers = _create_instances(BasePostprocessor, postprocessors or [], True)
-    return (
-        (preprocessing_handlers, homography_handler[0], masking_handler[0], postprocessing_handlers)
-        if preprocessing_handlers is not None
-        and homography_handler is not None
-        and masking_handler is not None
-        and postprocessing_handlers is not None
-        else None
-    )
+    preprocessing_handlers = _create_instances(BasePreprocessor, preprocessors or [])
+    homography_handler = _create_instance(BaseHomographyHandler, homography)
+    masking_handler = _create_instance(BaseMaskingHandler, masking)
+    postprocessing_handlers = _create_instances(BasePostprocessor, postprocessors or [])
+
+    if (
+        preprocessing_handlers is None
+        or homography_handler is None
+        or masking_handler is None
+        or postprocessing_handlers is None
+    ):
+        return None
+
+    if any(post._caching_enabled for post in postprocessing_handlers) and not masking_handler._caching_enabled:
+        logging.warning("Some post processors have caching enabled, while the masking handler has not")
+
+    if masking_handler._caching_enabled and not homography_handler._caching_enabled:
+        logging.warning("The masking handler has caching enabled, while the homography handler has not")
+
+    return preprocessing_handlers, homography_handler, masking_handler, postprocessing_handlers
 
 
-def _create_instances(base_class: Type[T], configs: list[dict], include_index: bool) -> list[T] | None:
+def _create_instances(base_class: type[T], configs: list[dict]) -> list[T] | None:
     """Creates subclass instances based on a given base class and their config.
 
     Parameters
     ----------
-    base_class : Type
+    base_class : type
         Defined classes in the configs have to derive from this class
     configs : list[dict]
         Configs for each instance to be created. Needs to have a "type" and all required params that are used in the
@@ -186,38 +197,53 @@ def _create_instances(base_class: Type[T], configs: list[dict], include_index: b
         List of instances or None, if any failed.
     """
 
-    def _find_subclasses(cls_obj: Type) -> dict[str, Type]:
-        all_subclasses = {}
-
-        for sc in cls_obj.__subclasses__():
-            all_subclasses[sc.__name__] = sc
-            all_subclasses.update(_find_subclasses(sc))
-        return all_subclasses
-
     instances = []
     classes = _find_subclasses(base_class)
 
     for i, cfg in enumerate(configs):
-        # Get (and remove) type
-        cls_name = cfg.pop("type", None)
-        if cls_name is None:
-            logging.error("Malformed config: Instances need a type")
+        instance = _create_instance(base_class, cfg, classes, i)
+        if instance is None:
             return None
 
-        # Try to find and instantiate class
-        cls_obj = classes.get(cls_name)
-        if cls_obj is None:
-            logging.error(f"Malformed config: Type '{cls_name}' is unknown")
-            return None
-
-        try:
-            instance = cls_obj(i, **cfg) if include_index else cls_obj(**cfg)
-            instances.append(instance)
-        except TypeError:
-            logging.error(f"Malformed config: Undefined init params for class '{cls_name}'")
-            return None
-        except Exception:
-            logging.exception(f"Malformed config: Creation of instance of '{cls_name}' failed")
-            return None
+        instances.append(instance)
 
     return instances
+
+
+def _create_instance(
+    base_class: type[T], cfg: dict, subclasses: dict[str, type[T]] | None = None, index: int | None = None
+) -> T | None:
+    if subclasses is None:
+        subclasses = _find_subclasses(base_class)
+
+    # Get (and remove) type
+    cls_name = cfg.pop("type", None)
+    if cls_name is None:
+        logging.error("Malformed config: Instances need a type")
+        return None
+
+    # Try to find and instantiate class
+    cls_obj = subclasses.get(cls_name)
+    if cls_obj is None:
+        logging.error(f"Malformed config: type '{cls_name}' is unknown")
+        return None
+
+    try:
+        # Difficult to type since there is no base class for all configurable classes
+        instance = cls_obj(index, **cfg) if index else cls_obj(**cfg)  # type: ignore
+        return instance
+    except TypeError:
+        logging.error(f"Malformed config: Undefined init params for class '{cls_name}'")
+        return None
+    except Exception:
+        logging.exception(f"Malformed config: Creation of instance of '{cls_name}' failed")
+        return None
+
+
+def _find_subclasses(cls_obj: type) -> dict[str, type]:
+    all_subclasses = {}
+
+    for sc in cls_obj.__subclasses__():
+        all_subclasses[sc.__name__] = sc
+        all_subclasses |= _find_subclasses(sc)
+    return all_subclasses

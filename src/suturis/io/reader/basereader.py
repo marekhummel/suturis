@@ -8,13 +8,7 @@ _ReadImageType = Union[tuple[Literal[True], Image], tuple[Literal[False], None]]
 
 
 class BaseReader:
-    """Abstract base class for any type of image input (aka a reader).
-
-    Raises
-    ------
-    NotImplementedError
-        Methods raise this becuase this class is abstract.
-    """
+    """Abstract base class for any type of image input (aka a reader)."""
 
     index: int
     _current: Image | None
