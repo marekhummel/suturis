@@ -4,7 +4,7 @@ from typing import Any
 import cv2
 import numpy as np
 from suturis.processing.computation.preprocessing.base_preprocessor import BasePreprocessor
-from suturis.typing import Image
+from suturis.typing import Image, ImagePair
 
 
 class Rotation(BasePreprocessor):
@@ -36,7 +36,7 @@ class Rotation(BasePreprocessor):
         self.degrees_img1 = degrees_img1
         self.degrees_img2 = degrees_img2
 
-    def process(self, img1: Image, img2: Image) -> tuple[Image, Image]:
+    def process(self, img1: Image, img2: Image) -> ImagePair:
         """Rotate images.
 
         Parameters
@@ -48,7 +48,7 @@ class Rotation(BasePreprocessor):
 
         Returns
         -------
-        tuple[Image, Image]
+        ImagePair
             Rotated images.
         """
         log.debug("Rotate images")

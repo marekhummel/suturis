@@ -17,29 +17,29 @@ stitching:
       needed_for_computation: False
   homography:
     type: BasicOrbHandler
-    continous_recomputation: True
+    caching_enabled: True
     save_to_file: False
     orb_features: 10000
     min_matches: 10
   masking:
     type: SeamFinding
-    continous_recomputation: True
+    caching_enabled: True
     save_to_file: False
     preferred_seam: [[475, 400], [725, 400]]
   # masking:
   #   type: SeamCarving
-  #   continous_recomputation: True
+  #   caching_enabled: True
   #   save_to_file: False
   #   blocked_area_one: [[540, 70], [1300, 360]]
   #   blocked_area_two: [[0, 420], [825, 700]]
   # masking:
   #   type: SeamCarvingWide
-  #   continous_recomputation: True
+  #   caching_enabled: True
   #   save_to_file: False
   #   blocked_area_one: [[540, 70], [1300, 360]]
   #   blocked_area_two: [[0, 420], [825, 700]]
 misc:
-  automatic_restart: True
+  automatic_restart: False
   enable_debug_output: False
 logging:
   version: 1

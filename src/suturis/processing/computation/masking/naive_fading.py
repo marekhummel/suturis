@@ -19,12 +19,12 @@ class NaiveFading(BaseMaskingHandler):
         """
         log.debug("Init Naive Fading Handler")
 
-        if "continous_recomputation" in kwargs:
-            log.warn("continous_recomputation flag in config will be ignored and overwritten with False")
+        if "caching_enabled" in kwargs:
+            log.warn("caching_enabled flag in config will be ignored and overwritten with False")
         if "invert" in kwargs:
             log.warn("invert flag in config will be ignored and overwritten with False")
 
-        kwargs["continous_recomputation"] = False
+        kwargs["caching_enabled"] = False
         kwargs["invert"] = False
         super().__init__(**kwargs)
 

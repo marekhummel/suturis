@@ -1,10 +1,10 @@
 import logging as log
 
-from suturis.processing.computation.base_debugging_handler import BaseDebuggingHandler
+from suturis.processing.computation.base_computation_handler import BaseComputationHandler
 from suturis.typing import Image
 
 
-class BasePostprocessor(BaseDebuggingHandler):
+class BasePostprocessor(BaseComputationHandler):
     """Base class for postprocessors."""
 
     index: int

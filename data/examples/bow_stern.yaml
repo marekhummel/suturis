@@ -24,7 +24,7 @@ stitching:
     path: ./data/examples/files/homography_bowstern.npy
   # homography:
   #   type: OptimizedSiftHandler
-  #   continous_recomputation: False
+  #   caching_enabled: False
   #   save_to_file: False
   #   sift_features: 10000
   #   min_matches: 0
@@ -34,7 +34,7 @@ stitching:
   #     # - [[446, 208], [1174, 438]]
   # masking:
   #   type: NaiveFading
-  #   continous_recomputation: False
+  #   caching_enabled: False
   #   save_to_file: False
   masking:
     type: StraightSeam

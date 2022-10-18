@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 from suturis.processing.computation.preprocessing.base_preprocessor import BasePreprocessor
-from suturis.typing import CvRect, Image
+from suturis.typing import CvRect, Image, ImagePair
 
 
 class TextRemoval(BasePreprocessor):
@@ -44,7 +44,7 @@ class TextRemoval(BasePreprocessor):
         self._mask_img1 = None
         self._mask_img2 = None
 
-    def process(self, img1: Image, img2: Image) -> tuple[Image, Image]:
+    def process(self, img1: Image, img2: Image) -> ImagePair:
         """Remove text from images.
 
         Parameters
@@ -56,7 +56,7 @@ class TextRemoval(BasePreprocessor):
 
         Returns
         -------
-        tuple[Image, Image]
+        ImagePair
             Inpainted images.
         """
         log.debug("Remove texts from given areas")

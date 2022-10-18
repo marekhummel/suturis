@@ -14,7 +14,7 @@ stitching:
   preprocessing:
   homography:
     type: OptimizedSiftHandler
-    continous_recomputation: False
+    caching_enabled: False
     save_to_file: False
     sift_features: 10000
     min_matches: 10
@@ -24,14 +24,14 @@ stitching:
       - [[200, 200], [900, 500]]
   masking:
     type: HorizontalSeamCarving
-    continous_recomputation: True
+    caching_enabled: True
     save_to_file: False
     invert: False
     half_window_size: 3
     gauss_size: 27
     yrange: [0.4, 0.6]
 misc:
-  automatic_restart: True
+  automatic_restart: False
   enable_debug_output: False
 logging:
   version: 1

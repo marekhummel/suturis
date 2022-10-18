@@ -1,39 +1,32 @@
 import logging as log
 
 import numpy as np
-from suturis.processing.computation.base_debugging_handler import BaseDebuggingHandler
+from suturis.processing.computation.base_computation_handler import BaseComputationHandler
 from suturis.typing import Image, Mask
 
 
-class BaseMaskingHandler(BaseDebuggingHandler):
+class BaseMaskingHandler(BaseComputationHandler[Mask]):
     """Base class for mask computation."""
 
-    continous_recomputation: bool
     save_to_file: bool
     invert: bool
-    _cached_mask: Mask | None
 
-    def __init__(self, continous_recomputation: bool, save_to_file: bool = False, invert: bool = False):
+    def __init__(self, save_to_file: bool = False, invert: bool = False, **kwargs):
         """Create new base mask handler instance, should not be called explicitly only from subclasses.
 
         Parameters
         ----------
-        continous_recomputation : bool
-            If set, homography will be recomputed each time, otherwise the first result will be reused
         save_to_file : bool, optional
             If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
         invert : bool, optional
             If set, the mask will be inverted before applying, by default False
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
-        log.debug(
-            f"Init masking handler, with continous recomputation set to {continous_recomputation}, "
-            f"file output set to {save_to_file} and invert set to {invert}"
-        )
-        super().__init__()
-        self.continous_recomputation = continous_recomputation
+        log.debug(f"Init masking handler, with file output set to {save_to_file} and invert set to {invert}")
+        super().__init__(**kwargs)
         self.save_to_file = save_to_file
         self.invert = invert
-        self._cached_mask = None
 
     def compute_mask(self, img1: Image, img2: Image) -> Mask:
         """Return mask for (transformed and cropped) input images, recomputed if needed.
@@ -53,15 +46,15 @@ class BaseMaskingHandler(BaseDebuggingHandler):
         assert img1.shape[:2] == img2.shape[:2]
 
         log.debug("Find mask")
-        if self.continous_recomputation or self._cached_mask is None:
+        if self._caching_enabled or self._cache is None:
             log.debug("Recomputation of mask is requested")
-            self._cached_mask = self._compute_mask(img1, img2)
+            self._cache = self._compute_mask(img1, img2)
 
             if self.save_to_file:
                 log.debug("Save computed mask to file")
-                np.save("data/out/matrix/mask.npy", self._cached_mask, allow_pickle=False)
+                np.save("data/out/matrix/mask.npy", self._cache, allow_pickle=False)
 
-        return self._cached_mask
+        return self._cache
 
     def _compute_mask(self, img1: Image, img2: Image) -> Mask:
         """Abstract method to compute mask.

@@ -4,7 +4,7 @@ from typing import Any
 import cv2
 import numpy as np
 from suturis.processing.computation.preprocessing.base_preprocessor import BasePreprocessor
-from suturis.typing import Image
+from suturis.typing import Image, ImagePair
 
 
 class DebugColoring(BasePreprocessor):
@@ -39,7 +39,7 @@ class DebugColoring(BasePreprocessor):
         self.color_img1 = color_img1
         self.color_img2 = color_img2
 
-    def process(self, img1: Image, img2: Image) -> tuple[Image, Image]:
+    def process(self, img1: Image, img2: Image) -> ImagePair:
         """Add faded colors to images.
 
         Parameters
@@ -51,7 +51,7 @@ class DebugColoring(BasePreprocessor):
 
         Returns
         -------
-        tuple[Image, Image]
+        ImagePair
             Tainted images.
         """
         log.debug("Add debugging colors to images")

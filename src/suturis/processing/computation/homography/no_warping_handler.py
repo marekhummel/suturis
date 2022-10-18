@@ -19,10 +19,10 @@ class NoWarpingHandler(BaseHomographyHandler):
         """
         log.debug("Init No Warping Handler")
 
-        if "continous_recomputation" in kwargs:
-            log.warn("continous_recomputation flag in config will be ignored and overwritten with False")
+        if "caching_enabled" in kwargs:
+            log.warn("caching_enabled flag in config will be ignored and overwritten with False")
 
-        kwargs["continous_recomputation"] = False
+        kwargs["caching_enabled"] = False
         super().__init__(**kwargs)
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:

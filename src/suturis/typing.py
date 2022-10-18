@@ -20,6 +20,7 @@ Mask = NewType("Mask", npt.NDArray[np.float64])
 SeamMatrix = NewType("SeamMatrix", npt.NDArray[np.bool_])
 
 # Aliases for readability
+ImagePair = tuple[Image, Image]
 CanvasSize = CvSize
 TransformationInfo = tuple[CanvasSize, TranslationVector, Homography]
 CanvasInfo = tuple[CanvasSize, TranslationVector]

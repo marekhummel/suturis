@@ -1,10 +1,10 @@
 import logging as log
 
-from suturis.processing.computation.base_debugging_handler import BaseDebuggingHandler
-from suturis.typing import Image
+from suturis.processing.computation.base_computation_handler import BaseComputationHandler
+from suturis.typing import Image, ImagePair
 
 
-class BasePreprocessor(BaseDebuggingHandler):
+class BasePreprocessor(BaseComputationHandler[ImagePair]):
     """Base class for preprocessors."""
 
     index: int
@@ -26,7 +26,7 @@ class BasePreprocessor(BaseDebuggingHandler):
         self.index = index
         self.needed_for_computation = needed_for_computation
 
-    def process(self, img1: Image, img2: Image) -> tuple[Image, Image]:
+    def process(self, img1: Image, img2: Image) -> ImagePair:
         """Abstract method to process images and return modified images.
 
         Parameters
@@ -38,7 +38,7 @@ class BasePreprocessor(BaseDebuggingHandler):
 
         Returns
         -------
-        tuple[Image, Image]
+        ImagePair
             Modified images.
 
         Raises

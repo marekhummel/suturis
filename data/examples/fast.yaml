@@ -18,10 +18,10 @@ stitching:
     path: ./data/examples/files/homography.npy
   masking:
     type: FileLoadHandler
-    invert: False
+    invert: True
     path: ./data/examples/files/mask.npy
 misc:
-  automatic_restart: True
+  automatic_restart: False
 logging:
   version: 1
   formatters:

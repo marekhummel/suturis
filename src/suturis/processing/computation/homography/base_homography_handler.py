@@ -2,35 +2,28 @@ import logging as log
 
 import cv2
 import numpy as np
-from suturis.processing.computation.base_debugging_handler import BaseDebuggingHandler
-from suturis.typing import CanvasInfo, CanvasSize, Homography, Image, NpShape, TranslationVector
+from suturis.processing.computation.base_computation_handler import BaseComputationHandler
+from suturis.typing import CanvasInfo, CanvasSize, Homography, Image, ImagePair, NpShape, TranslationVector
 
 
-class BaseHomographyHandler(BaseDebuggingHandler):
+class BaseHomographyHandler(BaseComputationHandler[Homography]):
     """Base class for homography computation."""
 
-    continous_recomputation: bool
     save_to_file: bool
-    _cached_homography: Homography | None
 
-    def __init__(self, continous_recomputation: bool, save_to_file: bool = False):
+    def __init__(self, save_to_file: bool = False, **kwargs):
         """Create new base homography handler instance, should not be called explicitly only from subclasses.
 
         Parameters
         ----------
-        continous_recomputation : bool
-            If set, homography will be recomputed each time, otherwise the first result will be reused
         save_to_file : bool, optional
             If set, the homography matrix will be saved to a .npy file in "data/out/matrix/", by default False
+        **kwargs : dict, optional
+            Keyword params passed to base class, by default {}
         """
-        log.debug(
-            f"Init homography handler, with continous recomputation set to {continous_recomputation}, "
-            f"file output set to {save_to_file}"
-        )
-        super().__init__()
-        self.continous_recomputation = continous_recomputation
+        log.debug(f"Init homography handler file output set to {save_to_file}")
+        super().__init__(**kwargs)
         self.save_to_file = save_to_file
-        self._cached_homography = None
 
     def find_homography(self, img1: Image, img2: Image) -> Homography:
         """Return homography for input images, recomputed if needed.
@@ -49,15 +42,15 @@ class BaseHomographyHandler(BaseDebuggingHandler):
         """
         log.debug("Find homography")
 
-        if self.continous_recomputation or self._cached_homography is None:
+        if self._caching_enabled or self._cache is None:
             log.debug("Recomputation of homography is requested")
-            self._cached_homography = self._find_homography(img1, img2)
+            self._cache = self._find_homography(img1, img2)
 
             if self.save_to_file:
                 log.debug("Save computed homography to file")
-                np.save("data/out/matrix/homography.npy", self._cached_homography, allow_pickle=False)
+                np.save("data/out/matrix/homography.npy", self._cache, allow_pickle=False)
 
-        return self._cached_homography
+        return self._cache
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
         """Abstract method to compute homography.
@@ -127,7 +120,7 @@ class BaseHomographyHandler(BaseDebuggingHandler):
         canvas_size: CanvasSize,
         translation: TranslationVector,
         homography_matrix: Homography,
-    ) -> tuple[Image, Image]:
+    ) -> ImagePair:
         """Applies computed transformations to the source images.
 
         Parameters
@@ -145,7 +138,7 @@ class BaseHomographyHandler(BaseDebuggingHandler):
 
         Returns
         -------
-        tuple[Image, Image]
+        ImagePair
             Transformed images
         """
         log.debug("Apply transformations to input images")

@@ -23,12 +23,12 @@ class FileLoadHandler(BaseHomographyHandler):
         """
         log.debug(f"Init File Load Handler looking at {path}")
 
-        if "continous_recomputation" in kwargs:
-            log.warn("continous_recomputation flag in config will be ignored and overwritten with False")
+        if "caching_enabled" in kwargs:
+            log.warn("caching_enabled flag in config will be ignored and overwritten with False")
         if "save_to_file" in kwargs:
             log.warn("save_to_file flag in config will be ignored and overwritten with False")
 
-        kwargs["continous_recomputation"] = False
+        kwargs["caching_enabled"] = False
         kwargs["save_to_file"] = False
         super().__init__(**kwargs)
         self._loaded_homography = Homography(np.load(path, allow_pickle=False))

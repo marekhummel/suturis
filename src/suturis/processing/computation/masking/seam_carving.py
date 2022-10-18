@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import CvRect, Image, Mask, SeamMatrix
+from suturis.typing import CvRect, Image, ImagePair, Mask, SeamMatrix
 
 END = 0
 LEFT = 2
@@ -67,7 +67,7 @@ class SeamCarving(BaseMaskingHandler):
         log.debug("Convert seam matrix into image mask")
         return self._create_mask_from_seam(seam_matrix, img1, img2)
 
-    def _insert_blocked_areas(self, img1: Image, img2: Image) -> tuple[Image, Image]:
+    def _insert_blocked_areas(self, img1: Image, img2: Image) -> ImagePair:
         """Sets rectangles in both image to certain colors to artifically create high energy areas,
         which will be avoided by the seam.
 
@@ -80,7 +80,7 @@ class SeamCarving(BaseMaskingHandler):
 
         Returns
         -------
-        tuple[Image, Image]
+        ImagePair
             Modified images.
         """
         img1_modified = img1.copy()
