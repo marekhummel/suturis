@@ -20,7 +20,7 @@ class NoWarpingHandler(BaseHomographyHandler):
         log.debug("Init No Warping Handler")
 
         if "caching_enabled" in kwargs:
-            log.warn("caching_enabled flag in config will be ignored and overwritten with False")
+            log.warning("caching_enabled flag in config will be ignored and overwritten with False")
 
         kwargs["caching_enabled"] = False
         super().__init__(**kwargs)

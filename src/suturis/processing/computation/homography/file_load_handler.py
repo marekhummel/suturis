@@ -22,9 +22,9 @@ class FileLoadHandler(BaseHomographyHandler):
         log.debug(f"Init File Load Handler looking at {path}")
 
         if "caching_enabled" in kwargs:
-            log.warn("caching_enabled flag in config will be ignored and overwritten with True")
+            log.warning("caching_enabled flag in config will be ignored and overwritten with True")
         if "save_to_file" in kwargs:
-            log.warn("save_to_file flag in config will be ignored and overwritten with False")
+            log.warning("save_to_file flag in config will be ignored and overwritten with False")
 
         kwargs["caching_enabled"] = True
         kwargs["save_to_file"] = False

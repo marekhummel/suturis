@@ -20,9 +20,9 @@ class NaiveFading(BaseMaskingHandler):
         log.debug("Init Naive Fading Handler")
 
         if "caching_enabled" in kwargs:
-            log.warn("caching_enabled flag in config will be ignored and overwritten with False")
+            log.warning("caching_enabled flag in config will be ignored and overwritten with False")
         if "invert" in kwargs:
-            log.warn("invert flag in config will be ignored and overwritten with False")
+            log.warning("invert flag in config will be ignored and overwritten with False")
 
         kwargs["caching_enabled"] = False
         kwargs["invert"] = False
