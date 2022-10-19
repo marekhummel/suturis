@@ -230,7 +230,7 @@ def _create_instance(
 
     try:
         # Difficult to type since there is no base class for all configurable classes
-        instance = cls_obj(index, **cfg) if index else cls_obj(**cfg)  # type: ignore
+        instance = cls_obj(index, **cfg) if index is not None else cls_obj(**cfg)  # type: ignore
         return instance
     except TypeError:
         logging.error(f"Malformed config: Undefined init params for class '{cls_name}'")
