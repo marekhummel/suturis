@@ -101,16 +101,13 @@ def _compute_params(image1: Image, image2: Image) -> ComputationParams:
 
     # Compute transformation and canvas params
     proc_logger.debug("Compute warping and target canvas")
-    homography = homography_delegate.find_homography(image1, image2)
-    canvas_size, translation = homography_delegate.analyze_transformed_canvas(image1.shape, homography)
+    transformation_info = homography_delegate.find_transformation(image1, image2)
 
     # Apply transformation
     proc_logger.debug("Warp to target space")
-    img1_translated, img2_warped = homography_delegate.apply_transformations(
-        image1, image2, canvas_size, translation, homography
-    )
+    img1_translated, img2_warped = homography_delegate.apply_transformations(image1, image2, transformation_info)
 
     # Mask calculation
     proc_logger.debug("Compute mask")
     mask = masking_delegate.compute_mask(img1_translated, img2_warped)
-    return ((canvas_size, translation, homography), mask)
+    return (transformation_info, mask)

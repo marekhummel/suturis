@@ -54,7 +54,7 @@ def compute(*images: Image) -> Image:
 
     # Warping and masking
     transformation, mask = params
-    img1_tf, img2_tf = _homography_delegate.apply_transformations(image1, image2, *transformation)
+    img1_tf, img2_tf = _homography_delegate.apply_transformations(image1, image2, transformation)
     masked_img = _masking_delegate.apply_mask(img1_tf, img2_tf, mask)
 
     # Postprocessing

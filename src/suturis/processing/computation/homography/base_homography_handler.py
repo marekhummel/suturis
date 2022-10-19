@@ -4,10 +4,19 @@ from typing import Any
 import cv2
 import numpy as np
 from suturis.processing.computation.base_computation_handler import BaseComputationHandler
-from suturis.typing import CanvasInfo, CanvasSize, Homography, Image, ImagePair, NpShape, TranslationVector
+from suturis.typing import (
+    CanvasInfo,
+    CanvasSize,
+    TransformationInfo,
+    Homography,
+    Image,
+    ImagePair,
+    NpShape,
+    TranslationVector,
+)
 
 
-class BaseHomographyHandler(BaseComputationHandler[Homography]):
+class BaseHomographyHandler(BaseComputationHandler[TransformationInfo]):
     """Base class for homography computation."""
 
     save_to_file: bool
@@ -26,7 +35,7 @@ class BaseHomographyHandler(BaseComputationHandler[Homography]):
         super().__init__(**kwargs)
         self.save_to_file = save_to_file
 
-    def find_homography(self, img1: Image, img2: Image) -> Homography:
+    def find_transformation(self, img1: Image, img2: Image) -> TransformationInfo:
         """Return homography for input images, recomputed if needed.
 
         Parameters
@@ -38,19 +47,22 @@ class BaseHomographyHandler(BaseComputationHandler[Homography]):
 
         Returns
         -------
-        Homography
-            The homography computed for those images, or the cached one
+        TransformationInfo
+            Full transformation parameters (canvas size, translation and homography), or the cached ones
         """
         log.debug("Find homography")
 
         if not self._caching_enabled or self._cache is None:
             log.debug("Recomputation of homography is requested")
-            self._cache = self._find_homography(img1, img2)
+            homography = self._find_homography(img1, img2)
+            canvas_size, translation = self._analyze_transformed_canvas(img1.shape, homography)
+            self._cache = canvas_size, translation, homography
 
             if self.save_to_file:
-                log.debug("Save computed homography to file")
-                np.save("data/out/matrix/homography.npy", self._cache, allow_pickle=False)
-
+                log.debug("Save computed transformation params to file")
+                np.savez(
+                    "data/out/matrix/homography.npz", canvas=canvas_size, translation=translation, homography=homography
+                )
         return self._cache
 
     def _find_homography(self, img1: Image, img2: Image) -> Homography:
@@ -75,7 +87,7 @@ class BaseHomographyHandler(BaseComputationHandler[Homography]):
         """
         raise NotImplementedError("Abstract method needs to be overriden")
 
-    def analyze_transformed_canvas(self, img_shape: NpShape, homography: Homography) -> CanvasInfo:
+    def _analyze_transformed_canvas(self, img_shape: NpShape, homography: Homography) -> CanvasInfo:
         """Analyzes the dimensions of the input and the homography, to compute dimensions and crop area in target space.
 
         Parameters
@@ -114,14 +126,7 @@ class BaseHomographyHandler(BaseComputationHandler[Homography]):
         # Return
         return canvas_size, translation
 
-    def apply_transformations(
-        self,
-        img1: Image,
-        img2: Image,
-        canvas_size: CanvasSize,
-        translation: TranslationVector,
-        homography_matrix: Homography,
-    ) -> ImagePair:
+    def apply_transformations(self, img1: Image, img2: Image, transformation_info: TransformationInfo) -> ImagePair:
         """Applies computed transformations to the source images.
 
         Parameters
@@ -130,12 +135,8 @@ class BaseHomographyHandler(BaseComputationHandler[Homography]):
             First input image
         img2 : Image
             Second input image
-        canvas_size : CanvasSize
-            Dimensions of the target space
-        translation : TranslationVector
-            Translation needed to move out of negative coordinates
-        homography_matrix : Homography
-            Homography which warpes the second image
+        transformation_info : TransformationInfo
+            Parameters needed to apply transformation (canvas size, translation and homography)
 
         Returns
         -------
@@ -143,6 +144,7 @@ class BaseHomographyHandler(BaseComputationHandler[Homography]):
             Transformed images
         """
         log.debug("Apply transformations to input images")
+        canvas_size, translation, homography_matrix = transformation_info
         target_width, target_height = canvas_size
         tx, ty = translation
 
