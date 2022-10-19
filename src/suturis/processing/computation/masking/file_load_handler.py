@@ -10,8 +10,6 @@ class FileLoadHandler(BaseMaskingHandler):
     """File mask handler, meaning mask will simply be loaded from a .npy. file.
     Note that this should only be used if the homography is constant too due to the changing image dimensions."""
 
-    _loaded_mask: Mask
-
     def __init__(self, path: str = "data/out/matrix/mask.npy", **kwargs: Any):
         """Creates new file load handler.
 
@@ -25,29 +23,11 @@ class FileLoadHandler(BaseMaskingHandler):
         log.debug("Init File Load Handler")
 
         if "caching_enabled" in kwargs:
-            log.warn("caching_enabled flag in config will be ignored and overwritten with False")
+            log.warn("caching_enabled flag in config will be ignored and overwritten with True")
         if "save_to_file" in kwargs:
             log.warn("save_to_file flag in config will be ignored and overwritten with False")
 
-        kwargs["caching_enabled"] = False
+        kwargs["caching_enabled"] = True
         kwargs["save_to_file"] = False
         super().__init__(**kwargs)
-        self._loaded_mask = Mask(np.load(path, allow_pickle=False))
-
-    def _compute_mask(self, img1: Image, img2: Image) -> Mask:
-        """Mask finding, just returns matrix loaded from file.
-
-        Parameters
-        ----------
-        img1 : Image
-            First input image (won't be used here)
-        img2 : Image
-            Second input image (won't be used here)
-
-        Returns
-        -------
-        Mask
-            Matrix loaded from file
-        """
-        log.debug("Return loaded mask")
-        return self._loaded_mask
+        self._cache = Mask(np.load(path, allow_pickle=False))
