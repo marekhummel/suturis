@@ -3,7 +3,7 @@ from typing import Any
 
 import numpy as np
 from suturis.processing.computation.homography import BaseHomographyHandler
-from suturis.typing import CvSize, Homography, TranslationVector
+from suturis.typing import CvSize, Homography, Matrix, TranslationVector
 
 
 class FileLoadHandler(BaseHomographyHandler):
@@ -30,10 +30,27 @@ class FileLoadHandler(BaseHomographyHandler):
         kwargs["save_to_file"] = False
         super().__init__(**kwargs)
 
-        file = np.load(path)
-        canvas_size = file["canvas"]
-        translation = file["translation"]
-        homography = file["homography"]
-        file.close()
+        # Load
+        try:
+            file = np.load(path)
+            canvas_size = file["canvas"]
+            translation = file["translation"]
+            homography = file["homography"]
+            file.close()
+        except KeyError:
+            raise KeyError("Invalid .npz file, any of canvas, translation or homography is missing")
 
-        self._cache = CvSize(tuple(canvas_size)), TranslationVector(tuple(translation)), Homography(homography)
+        # Verify
+        if type(canvas_size) is not Matrix or canvas_size.shape != (2,) or canvas_size.dtype != np.int32:
+            raise ValueError("Invalid .npz file, canvas is wrongly formatted")
+
+        if type(translation) is not Matrix or translation.shape != (2,) or translation.dtype != np.int32:
+            raise ValueError("Invalid .npz file, translation is wrongly formatted")
+
+        if type(homography) is not Matrix or homography.shape != (3, 3):
+            raise ValueError("Invalid .npz file, homography is wrongly formatted")
+
+        # Store
+        canvas_size_tuple = (canvas_size[0], canvas_size[1])
+        translation_tuple = (translation[0], translation[1])
+        self._cache = CvSize(canvas_size_tuple), TranslationVector(translation_tuple), Homography(homography)

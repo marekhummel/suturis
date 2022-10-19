@@ -3,7 +3,7 @@ from typing import Any
 
 import numpy as np
 from suturis.processing.computation.masking import BaseMaskingHandler
-from suturis.typing import Image, Mask
+from suturis.typing import Mask
 
 
 class FileLoadHandler(BaseMaskingHandler):
