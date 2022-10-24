@@ -71,8 +71,9 @@ stitching:
   postprocessing:
     # - type: Rotation
     #   angle_deg: 90
-    # - type: Cropper
-    #   caching_enabled: True
+    - type: Cropper
+      caching_enabled: True
+      threshold: 0.02
 misc:
   automatic_restart: False
   enable_debug_outputs: False

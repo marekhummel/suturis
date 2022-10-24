@@ -6,47 +6,26 @@ image = cv2.imread("data/out/debug/result.jpg")
 
 start = time.perf_counter()
 height, width = image.shape[:2]
-xmin, xmax = 0, width - 1
-ymin, ymax = 0, height - 1
 
 
-is_black = np.all(image[:, :] == [0, 0, 0], axis=2)
-black_ratio_rows = np.average(is_black.astype(np.float64), axis=1)
-black_ratio_cols = np.average(is_black.astype(np.float64), axis=0)
+is_black = np.all(image[:, :] == [0, 0, 0], axis=2).astype(np.float64)
+edges = [[0, 1, 1], [width - 1, 1, -1], [0, 0, 1], [height - 1, 0, -1]]
 
-
-borders = [[xmin, 1, 1], [xmax, 1, -1], [ymin, 0, 1], [ymax, 0, -1]]
-
-
-ratios = [black_ratio_rows, black_ratio_cols]
 while True:
     best = None
-    for border_index, (index, ratio_index, increment) in enumerate(borders):
-        curr_ratio = ratios[ratio_index][index]
-        if best is None or curr_ratio > best[1]:
-            best = border_index, curr_ratio
+    for edge_index, (index, axis, increment) in enumerate(edges):
+        other_dims = [e[0] for e in edges if e[1] != axis]
+        line_ratio = np.average(np.take(is_black, index, axis)[other_dims[0] : other_dims[1] + 1])
+        if best is None or line_ratio > best[1]:
+            best = edge_index, line_ratio
 
-    if best[1] < 0.1:
+    if best[1] < 0.02:
         break
 
-    borders[best[0]][0] += borders[best[0]][2]
+    edges[best[0]][0] += edges[best[0]][2]
 
 
-# while black_ratio_cols[xmin] == 1:
-#     xmin += 1
-
-# while black_ratio_cols[xmax] == 1:
-#     xmax -= 1
-
-# while black_ratio_rows[ymin] == 1:
-#     ymin += 1
-
-# while black_ratio_rows[ymax] == 1:
-#     ymax -= 1
-
-# cropped = image[:, xmin : xmax + 1, :]
-
-xmin, xmax, ymin, ymax = [b[0] for b in borders]
+xmin, xmax, ymin, ymax = [b[0] for b in edges]
 cropped = image.copy()
 cropped[:, :xmin] = [0, 0, 127]
 cropped[:, xmax + 1 :] = [0, 0, 127]
