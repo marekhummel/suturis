@@ -19,7 +19,7 @@ class Rotation(BasePostprocessor[tuple[Matrix, CvSize]]):
         ----------
         *args : Any, optional
             Positional arguments passed to base class, by default []
-        degrees_img : float
+        angle_deg : float
             Rotation in degrees (positive means ccw)
         **kwargs : dict, optional
             Keyword params passed to base class, by default {}
