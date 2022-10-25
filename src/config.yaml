@@ -3,28 +3,28 @@ io:
     - type: FileReader
       path: ./data/examples/files/2022-04-23/starboard_0120220423163949.mp4
       skip: 7.8
-      speed_up: 16
+      speed_up: 4
     - type: FileReader
       path: ./data/examples/files/2022-04-23/port_0120220423162959.mp4
-      speed_up: 16
+      speed_up: 4
   outputs:
     - type: ScreenOutput
       title: Stitched
       window_size: [600, 900]
-    # - type: FileWriter
-    #   dimensions: [1280, 720]
-    #   source: OUTPUT
-    #   filename: "{date}_stitching.mp4"
+    - type: FileWriter
+      dimensions: [600, 900]
+      source: OUTPUT
+      filename: "{date}_stitching.mp4"
 stitching:
   preprocessing:
-    # - type: TextRemoval
-    #   needed_for_computation: False
-    #   text_areas_one:
-    #     - [[454, 17], [823, 41]] # Text Top
-    #     - [[1052, 671], [1264, 698]] # Text Bot
-    #   text_areas_two:
-    #     - [[454, 17], [823, 41]] # Text Top
-    #     - [[1085, 671], [1264, 698]] # Text Bot
+    - type: TextRemoval
+      needed_for_computation: False
+      text_areas_one:
+        - [[454, 17], [823, 41]] # Text Top
+        - [[1052, 671], [1264, 698]] # Text Bot
+      text_areas_two:
+        - [[454, 17], [823, 41]] # Text Top
+        - [[1085, 671], [1264, 698]] # Text Bot
   homography:
     type: FileLoadHandler
   # homography:
@@ -77,7 +77,7 @@ stitching:
       threshold: 0.02
 misc:
   automatic_restart: False
-  enable_debug_outputs: False
+  enable_debug_outputs: True
 logging:
   version: 1
   formatters:
