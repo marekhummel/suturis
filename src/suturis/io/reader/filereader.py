@@ -65,24 +65,30 @@ class FileReader(BaseReader):
             Either True and the frame or False and None
         """
         log.debug(f"Reading image from reader #{self.index}")
+
+        # Check availablity of capture
         if not self._capture.isOpened():
             log.info(f"Trying to read from closed capture in reader #{self.index}, return")
             return False, None
 
+        # Return first frame if single_frame is set
         if self._single_frame is not None:
             return True, self._single_frame
 
+        # Read frame
         success, frame = self._capture.read()
         if not success:
             log.info(f"Reading image failed in reader #{self.index}, return")
             return False, None
 
+        # Sleep to match fps
         now = time.perf_counter()
         if self._last_read and (now - self._last_read) < self._frame_time:
             delay = self._frame_time - (now - self._last_read)
             log.debug(f"Delay read of reader #{self.index} by {delay:.6f}s to match fps")
             time.sleep(delay)
 
+        # Return
         log.debug(f"Reading image from reader #{self.index} successful")
         self._last_read = time.perf_counter()
         return True, Image(frame)

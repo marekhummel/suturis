@@ -48,10 +48,12 @@ class BaseReader:
         Image | None
             Frame if available or None if the thread finished.
         """
+        # Stall while no image is preset or exit if event is triggered
         while self._current is None:
             if self._cancellation_token.is_set():
                 return None
 
+        # Return data and set memory to None
         with self._lock:
             data = self._current
             self._current = None
@@ -59,12 +61,16 @@ class BaseReader:
 
     def _fetch_images(self) -> None:
         """Main threaded loop to read images"""
+        # Loop while event is not set
         while not self._cancellation_token.is_set():
+            # Retrieve image
             success, frame = self._read_image()
 
+            # Break if reader fails
             if not success:
                 break
 
+            # Update memory with new frame
             with self._lock:
                 self._current = frame
 

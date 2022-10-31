@@ -34,8 +34,12 @@ class DebugColoring(BasePreprocessor):
             Keyword params passed to base class, by default {}
         """
         log.debug("Init Debug Coloring preprocessor")
-        super().__init__(*args, **kwargs)
 
+        if "needed_for_computation" in kwargs:
+            log.warning("needed_for_computation flag in config will be ignored and overwritten with False")
+        kwargs["needed_for_computation"] = False
+
+        super().__init__(*args, **kwargs)
         self.color_img1 = color_img1
         self.color_img2 = color_img2
 

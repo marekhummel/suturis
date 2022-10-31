@@ -3,18 +3,18 @@ io:
     - type: FileReader
       path: ./data/examples/files/2022-04-23/starboard_0120220423163949.mp4
       skip: 7.8
-      speed_up: 1
+      speed_up: 16
     - type: FileReader
       path: ./data/examples/files/2022-04-23/port_0120220423162959.mp4
-      speed_up: 1
+      speed_up: 16
   outputs:
     - type: ScreenOutput
       title: Stitched
       window_size: [600, 900]
-    - type: FileWriter
-      dimensions: [600, 900]
-      source: OUTPUT
-      filename: "{date}_stitching.mp4"
+    # - type: FileWriter
+    #   dimensions: [600, 900]
+    #   source: OUTPUT
+    #   filename: "{date}_stitching.mp4"
 stitching:
   preprocessing:
     # - type: TextRemoval
@@ -39,9 +39,9 @@ stitching:
   #     - [[200, 200], [900, 500]]
   # masking:
   #   type: NaiveFading
-  masking:
-    type: FileLoadHandler
-    invert: True
+  # masking:
+  #   type: FileLoadHandler
+  #   invert: True
   # masking:
   #   type: SeamFinding
   #   caching_enabled: True
@@ -61,13 +61,13 @@ stitching:
   #   half_window_size: 3
   #   gauss_size: 27
   #   yrange: [0.4, 0.6]
-  # masking:
-  #   type: StraightSeam
-  #   caching_enabled: False
-  #   save_to_file: True
-  #   invert: True
-  #   index: 400
-  #   vertical: False
+  masking:
+    type: StraightSeam
+    caching_enabled: True
+    save_to_file: False
+    invert: True
+    index: 400
+    vertical: False
   postprocessing:
     - type: Rotation
       caching_enabled: True

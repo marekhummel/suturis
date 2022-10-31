@@ -37,8 +37,8 @@ class FileLoadHandler(BaseHomographyHandler):
             translation = file["translation"]
             homography = file["homography"]
             file.close()
-        except KeyError:
-            raise KeyError("Invalid .npz file, any of canvas, translation or homography is missing")
+        except KeyError as e:
+            raise KeyError("Invalid .npz file, any of canvas, translation or homography is missing") from e
 
         # Verify
         if type(canvas_size) is not Matrix or canvas_size.shape != (2,) or canvas_size.dtype != np.int32:

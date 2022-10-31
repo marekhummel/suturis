@@ -1,6 +1,7 @@
 import logging as log
 from typing import Any
 
+import cv2
 import numpy as np
 from suturis.processing.computation.base_computation_handler import BaseComputationHandler
 from suturis.typing import Image, Mask
@@ -54,6 +55,10 @@ class BaseMaskingHandler(BaseComputationHandler[Mask]):
             if self.save_to_file:
                 log.debug("Save computed mask to file")
                 np.save("data/out/matrix/mask.npy", self._cache, allow_pickle=False)
+
+            if self.enable_debug_outputs:
+                mask_jpg = (self._cache * 255).astype(np.uint8)
+                cv2.imwrite(f"{self._debug_path}mask.jpg", mask_jpg)
 
         return self._cache
 

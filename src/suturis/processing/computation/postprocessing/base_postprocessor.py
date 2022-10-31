@@ -12,7 +12,6 @@ class BasePostprocessor(Generic[T], BaseComputationHandler[T]):
     """Base class for postprocessors."""
 
     index: int
-    needed_for_computation: bool
 
     def __init__(self, index: int, /, **kwargs: Any) -> None:
         """Create new base postprocessor instance.

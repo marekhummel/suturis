@@ -94,10 +94,10 @@ class BasicOrbHandler(BaseHomographyHandler):
         matches_img = cv2.drawMatches(
             img1, kpts_img1, img2, kpts_img2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS
         )
-        cv2.imwrite(f"{self._path}orb_matches.jpg", matches_img)
+        cv2.imwrite(f"{self._debug_path}orb_matches.jpg", matches_img)
 
         kpts1_img = cv2.drawKeypoints(img1, kpts_img1, None, color=(72, 144, 233))
-        cv2.imwrite(f"{self._path}img1_orb_keypoints.jpg", kpts1_img)
+        cv2.imwrite(f"{self._debug_path}img1_orb_keypoints.jpg", kpts1_img)
 
         kpts2_img = cv2.drawKeypoints(img2, kpts_img2, None, color=(72, 144, 233))
-        cv2.imwrite(f"{self._path}img2_orb_keypoints.jpg", kpts2_img)
+        cv2.imwrite(f"{self._debug_path}img2_orb_keypoints.jpg", kpts2_img)
