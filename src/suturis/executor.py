@@ -25,9 +25,10 @@ def run(io: IOConfig, delegates: StichingConfig, misc: MiscConfig) -> None:
     """
     # Setup
     readers, writers = io
-    stitching.set_delegates(*delegates)
     if misc.get("enable_debug_outputs", False):
+        _enable_debug_outputs(delegates)
         stitching.enable_debug_outputs()
+    stitching.set_delegates(*delegates)
 
     # Set shared event for each reader to signal cancellation when one reader fails (EOF most likely)
     assert len(readers) == 2
@@ -98,3 +99,17 @@ def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter], cancell
         log.info("Manually pausing")
         while cv2.waitKey(25) & 0xFF != ord("p"):
             pass
+
+
+def _enable_debug_outputs(delegates: StichingConfig) -> None:
+    """Enable debug outputs (various intermediate images for debugging)"""
+    log.info("Debug outputs are enabled")
+
+    preprocessors, homography, masking, postprocessors = delegates
+
+    for preprocessor in preprocessors:
+        preprocessor.enable_debug_outputs()
+    homography.enable_debug_outputs()
+    masking.enable_debug_outputs()
+    for postprocessor in postprocessors:
+        postprocessor.enable_debug_outputs()

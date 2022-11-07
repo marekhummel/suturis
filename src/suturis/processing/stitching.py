@@ -104,17 +104,5 @@ def set_delegates(
 
 
 def enable_debug_outputs() -> None:
-    """Enable debug outputs (various intermediate images for debugging)"""
     global _debug_outputs
-    log.info("Debug outputs are enabled")
     _debug_outputs = True
-
-    assert _preprocessor_delegates is not None and _postprocessor_delegates is not None
-    assert _homography_delegate and _masking_delegate
-
-    for preprocessor in _preprocessor_delegates:
-        preprocessor.enable_debug_outputs()
-    _homography_delegate.enable_debug_outputs()
-    _masking_delegate.enable_debug_outputs()
-    for postprocessor in _postprocessor_delegates:
-        postprocessor.enable_debug_outputs()
