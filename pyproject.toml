@@ -1,11 +1,11 @@
 [tool.black]
 line-length = 120
-target-version = ['py310']
+target-version = ['py311']
 extend-exclude = ['test/']
 force-exclude = 'test/cv2_stub.pyi'
 
 [tool.mypy]
-python_version = '3.10'
+python_version = '3.11'
 plugins = 'numpy.typing.mypy_plugin'
 disallow_untyped_calls = true
 disallow_untyped_defs = true

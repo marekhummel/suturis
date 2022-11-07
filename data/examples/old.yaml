@@ -40,7 +40,7 @@ stitching:
   #   blocked_area_two: [[0, 420], [825, 700]]
 misc:
   automatic_restart: False
-  enable_debug_output: False
+  enable_debug_outputs: False
 logging:
   version: 1
   formatters:

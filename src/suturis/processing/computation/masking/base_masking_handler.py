@@ -50,7 +50,8 @@ class BaseMaskingHandler(BaseComputationHandler[Mask]):
         log.debug("Find mask")
         if not self._caching_enabled or self._cache is None:
             log.debug("Recomputation of mask is requested")
-            self._cache = self._compute_mask(img1, img2)
+            mask = self._compute_mask(img1, img2)
+            self._cache = mask if not self.invert else Mask(1 - mask)
 
             if self.save_to_file:
                 log.debug("Save computed mask to file")
@@ -102,8 +103,7 @@ class BaseMaskingHandler(BaseComputationHandler[Mask]):
             Stitched image created by the mask.
         """
         log.debug("Apply mask to images")
-        mask1, mask2 = (1 - mask, mask) if self.invert else (mask, 1 - mask)
-        img1_masked = img1.astype(np.float64) * mask1
-        img2_masked = img2.astype(np.float64) * mask2
+        img1_masked = img1.astype(np.float64) * mask
+        img2_masked = img2.astype(np.float64) * (1 - mask)
         final = (img1_masked + img2_masked).astype(np.uint8)
         return Image(final)

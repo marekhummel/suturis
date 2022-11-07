@@ -15,13 +15,14 @@ stitching:
   preprocessing:
   homography:
     type: FileLoadHandler
-    path: ./data/examples/files/homography.npy
+    path: ./data/examples/files/homography.npz
   masking:
     type: FileLoadHandler
     invert: True
     path: ./data/examples/files/mask.npy
 misc:
   automatic_restart: False
+  enable_debug_outputs: False
 logging:
   version: 1
   formatters:

@@ -17,11 +17,11 @@ io:
       filename: "{date}_stitching_bowstern.mp4"
 stitching:
   preprocessing:
-    - type: DebugColoring
-      needed_for_computation: False
+    # - type: DebugColoring
+    #   needed_for_computation: False
   homography:
     type: FileLoadHandler
-    path: ./data/examples/files/homography_bowstern.npy
+    path: ./data/examples/files/homography_bowstern.npz
   # homography:
   #   type: OptimizedSiftHandler
   #   caching_enabled: False
@@ -38,12 +38,14 @@ stitching:
   #   save_to_file: False
   masking:
     type: StraightSeam
+    caching_enabled: True
+    save_to_file: False
     invert: False
     index: 1079 # 458
     vertical: True
 misc:
   automatic_restart: False
-  enable_debug_output: False
+  enable_debug_outputs: False
 logging:
   version: 1
   formatters:

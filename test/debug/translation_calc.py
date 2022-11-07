@@ -25,15 +25,14 @@ def compute_target_canvas(img1_dim, img2_dim, homography):
     return translation, canvas_size
 
 
-img1 = cv2.imread("data/out/Image1.png")
-img2 = cv2.imread("data/out/Image2.png")
-homography = np.array(
-    [
-        [9.72207305e-01, -2.39784214e-02, 4.52830749e01],
-        [-2.65546526e-02, 9.42927680e-01, -6.70054479e00],
-        [-1.03685511e-05, -1.01653987e-04, 1.00000000e00],
-    ]
+img1 = cv2.imread("data/out/debug/img1.jpg")
+img2 = cv2.imread("data/out/debug/img1.jpg")
+homography = np.load("./data/examples/files/homography_bowstern.npy")
+
+
+translation, canvas_size = compute_target_canvas(img1.shape[:2], img2.shape[:2], homography)
+
+
+np.savez(
+    "./data/examples/files/homography_bowstern.npz", canvas=canvas_size, translation=translation, homography=homography
 )
-
-
-print(compute_target_canvas(img1.shape[:2], img2.shape[:2], homography))
