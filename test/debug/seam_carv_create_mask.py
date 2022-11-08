@@ -1,53 +1,19 @@
-import numpy as np
 import cv2
+import numpy as np
 
-GAUSS_SIZE = 17
+import sys
+import os
 
+sys.path.append(f"{os.path.dirname(os.path.realpath(__file__))}/../../src")
 
-def _create_mask_from_seam(seammat, im1, im2):
-    """
-    Creates a mask without needing to floodfill because in each row there is one true value.
-    """
-    mask_mat = np.ones_like(im1)
+from suturis.processing.computation.masking.seam_carving import SeamCarving
 
-    # Much smarter is to just follow the seam
-    currPos = 0
-    for row in range(seammat.shape[0]):
-        if row == 0:
-            for col in range(seammat.shape[1]):
-                if seammat[row][col]:
-                    currPos = col
-                    mask_mat[
-                        row : row + 1,
-                        col : seammat.shape[1] + 1,
-                    ] = [0, 0, 0]
-                    break
-        else:
-            if currPos > 1 and seammat[row][currPos - 2]:
-                currPos = currPos - 2
-            elif currPos > 0 and seammat[row][currPos - 1]:
-                currPos = currPos - 1
-            elif currPos < seammat.shape[1] - 3 and seammat[row][currPos + 2]:
-                currPos = currPos + 2
-            elif currPos < seammat.shape[1] - 2 and seammat[row][currPos + 1]:
-                currPos = currPos + 1
-            mask_mat[
-                row : row + 1,
-                currPos : seammat.shape[1] + 1,
-            ] = [0, 0, 0]
+image1 = cv2.imread("data/out/debug/img1_transformed.jpg")
+image2 = cv2.imread("data/out/debug/img2_transformed.jpg")
+blocked_area1 = [[540, 70], [1400, 360]]
+blocked_area2 = [[0, 420], [825, 700]]
 
-    # stitch.show_image('Carvmask: After', mask_mat)
-    return cv2.GaussianBlur(
-        mask_mat,
-        (GAUSS_SIZE, GAUSS_SIZE),
-        0,
-        sigmaY=0,
-        borderType=cv2.BORDER_REPLICATE,
-    )
+sc = SeamCarving(blocked_area1, blocked_area2, caching_enabled=True)
+mask = sc._compute_mask(image1, image2) * 255
 
-
-seammat = np.loadtxt("seammat2.txt", dtype=int)
-img1 = np.zeros((*seammat.shape, 3))
-img2 = np.zeros((*seammat.shape, 3))
-mask = _create_mask_from_seam(seammat, img1, img2)
-cv2.imwrite("data/out/mask2.jpg", mask * 255)
+cv2.imwrite("data/out/debug/test.jpg", mask.astype(np.uint8))

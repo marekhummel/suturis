@@ -10,11 +10,11 @@ io:
   outputs:
     - type: ScreenOutput
       title: Stitched
-      window_size: [1280, 720]
-    - type: FileWriter
-      dimensions: [1280, 720]
-      source: OUTPUT
-      filename: "{date}_stitching_bowstern.mp4"
+      # window_size: [1280, 720]
+    # - type: FileWriter
+    #   dimensions: [1280, 720]
+    #   source: OUTPUT
+    #   filename: "{date}_stitching_bowstern.mp4"
 stitching:
   preprocessing:
     # - type: DebugColoring
@@ -43,6 +43,10 @@ stitching:
     invert: False
     index: 1079 # 458
     vertical: True
+  # postprocessing:
+  #   - type: Cropper
+  #     caching_enabled: True
+  #     threshold: 0.02
 misc:
   automatic_restart: False
   enable_debug_outputs: False

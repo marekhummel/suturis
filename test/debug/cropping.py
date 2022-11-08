@@ -26,7 +26,7 @@ while True:
 
 
 xmin, xmax, ymin, ymax = [b[0] for b in edges]
-cropped = image.copy()
+cropped = np.zeros_like(image)
 cropped[:, :xmin] = [0, 0, 127]
 cropped[:, xmax + 1 :] = [0, 0, 127]
 cropped[:ymin, :] = [0, 0, 127]
@@ -35,5 +35,7 @@ print(f"Cropped image from {(0, width - 1)} to {(xmin, xmax)} and {(0, height - 
 
 print(time.perf_counter() - start)
 
-cv2.imshow("f", cropped.astype(np.uint8))
+combined = image * 0.5 + cropped * 0.5
+cv2.imwrite("./data/out/debug/cropping.jpg", combined.astype(np.uint8))
+cv2.imshow("f", combined.astype(np.uint8))
 cv2.waitKey(0)

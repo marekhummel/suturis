@@ -14,6 +14,8 @@ F_TOP = 4
 F_TOP_RIGHT = 5
 
 GAUSS_SIZE = 17
+LOW_LAB_IN_BGR = [195, 59, 0]
+HIGH_LAB_IN_BGR = [0, 62, 255]
 
 
 class SeamFinding(BaseMaskingHandler):
@@ -105,8 +107,10 @@ class SeamFinding(BaseMaskingHandler):
             Bool matrix to describe seam.
         """
         # Convert color into Lab space, because we would like to follow EN ISO 11664-4
-        img1_lab = Image(cv2.cvtColor(img1.astype(np.uint8), cv2.COLOR_BGR2Lab))
-        img2_lab = Image(cv2.cvtColor(img2.astype(np.uint8), cv2.COLOR_BGR2Lab))
+        img1_lab = cv2.cvtColor(img1.astype(np.uint8), cv2.COLOR_BGR2Lab)
+        img2_lab = cv2.cvtColor(img2.astype(np.uint8), cv2.COLOR_BGR2Lab)
+        img1_lab = Image(np.where(img1 == [0, 0, 0], LOW_LAB_IN_BGR, img1_lab))
+        img2_lab = Image(np.where(img2 == [0, 0, 0], HIGH_LAB_IN_BGR, img2_lab))
 
         # Doing some initializations
         height, width = img1_lab.shape[:2]

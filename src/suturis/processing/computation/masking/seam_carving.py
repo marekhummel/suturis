@@ -150,6 +150,8 @@ class SeamCarving(BaseMaskingHandler):
         dif = np.zeros((height, width))
         img1_lab = cv2.cvtColor(img1, cv2.COLOR_BGR2Lab)
         img2_lab = cv2.cvtColor(img2, cv2.COLOR_BGR2Lab)
+        img1_lab = np.where(img1 == [0, 0, 0], LOW_LAB_IN_BGR, img1_lab)
+        img2_lab = np.where(img2 == [0, 0, 0], HIGH_LAB_IN_BGR, img2_lab)
         for row in range(height):
             for col in range(width):
                 dif[row][col] = np.sqrt(

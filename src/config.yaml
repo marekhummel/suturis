@@ -30,17 +30,26 @@ stitching:
     #     - [[454, 17], [823, 41]] # Text Top
     #     - [[1085, 671], [1264, 698]] # Text Bot
   # homography:
-  #   type: FileLoadHandler
+  #   type: NoWarpingHandler
+  #   save_to_file: False
   homography:
-    type: OptimizedSiftHandler
-    caching_enabled: True
-    save_to_file: False
-    sift_features: 10000
-    min_matches: 10
-    relevant_areas_one:
-      - [[200, 200], [900, 500]]
-    relevant_areas_two:
-      - [[200, 200], [900, 500]]
+    type: FileLoadHandler
+  # homography:
+  #   type: BasicOrbHandler
+  #   caching_enabled: False
+  #   save_to_file: False
+  #   orb_features: 10000
+  #   min_matches: 10
+  # homography:
+  #   type: OptimizedSiftHandler
+  #   caching_enabled: True
+  #   save_to_file: False
+  #   sift_features: 10000
+  #   min_matches: 10
+  #   relevant_areas_one:
+  #     - [[200, 200], [900, 500]]
+  #   relevant_areas_two:
+  #     - [[200, 200], [900, 500]]
   # masking:
   #   type: NaiveFading
   # masking:
@@ -55,7 +64,7 @@ stitching:
   #   type: SeamCarvingWide
   #   caching_enabled: True
   #   save_to_file: False
-  #   blocked_area_one: [[540, 70], [1300, 360]]
+  #   blocked_area_one: [[540, 70], [1400, 360]]
   #   blocked_area_two: [[0, 420], [825, 700]]
   masking:
     type: HorizontalSeamCarving
@@ -73,13 +82,12 @@ stitching:
   #   index: 400
   #   vertical: False
   postprocessing:
-    - type: Cropper
-      caching_enabled: True
-      threshold: 0.02
+    # - type: Cropper
+    #   caching_enabled: True
+    #   threshold: 0.02
     # - type: Rotation
     #   caching_enabled: True
     #   angle_deg: 90
-
 misc:
   automatic_restart: False
   enable_debug_outputs: True
