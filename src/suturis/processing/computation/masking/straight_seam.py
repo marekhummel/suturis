@@ -50,9 +50,9 @@ class StraightSeam(BaseMaskingHandler):
         mask = np.zeros_like(img1, dtype=np.float64)
 
         if self.vertical:
-            mask[:, : self.index, :] = 1
+            mask[:, self.index :, :] = 1
         else:
-            mask[: self.index, :, :] = 1
+            mask[self.index :, :, :] = 1
 
         mask = cv2.GaussianBlur(mask, (27, 27), 0, borderType=cv2.BORDER_REPLICATE)
         return Mask(mask)

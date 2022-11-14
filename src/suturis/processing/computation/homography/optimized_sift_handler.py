@@ -145,7 +145,7 @@ class OptimizedSiftHandler(BaseHomographyHandler):
         def comb_distance(m: cv2.DMatch) -> float:
             return (2 * m.distance / max_desc_distance + loc_distance(m) / max_loc_distance) / 3
 
-        return [m for m in matches if comb_distance(m) < 0.25]
+        return [m for m in matches if comb_distance(m) <= 0.25]
 
     def _output_debug_images(self, img1: Image, img2: Image, kpts_img1: list, kpts_img2: list, matches: list) -> None:
         """Writes debug images to disk to visualize matches and keypoints.

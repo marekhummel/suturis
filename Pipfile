@@ -16,6 +16,7 @@ rope = "*"
 pygount = "*"
 types-pyyaml = "*"
 pre-commit = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.11"
