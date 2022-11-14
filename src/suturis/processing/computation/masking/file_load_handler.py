@@ -30,4 +30,5 @@ class FileLoadHandler(BaseMaskingHandler):
         kwargs["caching_enabled"] = True
         kwargs["save_to_file"] = False
         super().__init__(**kwargs)
-        self._cache = Mask(np.load(path, allow_pickle=False))
+        mask = Mask(np.load(path, allow_pickle=False))
+        self._cache = mask if not self.invert else Mask(1 - mask)
