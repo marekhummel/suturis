@@ -16,7 +16,7 @@ from suturis.typing import ComputationParams, Image, Mask, TransformationInfo
 _local_params: ComputationParams | None = None
 _computation_running: bool = False
 _process: mp.Process | None = None
-_local_pipe: mpc.PipeConnection | None = None
+_local_pipe: mpc._ConnectionBase | None = None
 _queue_listener: logging.handlers.QueueListener | None = None
 _shutdown_event: EventType = mp.Event()
 

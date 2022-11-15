@@ -17,12 +17,12 @@ homography_delegate: BaseHomographyHandler
 masking_delegate: BaseMaskingHandler
 
 
-def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue: mp.Queue) -> None:
+def main(pipe_conn: mpc._ConnectionBase, shutdown_event: EventType, logging_queue: mp.Queue) -> None:
     """Main loop for the subprocess. Initially receives handlers, then continously receive images and compute params.
 
     Parameters
     ----------
-    pipe_conn : mpc.PipeConnection
+    pipe_conn : mpc._ConnectionBase
         Connection used to communicate with main process
     shutdown_event : EventType
         Shutdown event used by the main process to signalize when to exit this process
@@ -33,6 +33,7 @@ def main(pipe_conn: mpc.PipeConnection, shutdown_event: EventType, logging_queue
     # Set logging
     qh = logging.handlers.QueueHandler(logging_queue)
     proc_logger.setLevel(log.DEBUG)
+    proc_logger.handlers.clear()
     proc_logger.addHandler(qh)
     proc_logger.debug("Subprocess started")
 

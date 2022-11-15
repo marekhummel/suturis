@@ -57,7 +57,7 @@ class BaseMaskingHandler(BaseComputationHandler[Mask]):
                 log.debug("Save computed mask to file")
                 np.save("data/out/matrix/mask.npy", self._cache, allow_pickle=False)
 
-            if self.enable_debug_outputs:
+            if self._debugging_enabled:
                 mask_jpg = (self._cache * 255).astype(np.uint8)
                 cv2.imwrite(f"{self._debug_path}mask.jpg", mask_jpg)
 

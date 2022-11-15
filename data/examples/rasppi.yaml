@@ -21,7 +21,7 @@ stitching:
     type: FileLoadHandler
     invert: False
     path: ./data/examples/files/mask.npy
-    postprocessing:
+  postprocessing:
 misc:
   automatic_restart: False
   enable_debug_outputs: False
