@@ -12,7 +12,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Suturis - real time image stitching.")
     parser.add_argument("config", type=str, nargs="?", default="src/config.yaml", help="Path to yaml config file")
     args = parser.parse_args()
-    # args.config = "data/examples/bow_stern.yaml"
+    # args.config = "data/examples/rasppi.yaml"
     io, stitching, misc = parse(args.config)
 
     # Start application

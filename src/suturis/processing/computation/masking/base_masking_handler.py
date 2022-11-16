@@ -3,7 +3,9 @@ from typing import Any
 
 import cv2
 import numpy as np
+
 from suturis.processing.computation.base_computation_handler import BaseComputationHandler
+from suturis.timer import track_timings
 from suturis.typing import Image, Mask
 
 
@@ -85,6 +87,7 @@ class BaseMaskingHandler(BaseComputationHandler[Mask]):
         """
         raise NotImplementedError("Abstract method needs to be overriden")
 
+    @track_timings(name="Mask Application")
     def apply_mask(self, img1: Image, img2: Image, mask: Mask) -> Image:
         """Applies mask to transformed images to create stitched result.
 
@@ -103,7 +106,9 @@ class BaseMaskingHandler(BaseComputationHandler[Mask]):
             Stitched image created by the mask.
         """
         log.debug("Apply mask to images")
-        img1_masked = img1.astype(np.float64) * mask
-        img2_masked = img2.astype(np.float64) * (1 - mask)
-        final = (img1_masked + img2_masked).astype(np.uint8)
-        return Image(final)
+
+        img1_masked = img1 * mask
+        img2_masked = img2 * (1.0 - mask)
+        final = img1_masked + img2_masked
+
+        return Image(final.astype(np.uint8))

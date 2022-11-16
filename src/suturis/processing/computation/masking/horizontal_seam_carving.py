@@ -198,4 +198,4 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         """
         # Given a bool matrix for each pixel, turns into mask (adding third dimension for 3 color channels)
         stacked = np.stack([bool_mask for _ in range(3)], axis=-1)
-        return Mask(stacked.astype(np.float64))
+        return Mask(stacked.astype(np.float32))

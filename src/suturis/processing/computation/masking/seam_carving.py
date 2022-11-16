@@ -329,5 +329,5 @@ class SeamCarving(BaseMaskingHandler):
                 0,
                 sigmaY=0,
                 borderType=cv2.BORDER_REPLICATE,
-            )
+            ).astype(np.float32)
         )

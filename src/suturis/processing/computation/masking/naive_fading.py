@@ -44,5 +44,5 @@ class NaiveFading(BaseMaskingHandler):
             The mask matrix used to combine the images.
         """
         log.debug("Return basic fading mask (50%% of each image)")
-        faded_mask = np.full_like(img1, 0.5, dtype=np.float64)
+        faded_mask = np.full_like(img1, 0.5, dtype=np.float32)
         return Mask(faded_mask)

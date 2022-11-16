@@ -407,7 +407,7 @@ class SeamFinding(BaseMaskingHandler):
                 0,
                 sigmaY=0,
                 borderType=cv2.BORDER_REPLICATE,
-            )
+            ).astype(np.float32)
         )
 
     def _flood_fill(

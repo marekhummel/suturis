@@ -47,7 +47,7 @@ class StraightSeam(BaseMaskingHandler):
             The mask matrix used to combine the images.
         """
         log.debug("Return straight seam mask")
-        mask = np.zeros_like(img1, dtype=np.float64)
+        mask = np.zeros_like(img1, dtype=np.float32)
 
         if self.vertical:
             mask[:, self.index :, :] = 1

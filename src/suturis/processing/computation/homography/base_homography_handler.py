@@ -3,15 +3,17 @@ from typing import Any
 
 import cv2
 import numpy as np
+
 from suturis.processing.computation.base_computation_handler import BaseComputationHandler
+from suturis.timer import track_timings
 from suturis.typing import (
     CanvasInfo,
     CanvasSize,
-    TransformationInfo,
     Homography,
     Image,
     ImagePair,
     NpShape,
+    TransformationInfo,
     TranslationVector,
 )
 
@@ -126,6 +128,7 @@ class BaseHomographyHandler(BaseComputationHandler[TransformationInfo]):
         # Return
         return canvas_size, translation
 
+    @track_timings(name="Homography Application")
     def apply_transformations(self, img1: Image, img2: Image, transformation_info: TransformationInfo) -> ImagePair:
         """Applies computed transformations to the source images.
 

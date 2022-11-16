@@ -16,7 +16,7 @@ CvRect = tuple[CvPoint, CvPoint]
 Image = NewType("Image", npt.NDArray[np.uint8])
 Homography = NewType("Homography", npt.NDArray[np.float64])
 TranslationVector = NewType("TranslationVector", tuple[int, int])
-Mask = NewType("Mask", npt.NDArray[np.float64])
+Mask = NewType("Mask", npt.NDArray[np.float32])
 SeamMatrix = NewType("SeamMatrix", npt.NDArray[np.bool_])
 
 # Aliases for readability

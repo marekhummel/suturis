@@ -32,26 +32,27 @@ stitching:
   # homography:
   #   type: NoWarpingHandler
   #   save_to_file: False
-  # homography:
-  #   type: FileLoadHandler
+  homography:
+    type: FileLoadHandler
+    path: ./data/examples/files/homography.npz
   # homography:
   #   type: BasicOrbHandler
   #   caching_enabled: False
   #   save_to_file: False
   #   orb_features: 10000
   #   min_matches: 10
-  homography:
-    type: OptimizedSiftHandler
-    caching_enabled: True
-    save_to_file: False
-    sift_features: 10000
-    min_matches: 10
-    relevant_areas_one:
-      - [[200, 200], [900, 500]]
-    relevant_areas_two:
-      - [[200, 200], [900, 500]]
-  masking:
-    type: NaiveFading
+  # homography:
+  #   type: OptimizedSiftHandler
+  #   caching_enabled: True
+  #   save_to_file: False
+  #   sift_features: 10000
+  #   min_matches: 10
+  #   relevant_areas_one:
+  #     - [[200, 200], [900, 500]]
+  #   relevant_areas_two:
+  #     - [[200, 200], [900, 500]]
+  # masking:
+  #   type: NaiveFading
   # masking:
   #   type: FileLoadHandler
   #   invert: True
@@ -74,13 +75,13 @@ stitching:
   #   half_window_size: 3
   #   gauss_size: 27
   #   yrange: [0.4, 0.6]
-  # masking:
-  #   type: StraightSeam
-  #   caching_enabled: True
-  #   save_to_file: False
-  #   invert: False
-  #   index: 400
-  #   vertical: False
+  masking:
+    type: StraightSeam
+    caching_enabled: True
+    save_to_file: True
+    invert: False
+    index: 400
+    vertical: False
   postprocessing:
     # - type: Cropper
     #   caching_enabled: True
