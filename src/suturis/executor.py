@@ -38,8 +38,9 @@ def run(io: IOConfig, delegates: StichingConfig, misc: MiscConfig) -> None:
 
     # Run while all readers live
     log.debug("Starting main loop")
+    debug_keyinputs = misc.get("enable_debug_keyinputs", False)
     while not cancellation_token.is_set():
-        _run_iteration(readers, writers, cancellation_token)
+        _run_iteration(readers, writers, cancellation_token, debug_keyinputs)
 
 
 def shutdown() -> None:
@@ -49,7 +50,9 @@ def shutdown() -> None:
 
 
 @track_timings(name="Iteration")
-def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter], cancellation_token: Event) -> None:
+def _run_iteration(
+    readers: list[BaseReader], writers: list[BaseWriter], cancellation_token: Event, debug_keyinputs: bool
+) -> None:
     """Single stitching iteration. Starts with receiving images, ends by returning the stitched image.
 
     Parameters
@@ -88,17 +91,18 @@ def _run_iteration(readers: list[BaseReader], writers: list[BaseWriter], cancell
         w.write_image(possibles[w.source])
 
     # ** Debug
-    key = cv2.waitKey(25) & 0xFF
-    if key == ord("q"):
-        log.info("Manually aborting")
-        cancellation_token.set()
-    if key == ord("e"):
-        log.info("Manually raising error")
-        raise ZeroDivisionError
-    if key == ord("p"):
-        log.info("Manually pausing")
-        while cv2.waitKey(25) & 0xFF != ord("p"):
-            pass
+    if debug_keyinputs:
+        key = cv2.waitKey(25) & 0xFF
+        if key == ord("q"):
+            log.info("Manually aborting")
+            cancellation_token.set()
+        if key == ord("e"):
+            log.info("Manually raising error")
+            raise ZeroDivisionError
+        if key == ord("p"):
+            log.info("Manually pausing")
+            while cv2.waitKey(25) & 0xFF != ord("p"):
+                pass
 
 
 def _enable_debug_outputs(delegates: StichingConfig) -> None:

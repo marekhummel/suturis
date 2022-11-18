@@ -81,7 +81,7 @@ def main(pipe_conn: mpc._ConnectionBase, shutdown_event: EventType, logging_queu
     pipe_conn.send(timings)
 
 
-@track_timings(name="Raw computation")
+@track_timings(name="Subprocess Computation")
 def _compute_params(image1: Image, image2: Image) -> ComputationParams:
     """Function to compute the parameters from the images
 

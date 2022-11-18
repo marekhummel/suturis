@@ -2,6 +2,7 @@ import logging as log
 from threading import Event, Lock, Thread
 from typing import Literal, Union
 
+from suturis.timer import track_timings
 from suturis.typing import Image
 
 _ReadImageType = Union[tuple[Literal[True], Image], tuple[Literal[False], None]]
@@ -40,6 +41,7 @@ class BaseReader:
         thread = Thread(target=self._fetch_images, args=(), daemon=True)
         thread.start()
 
+    @track_timings(name="BaseReader GetImage")
     def get(self) -> Image | None:
         """Method used by executor to access current frame. Blocks until frame is available.
 

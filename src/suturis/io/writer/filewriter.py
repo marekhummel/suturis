@@ -6,7 +6,9 @@ from time import time
 from typing import Any
 
 import cv2
+
 from suturis.io.writer.basewriter import BaseWriter
+from suturis.timer import track_timings
 from suturis.typing import CvSize, Image
 
 
@@ -64,6 +66,7 @@ class FileWriter(BaseWriter):
         self._last_write_time = 0
         log.info(f"Target file of file writer is at '{target}'")
 
+    @track_timings(name="FileWriter")
     def write_image(self, image: Image) -> None:
         """Writes images to file
 

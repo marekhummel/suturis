@@ -120,7 +120,7 @@ def shutdown() -> None:
         _queue_listener.stop()
 
 
-@track_timings(name="Update call")
+@track_timings(name="Manager Watcher")
 def _computation_watcher(image1: Image, image2: Image) -> None:
     """Daemon thread which communicates with the subprocess and updates params when completed.
 
