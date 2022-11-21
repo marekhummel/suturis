@@ -12,6 +12,7 @@ io:
       dimensions: [1280, 720]
       source: OUTPUT
       filename: "{date}_stitching.mp4"
+      fps: 2
 stitching:
   preprocessing:
   homography:

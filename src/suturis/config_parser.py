@@ -109,21 +109,20 @@ def _define_io(cfg: dict) -> IOConfig | None:
     """
     logging.debug("Define readers and writers")
 
-    # Check input output fields
+    # Check inputs
     inputs = cfg.get("inputs")
-    outputs = cfg.get("outputs")
-    if inputs is None or outputs is None:
-        logging.error("Malformed config: Input or output missing for IO")
+    if inputs is None:
+        logging.error("Malformed config: Input missing in IO")
         return None
 
-    # Verify input count
     if len(inputs) != 2:
         logging.error("Malformed config: Suturis only works with exactly two inputs")
         return None
 
-    # Warning if no outputs
-    if len(outputs) == 0:
-        logging.warning("Config doesn't specify any outputs. Stitching results will be lost.")
+    # Check outputs
+    outputs = cfg.get("outputs") or []
+    if outputs is None or len(outputs) == 0:
+        logging.warning("Config doesn't specify any outputs, stitching results will be lost")
 
     # Create readers and writers
     readers = _create_instances(BaseReader, inputs)
@@ -147,19 +146,19 @@ def _define_stitching(cfg: dict) -> StichingConfig | None:
     logging.debug("Define stitching classes")
 
     # Check input output fields
-    preprocessors = cfg.get("preprocessing")
+    preprocessors = cfg.get("preprocessing") or []
     homography = cfg.get("homography")
     masking = cfg.get("masking")
-    postprocessors = cfg.get("postprocessing")
+    postprocessors = cfg.get("postprocessing") or []
     if homography is None or masking is None:
         logging.error("Malformed config: Homography or Masking missing for Stitching")
         return None
 
     # Create handlers
-    preprocessing_handlers = _create_instances(BasePreprocessor, preprocessors or [])
+    preprocessing_handlers = _create_instances(BasePreprocessor, preprocessors)
     homography_handler = _create_instance(BaseHomographyHandler, homography)
     masking_handler = _create_instance(BaseMaskingHandler, masking)
-    postprocessing_handlers = _create_instances(BasePostprocessor, postprocessors or [])
+    postprocessing_handlers = _create_instances(BasePostprocessor, postprocessors)
 
     if (
         preprocessing_handlers is None

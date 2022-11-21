@@ -19,7 +19,7 @@ class FileWriter(BaseWriter):
     _dimensions: CvSize
     _last_frame: Image | None
     _last_write_time: float
-    _fps: int = 30
+    _fps: int
 
     def __init__(
         self,
@@ -27,6 +27,7 @@ class FileWriter(BaseWriter):
         dimensions: CvSize,
         target_dir: str = "data/out/",
         filename: str = "{date}_stitching.mp4",
+        fps: int = 30,
         **kwargs: Any,
     ) -> None:
         """Creates new file writer.
@@ -62,7 +63,8 @@ class FileWriter(BaseWriter):
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         target = join(target_dir, filename)
         self._dimensions = dimensions
-        self._writer = cv2.VideoWriter(target, fourcc, self._fps, dimensions)
+        self._fps = fps
+        self._writer = cv2.VideoWriter(target, fourcc, fps, dimensions)
         self._last_write_time = 0
         log.info(f"Target file of file writer is at '{target}'")
 

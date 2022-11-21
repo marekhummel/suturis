@@ -3,16 +3,16 @@ io:
     - type: FileReader
       path: ./data/examples/files/2022-04-23/starboard_0120220423163949.mp4
       skip: 130.8
-      speed_up: 4
+      speed_up: 1
       single_frame: True
     - type: FileReader
       path: ./data/examples/files/2022-04-23/port_0120220423162959.mp4
       skip: 123
-      speed_up: 4
+      speed_up: 1
       single_frame: True
   outputs:
-    - type: ScreenOutput
-      title: Stitched
+    # - type: ScreenOutput
+    #   title: Stitched
       # window_size: [1280, 720]
     # - type: FileWriter
     #   dimensions: [600, 900]
