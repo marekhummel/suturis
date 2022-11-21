@@ -4,7 +4,9 @@ from typing import Any
 import cv2
 import numpy as np
 import numpy.typing as npt
+
 from suturis.processing.computation.masking import BaseMaskingHandler
+from suturis.timer import track_timings
 from suturis.typing import Image, Mask, NpSize, SeamMatrix
 
 # Max value in energy map. Lab in float32 has ranges in L from 0 to 100, and a/b from -127 to 127.
@@ -199,3 +201,46 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         # Given a bool matrix for each pixel, turns into mask (adding third dimension for 3 color channels)
         stacked = np.stack([bool_mask for _ in range(3)], axis=-1)
         return Mask(stacked.astype(np.float32))
+
+    @track_timings(name="Mask Application")
+    def apply_mask(self, img1: Image, img2: Image, mask: Mask) -> Image:
+        """Applies mask to transformed images to create stitched result.
+
+        Parameters
+        ----------
+        img1 : Image
+            First input image, transformed and cropped
+        img2 : Image
+            Second input image, transformed and cropped
+        mask : Mask
+            The mask to use. Values correspond to the percentage to be used of first image.
+
+        Returns
+        -------
+        Image
+            Stitched image created by the mask.
+        """
+        # Custom method, because big areas can be copied instead of explicit calculation
+        log.debug("Apply horizontal seam carving mask to images")
+
+        # If there's no restriction, use base method
+        if not self.yrange:
+            return super().apply_mask(img1, img2, mask)
+
+        # Copy areas
+        height = mask.shape[0]
+        top, bot = int(self.yrange[0] * height), int(self.yrange[1] * height)
+
+        final = np.zeros_like(mask)
+        top_img = img1 if self.invert else img2
+        bot_img = img2 if self.invert else img1
+        final[:top, :] = top_img[:top, :]
+        final[bot:, :] = bot_img[bot:, :]
+
+        # Only compute around seam
+        img1_section = img1[top:bot, :]
+        img2_section = img2[top:bot, :]
+        mask_section = mask[top:bot, :]
+        final[top:bot, :] = img1_section * mask_section + img2_section * (1 - mask_section)
+
+        return Image(final.astype(np.uint8))

@@ -77,21 +77,21 @@ stitching:
   #   save_to_file: False
   #   blocked_area_one: [[540, 70], [1400, 360]]
   #   blocked_area_two: [[0, 420], [825, 700]]
-  masking:
-    type: HorizontalSeamCarving
-    caching_enabled: True
-    save_to_file: False
-    invert: False
-    half_window_size: 3
-    gauss_size: 27
-    yrange: [0.4, 0.6]
   # masking:
-  #   type: StraightSeam
+  #   type: HorizontalSeamCarving
   #   caching_enabled: True
-  #   save_to_file: True
-  #   invert: False
-  #   index: 400
-  #   vertical: False
+  #   save_to_file: False
+  #   invert: True
+  #   half_window_size: 3
+  #   gauss_size: 27
+  #   yrange: [0.4, 0.6]
+  masking:
+    type: StraightSeam
+    caching_enabled: True
+    save_to_file: True
+    invert: False
+    index: 400
+    vertical: False
   postprocessing:
     # - type: Cropper
     #   caching_enabled: True

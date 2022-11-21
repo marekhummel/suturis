@@ -98,7 +98,7 @@ class BaseMaskingHandler(BaseComputationHandler[Mask]):
         img2 : Image
             Second input image, transformed and cropped
         mask : Mask
-            The mask to use. Will be inverted if instance attribute "invert" is set.
+            The mask to use. Values correspond to the percentage to be used of first image.
 
         Returns
         -------

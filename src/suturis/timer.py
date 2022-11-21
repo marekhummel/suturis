@@ -25,8 +25,8 @@ def track_timings(*, name: str) -> Callable[[Callable[P, T]], Callable[P, T]]:
     Callable[[Callable], Any]
         Decorated functions
     """
-    assert name not in timings, "Function with same name already tracked."
-    timings[name] = []
+    if name not in timings:
+        timings[name] = []
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @wraps(func)

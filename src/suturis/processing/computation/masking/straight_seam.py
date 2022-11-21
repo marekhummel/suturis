@@ -3,8 +3,12 @@ from typing import Any
 
 import cv2
 import numpy as np
+
 from suturis.processing.computation.masking import BaseMaskingHandler
+from suturis.timer import track_timings
 from suturis.typing import Image, Mask
+
+GAUSS_BLUR_SIZE = 27
 
 
 class StraightSeam(BaseMaskingHandler):
@@ -54,5 +58,56 @@ class StraightSeam(BaseMaskingHandler):
         else:
             mask[self.index :, :, :] = 1
 
-        mask = cv2.GaussianBlur(mask, (27, 27), 0, borderType=cv2.BORDER_REPLICATE)
+        mask = cv2.GaussianBlur(mask, (GAUSS_BLUR_SIZE, GAUSS_BLUR_SIZE), 0, borderType=cv2.BORDER_REPLICATE)
         return Mask(mask)
+
+    @track_timings(name="Mask Application")
+    def apply_mask(self, img1: Image, img2: Image, mask: Mask) -> Image:
+        """Applies mask to transformed images to create stitched result.
+
+        Parameters
+        ----------
+        img1 : Image
+            First input image, transformed and cropped
+        img2 : Image
+            Second input image, transformed and cropped
+        mask : Mask
+            The mask to use. Values correspond to the percentage to be used of first image.
+
+        Returns
+        -------
+        Image
+            Stitched image created by the mask.
+        """
+        log.debug("Apply horizontal seam carving mask to images")
+
+        # Custom method, because big areas can easily be copied
+        first = self.index - GAUSS_BLUR_SIZE
+        second = self.index + GAUSS_BLUR_SIZE
+        final = np.zeros_like(mask)
+
+        first_img = img1 if self.invert else img2
+        second_img = img2 if self.invert else img1
+
+        if self.vertical:
+            # Copy whole areas
+            final[:, :first] = first_img[:, :first]
+            final[:, second:] = second_img[:, second:]
+
+            # Only compute around seam
+            mask_section = mask[:, first:second]
+            img1_section = img1[:, first:second] * mask_section
+            img2_section = img2[:, first:second] * (1 - mask_section)
+            final[:, first:second] = img1_section + img2_section
+        else:
+            # Copy whole areas
+            final[:first, :] = first_img[:first, :]
+            final[second:, :] = second_img[second:, :]
+
+            # Only compute around seam
+            mask_section = mask[first:second, :]
+            img1_section = img1[first:second, :] * mask_section
+            img2_section = img2[first:second, :] * (1 - mask_section)
+            final[first:second, :] = img1_section + img2_section
+
+        return Image(final.astype(np.uint8))
