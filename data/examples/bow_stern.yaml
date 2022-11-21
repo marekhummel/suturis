@@ -3,10 +3,12 @@ io:
     - type: FileReader
       path: ./data/examples/files/2022-05-28/bow_0120220528105828_compressed.mp4 # different fps dont matter, extra frames will be skipped
       speed_up: 2
+      single_frame: True
     - type: FileReader
       path: ./data/examples/files/2022-05-28/stern_0120220528110011_compressed.mp4
       skip: 282
       speed_up: 2
+      single_frame: True
   outputs:
     - type: ScreenOutput
       title: Stitched
@@ -40,16 +42,17 @@ stitching:
     type: StraightSeam
     caching_enabled: True
     save_to_file: False
-    invert: False
+    invert: True
     index: 1079 # 458
     vertical: True
-  # postprocessing:
-  #   - type: Cropper
-  #     caching_enabled: True
-  #     threshold: 0.02
+  postprocessing:
+    - type: Cropper
+      caching_enabled: True
+      threshold: 0.02
 misc:
   automatic_restart: False
-  enable_debug_outputs: False
+  enable_debug_outputs: True
+  enable_debug_keyinputs: True
 logging:
   version: 1
   formatters:

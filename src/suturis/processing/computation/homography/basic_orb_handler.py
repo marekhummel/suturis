@@ -75,7 +75,14 @@ class BasicOrbHandler(BaseHomographyHandler):
         log.debug(f"Computed homography {h.tolist()}")
         return Homography(h)
 
-    def _output_debug_images(self, img1: Image, img2: Image, kpts_img1: list, kpts_img2: list, matches: list) -> None:
+    def _output_debug_images(
+        self,
+        img1: Image,
+        img2: Image,
+        kpts_img1: list[cv2.KeyPoint],
+        kpts_img2: list[cv2.KeyPoint],
+        matches: list[cv2.DMatch],
+    ) -> None:
         """Writes debug images to disk to visualize matches and keypoints.
 
         Parameters
@@ -96,8 +103,16 @@ class BasicOrbHandler(BaseHomographyHandler):
         )
         cv2.imwrite(f"{self._debug_path}orb_matches.jpg", matches_img)
 
-        kpts1_img = cv2.drawKeypoints(img1, kpts_img1, None, color=(72, 144, 233))
+        kpts1_img = img1.copy()
+        for kp in kpts_img1:
+            pt = int(kp.pt[0]), int(kp.pt[1])
+            cv2.circle(kpts1_img, pt, radius=4, color=(103, 196, 233), thickness=-1)
+            cv2.circle(kpts1_img, pt, radius=4, color=(72, 144, 233), thickness=2)
         cv2.imwrite(f"{self._debug_path}img1_orb_keypoints.jpg", kpts1_img)
 
-        kpts2_img = cv2.drawKeypoints(img2, kpts_img2, None, color=(72, 144, 233))
+        kpts2_img = img2.copy()
+        for kp in kpts_img2:
+            pt = int(kp.pt[0]), int(kp.pt[1])
+            cv2.circle(kpts2_img, pt, radius=4, color=(103, 196, 233), thickness=-1)
+            cv2.circle(kpts2_img, pt, radius=4, color=(72, 144, 233), thickness=2)
         cv2.imwrite(f"{self._debug_path}img2_orb_keypoints.jpg", kpts2_img)
