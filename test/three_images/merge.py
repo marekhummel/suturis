@@ -85,4 +85,5 @@ if __name__ == "__main__":
     final = mask(img3, pts3, img1, pts1, img2, pts2)
     final = cv2.resize(final, (1280, 720))
     cv2.imshow("f", final)
+    cv2.imwrite("data/out/thesis/three_images.jpg", final)
     cv2.waitKey(0)

@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import time
 
-image = cv2.imread("data/out/debug/result.jpg")
+image = cv2.imread("data/out/debug/simple_seam_result.jpg")
 
 start = time.perf_counter()
 height, width = image.shape[:2]
