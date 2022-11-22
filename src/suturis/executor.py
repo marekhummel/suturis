@@ -9,6 +9,7 @@ from suturis.io.reader.basereader import BaseReader
 from suturis.io.writer.basewriter import BaseWriter
 from suturis.processing import stitching
 from suturis.timer import finalize_timings, track_timings
+from suturis.typing import Image
 
 
 def run(io: IOConfig, delegates: StichingConfig, misc: MiscConfig) -> None:
@@ -71,8 +72,7 @@ def _run_iteration(
     """
     # ** Read (reading might block)
     log.debug("Read images")
-    results = [r.get() for r in readers]
-    image1, image2 = results
+    image1, image2 = _read_image(readers)
 
     # One reader failed
     if image1 is None or image2 is None:
@@ -103,6 +103,23 @@ def _run_iteration(
             log.info("Manually pausing")
             while cv2.waitKey(25) & 0xFF != ord("p"):
                 pass
+
+
+@track_timings(name="Readers")
+def _read_image(readers: list[BaseReader]) -> tuple[Image | None, Image | None]:
+    """Returns the current images of both readers.
+
+    Parameters
+    ----------
+    readers : list[BaseReader]
+        List (pair) of readers
+
+    Returns
+    -------
+    tuple[Image | None, Image | None]
+        Most recent images.
+    """
+    return readers[0].get(), readers[1].get()
 
 
 def _enable_debug_outputs(delegates: StichingConfig) -> None:
