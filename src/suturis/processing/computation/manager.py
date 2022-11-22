@@ -15,6 +15,7 @@ from suturis.typing import ComputationParams, Image, Mask, TransformationInfo
 
 _local_params: ComputationParams | None = None
 _computation_running: bool = False
+_no_recomputation_needed: bool = False
 _process: mp.Process | None = None
 _local_pipe: mpc._ConnectionBase | None = None
 _queue_listener: logging.handlers.QueueListener | None = None
@@ -46,7 +47,7 @@ def get_params(image1: Image, image2: Image) -> ComputationParams | None:
     assert _process
 
     # Recompute params when possible
-    if not _computation_running:
+    if not _computation_running and (_local_params is None or not _no_recomputation_needed):
         log.debug("Recompute stitching params")
         _computation_running = True
         watcher = threading.Thread(target=_computation_watcher, args=(image1, image2), daemon=True)
@@ -74,9 +75,8 @@ def setup(
     masking_handler : BaseMaskingHandler
         Masking handler
     """
-    global _process, _local_pipe, _queue_listener
+    global _process, _local_pipe, _queue_listener, _no_recomputation_needed
 
-    # Create subprocess
     assert _process is None
     log.debug("Creating daemon process")
 
@@ -95,6 +95,11 @@ def setup(
     _local_pipe.send(preprocessing_handlers)
     _local_pipe.send(homography_handler)
     _local_pipe.send(masking_handler)
+
+    # Check if process needs to operate more than once
+    _no_recomputation_needed = homography_handler._caching_enabled and masking_handler._caching_enabled
+    if _no_recomputation_needed:
+        log.info("Both main delegates have caching enabled, thus the subprocess will only be contacted once")
 
 
 def shutdown() -> None:

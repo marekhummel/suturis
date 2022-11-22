@@ -174,6 +174,7 @@ def _define_stitching(cfg: dict) -> StichingConfig | None:
     if masking_handler._caching_enabled and not homography_handler._caching_enabled:
         logging.warning("The masking handler has caching enabled, while the homography handler has not")
 
+    logging.info(f"Homography: {homography_handler.__class__.__name__}, Masking: {masking_handler.__class__.__name__}")
     return preprocessing_handlers, homography_handler, masking_handler, postprocessing_handlers
 
 
