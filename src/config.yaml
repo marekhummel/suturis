@@ -2,22 +2,23 @@ io:
   inputs:
     - type: FileReader
       path: ./data/examples/files/2022-04-23/starboard_0120220423163949.mp4
-      skip: 130.8
-      speed_up: 1
-      single_frame: True
+      skip: 79.8
+      speed_up: 3
+      single_frame: False
     - type: FileReader
       path: ./data/examples/files/2022-04-23/port_0120220423162959.mp4
-      skip: 123
-      speed_up: 1
-      single_frame: True
+      skip: 73
+      speed_up: 3
+      single_frame: False
   outputs:
     # - type: ScreenOutput
     #   title: Stitched
-      # window_size: [1280, 720]
-    # - type: FileWriter
-    #   dimensions: [600, 900]
-    #   source: OUTPUT
-    #   filename: "{date}_stitching.mp4"
+    #   window_size: [1280, 720]
+    - type: FileWriter
+      dimensions: [1280, 720]
+      source: OUTPUT
+      filename: "{date}_stitching.mp4"
+      fps: 30
 stitching:
   preprocessing:
     # - type: DebugColoring
@@ -81,8 +82,8 @@ stitching:
   #   type: HorizontalSeamCarving
   #   caching_enabled: True
   #   save_to_file: False
-  #   invert: True
-  #   half_window_size: 3
+  #   invert: False
+  #   half_window_size: 5
   #   gauss_size: 27
   #   yrange: [0.4, 0.6]
   masking:
@@ -93,12 +94,12 @@ stitching:
     index: 400
     vertical: False
   postprocessing:
-    # - type: Cropper
+    - type: Cropper
+      caching_enabled: True
+      threshold: 0.02
+    # - type: Rotation
     #   caching_enabled: True
-    #   threshold: 0.02
-  # - type: Rotation
-  #   caching_enabled: True
-  #   angle_deg: 90
+    #   angle_deg: 90
 misc:
   automatic_restart: False
   enable_debug_outputs: True

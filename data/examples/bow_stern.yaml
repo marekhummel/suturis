@@ -34,21 +34,21 @@ stitching:
   #     # - [[771, 208], [1280, 460]]
   #   relevant_areas_two:
   #     # - [[446, 208], [1174, 438]]
-  # masking:
-  #   type: NaiveFading
-  #   caching_enabled: False
-  #   save_to_file: False
   masking:
-    type: StraightSeam
-    caching_enabled: True
+    type: NaiveFading
+    caching_enabled: False
     save_to_file: False
-    invert: True
-    index: 1079 # 458
-    vertical: True
-  postprocessing:
-    - type: Cropper
-      caching_enabled: True
-      threshold: 0.02
+  # masking:
+  #   type: StraightSeam
+  #   caching_enabled: True
+  #   save_to_file: False
+  #   invert: True
+  #   index: 1079 # 458
+  #   vertical: True
+  # postprocessing:
+  #   - type: Cropper
+  #     caching_enabled: True
+  #     threshold: 0.02
 misc:
   automatic_restart: False
   enable_debug_outputs: True

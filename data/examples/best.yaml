@@ -3,39 +3,43 @@ io:
     - type: FileReader
       path: ./data/examples/files/2022-04-23/starboard_0120220423163949.mp4
       skip: 7.8
-      speed_up: 8
     - type: FileReader
       path: ./data/examples/files/2022-04-23/port_0120220423162959.mp4
-      speed_up: 8
+      skip: 0
   outputs:
     - type: ScreenOutput
       title: Stitched
-      window_size: [1280, 720]
+      window_size: [600, 900]
 stitching:
   preprocessing:
-    - type: DebugColoring
+    - type: TextRemoval
       needed_for_computation: False
+      text_areas_one:
+        - [[454, 17], [823, 41]] # Text Top
+        - [[1052, 671], [1264, 698]] # Text Bot
+      text_areas_two:
+        - [[454, 17], [823, 41]] # Text Top
+        - [[1085, 671], [1264, 698]] # Text Bot
   homography:
-    type: OptimizedSiftHandler
-    caching_enabled: False
-    save_to_file: True
-    sift_features: 10000
-    min_matches: 10
-    relevant_areas_one:
-      - [[200, 200], [900, 500]]
-    relevant_areas_two:
-      - [[200, 200], [900, 500]]
+    type: FileLoadHandler
+    path: ./data/examples/files/homography.npz
   masking:
     type: HorizontalSeamCarving
     caching_enabled: True
-    save_to_file: True
-    invert: False
     half_window_size: 3
     gauss_size: 27
     yrange: [0.4, 0.6]
+  postprocessing:
+    - type: Cropper
+      caching_enabled: True
+      threshold: 0.02
+    - type: Rotation
+      caching_enabled: True
+      angle_deg: 90
 misc:
   automatic_restart: False
   enable_debug_outputs: False
+  enable_debug_keyinputs: False
 logging:
   version: 1
   formatters:

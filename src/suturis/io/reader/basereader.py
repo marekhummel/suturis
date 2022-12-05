@@ -55,6 +55,9 @@ class BaseReader:
 
         # Return data and set memory to None
         with self._lock:
+            if self._current is not None:
+                log.debug(f"Frame in reader #{self.index} was overriden and not used for stitching.")
+
             data = self._current
             self._current = None
         return data

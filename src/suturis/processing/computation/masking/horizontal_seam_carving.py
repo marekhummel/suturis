@@ -78,6 +78,10 @@ class HorizontalSeamCarving(BaseMaskingHandler):
         log.debug("Compute image mask from path")
         img_mask = self._bool_to_img_mask(bool_mask)
 
+        if self._debugging_enabled:
+            log.debug("Write hsc debug images")
+            cv2.imwrite(f"{self._debug_path}hsc_energy_map.jpg", (energy / MAX_ENERGY_VALUE * 255).astype(np.uint8))
+
         log.debug("Add blur to mask")
         blurred_mask = cv2.GaussianBlur(
             img_mask, (self.gauss_size, self.gauss_size), 0, borderType=cv2.BORDER_REPLICATE

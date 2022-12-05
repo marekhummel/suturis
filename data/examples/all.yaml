@@ -3,10 +3,13 @@ io:
     - type: FileReader
       path: ./data/examples/files/2022-04-23/starboard_0120220423163949.mp4
       skip: 7.8
-      speed_up: 8
+      speed_up: 1
+      single_frame: False
     - type: FileReader
       path: ./data/examples/files/2022-04-23/port_0120220423162959.mp4
-      speed_up: 8
+      skip: 0
+      speed_up: 1
+      single_frame: False
   outputs:
     - type: ScreenOutput
       title: Stitched
@@ -25,10 +28,11 @@ io:
       filename: "{date}_input2.mp4"
 stitching:
   preprocessing:
-    # - type: Rotation
-    #   degrees_img1: 180
-    #   degrees_img2: 180
-    # - type: DebugColoring
+    - type: Rotation
+      degrees_img1: 180
+      degrees_img2: 180
+    - type: DebugColoring
+      needed_for_computation: False
     - type: TextRemoval
       needed_for_computation: False
       text_areas_one:
@@ -38,9 +42,21 @@ stitching:
         - [[454, 17], [823, 41]] # Text Top
         - [[1085, 671], [1264, 698]] # Text Bot
   homography:
-    type: OptimizedSiftHandler
-    caching_enabled: True
+    type: FileLoadHandler
+    path: ./data/examples/files/homography.npz
+  homography:
+    type: NoWarpingHandler
     save_to_file: False
+  homography:
+    type: BasicOrbHandler
+    caching_enabled: False
+    save_to_file: False
+    orb_features: 10000
+    min_matches: 10
+  homography:
+    type: OptimizedSiftHandler
+    save_to_file: False
+    caching_enabled: False
     sift_features: 10000
     min_matches: 10
     relevant_areas_one:
@@ -48,8 +64,32 @@ stitching:
     relevant_areas_two:
       - [[200, 200], [900, 500]]
   masking:
+    type: FileLoadHandler
+    path: ./data/examples/files/mask.npy
+    invert: False
+  masking:
+    type: SeamFinding
+    caching_enabled: False
+    save_to_file: False
+    invert: False
+    preferred_seam: [[475, 400], [725, 400]]
+  masking:
+    type: SeamCarvingWide
+    caching_enabled: False
+    save_to_file: False
+    invert: False
+    blocked_area_one: [[540, 70], [1300, 360]]
+    blocked_area_two: [[0, 420], [825, 700]]
+  masking:
+    type: StraightSeam
+    caching_enabled: False
+    save_to_file: False
+    invert: False
+    vertical: False
+    index: 400
+  masking:
     type: HorizontalSeamCarving
-    caching_enabled: True
+    caching_enabled: False
     save_to_file: False
     invert: False
     half_window_size: 3
@@ -58,6 +98,7 @@ stitching:
 misc:
   automatic_restart: False
   enable_debug_outputs: False
+  enable_debug_keyinputs: False
 logging:
   version: 1
   formatters:
